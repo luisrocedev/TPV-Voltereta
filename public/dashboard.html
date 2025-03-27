@@ -24,7 +24,7 @@
 
   <!-- CHAT -->
   <section id="chatSection" class="section-hidden">
-    <h2>Chat</h2>
+    <h2>Chat en tiempo real</h2>
     <div id="chatContainer" class="chat-box"></div>
     <input type="text" id="chatInput" placeholder="Mensaje...">
     <button id="chatSend">Enviar</button>
@@ -50,6 +50,21 @@
       <input type="text" id="employeeRole" placeholder="Rol">
       <button id="employeeAddBtn">Agregar Empleado</button>
     </div>
+
+    <!-- Modal Editar Empleado (solo admin/gerente) -->
+    <div class="modal" id="editEmployeeModal">
+      <div class="modal-content">
+        <span id="closeEditEmpModal" class="close">&times;</span>
+        <h3>Editar Empleado</h3>
+        <label>Nombre:</label>
+        <input type="text" id="editEmpFullName">
+        <label>Correo:</label>
+        <input type="email" id="editEmpEmail">
+        <label>Foto URL:</label>
+        <input type="text" id="editEmpPic">
+        <button id="saveEmpChanges">Guardar Cambios</button>
+      </div>
+    </div>
   </section>
 
   <!-- RESERVAS -->
@@ -65,7 +80,7 @@
     </div>
   </section>
 
-  <!-- PEDIDOS (POS/KDS) -->
+  <!-- PEDIDOS -->
   <section id="ordersSection" class="section-hidden">
     <h2>Pedidos (POS/KDS)</h2>
     <button id="openOrderModalBtn">Nuevo Pedido</button>
@@ -94,12 +109,19 @@
       <button id="editPasswordBtn">Cambiar Contraseña</button>
     </div>
 
-    <!-- FORM CAMBIO CONTRASEÑA -->
     <div id="passwordForm" style="display:none;margin-top:1rem;">
       <input type="password" id="oldPass" placeholder="Contraseña anterior">
       <input type="password" id="newPass" placeholder="Nueva contraseña">
       <button id="savePassBtn">Guardar</button>
       <p id="passMsg"></p>
+    </div>
+
+    <!-- SOLO para user no admin => cambiar su propia foto -->
+    <div id="updatePicContainer" style="margin-top:1rem; display:none;">
+      <h3>Actualizar Foto</h3>
+      <input type="text" id="newProfilePic" placeholder="URL nueva foto">
+      <button id="updateMyPhotoBtn">Actualizar</button>
+      <p id="picMsg"></p>
     </div>
   </section>
 
@@ -114,14 +136,13 @@
       <input type="text" id="modalCustomer">
       <label>Comentarios:</label>
       <input type="text" id="modalComments">
-
       <div id="orderItemsContainer"></div>
       <button id="addItemBtn">Añadir Plato</button>
       <button id="createOrderConfirmBtn">Crear Pedido</button>
     </div>
   </div>
 
-  <!-- TEMPLATE PARA ITEMS DE PEDIDO -->
+  <!-- TEMPLATE ITEM -->
   <template id="orderItemTemplate">
     <div class="orderItemRow">
       <select class="orderItemSelect"></select>
@@ -134,6 +155,8 @@
   <script>
     let token = null;
     let loggedUser = null;
+    let editingEmpId = null;
+
     const socket = io();
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -148,13 +171,11 @@
     });
 
     function initUI() {
-      // Logout
       document.getElementById('logoutBtn').addEventListener('click', () => {
         localStorage.removeItem('token');
         localStorage.removeItem('loggedUser');
         window.location.href = 'login.html';
       });
-
       initNav();
       initChat();
       initMenu();
@@ -163,9 +184,7 @@
       initOrders();
       initReports();
       initProfile();
-
       applyRoleUI(loggedUser.role);
-      // Por defecto, si es chef/mesero -> Pedidos, admin/gerente -> Chat (o a tu gusto).
     }
 
     function initNav() {
@@ -181,17 +200,10 @@
       });
     }
 
-    // <<Refactor #1: Rol-based UI en front>>
+    // Roles
     function applyRoleUI(role) {
-      if (role === 'chef') {
+      if (role === 'chef' || role === 'mesero') {
         // Ocultar Menú, Empleados, Reservas, Reportes
-        document.querySelector('[data-section="menu"]').parentElement.style.display = 'none';
-        document.querySelector('[data-section="employees"]').parentElement.style.display = 'none';
-        document.querySelector('[data-section="reservations"]').parentElement.style.display = 'none';
-        document.querySelector('[data-section="reports"]').parentElement.style.display = 'none';
-        // Forzar Pedidos
-        showSection('ordersSection');
-      } else if (role === 'mesero') {
         document.querySelector('[data-section="menu"]').parentElement.style.display = 'none';
         document.querySelector('[data-section="employees"]').parentElement.style.display = 'none';
         document.querySelector('[data-section="reservations"]').parentElement.style.display = 'none';
@@ -199,15 +211,21 @@
         showSection('ordersSection');
       } else {
         // admin/gerente => todo OK
-        // Por defecto, Chat
         showSection('chatSection');
       }
-    }
 
-    function showSection(sectionId) {
-      const sections = document.querySelectorAll('section');
-      sections.forEach(sec => sec.classList.add('section-hidden'));
-      document.getElementById(sectionId).classList.remove('section-hidden');
+      // Si no es admin/gerente => mostrar updatePicContainer
+      if (role === 'admin' || role === 'gerente') {
+        document.getElementById('updatePicContainer').style.display='none';
+      } else {
+        // user normal => ver container para cambiar su foto
+        document.getElementById('updatePicContainer').style.display='block';
+      }
+    }
+    function showSection(id) {
+      const secs = document.querySelectorAll('section');
+      secs.forEach(s => s.classList.add('section-hidden'));
+      document.getElementById(id).classList.remove('section-hidden');
     }
 
     // ================ CHAT ================
@@ -563,52 +581,80 @@
 
     // ================ PERFIL ================
     function initProfile() {
-      // Mostramos datos del user
-      const user = loggedUser; 
+      const user = loggedUser;
       document.getElementById('profileUsername').textContent = user.username;
       document.getElementById('profileFullname').textContent = user.fullname || '---';
       document.getElementById('profileEmail').textContent = user.email || '---';
-
-      // Foto
       const photoURL = user.photo || user.profile_pic;
       document.getElementById('profilePhoto').src = photoURL || 'https://via.placeholder.com/100';
 
-      // Mostrar form cambio pass
-      document.getElementById('editPasswordBtn').addEventListener('click', () => {
-        const form = document.getElementById('passwordForm');
-        form.style.display = (form.style.display === 'none' ? 'block' : 'none');
+      document.getElementById('editPasswordBtn').addEventListener('click', ()=>{
+        const f = document.getElementById('passwordForm');
+        f.style.display=(f.style.display==='none'?'block':'none');
       });
-
       document.getElementById('savePassBtn').addEventListener('click', updatePassword);
+
+      // Botón cambiar foto (solo user normal => updatePicContainer)
+      document.getElementById('updateMyPhotoBtn').addEventListener('click', updateMyPhoto);
     }
     async function updatePassword() {
       const oldPass = document.getElementById('oldPass').value.trim();
       const newPass = document.getElementById('newPass').value.trim();
       const passMsg = document.getElementById('passMsg');
-      passMsg.textContent = '';
-
-      if (!oldPass || !newPass) {
-        passMsg.textContent = 'Faltan contraseñas';
+      passMsg.textContent='';
+      if(!oldPass||!newPass){
+        passMsg.textContent='Faltan contraseñas';
         return;
       }
-
       try {
-        const resp = await fetch('/update-password', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token
+        const resp=await fetch('/update-password',{
+          method:'PUT',
+          headers:{
+            'Content-Type':'application/json',
+            'Authorization':'Bearer '+token
           },
           body: JSON.stringify({ oldPassword: oldPass, newPassword: newPass })
         });
-        const data = await resp.json();
-        if (data.success) {
-          passMsg.textContent = 'Contraseña actualizada correctamente';
-        } else {
-          passMsg.textContent = 'Error: ' + data.message;
+        const data=await resp.json();
+        if(data.success){
+          passMsg.textContent='Contraseña actualizada correctamente';
+        }else{
+          passMsg.textContent='Error: '+data.message;
         }
-      } catch (err) {
-        passMsg.textContent = 'Error de conexión';
+      }catch(e){
+        passMsg.textContent='Error de conexión';
+      }
+    }
+    async function updateMyPhoto() {
+      const picMsg = document.getElementById('picMsg');
+      const newProfilePic = document.getElementById('newProfilePic').value.trim();
+      picMsg.textContent='';
+      if(!newProfilePic){
+        picMsg.textContent='Falta la URL de la foto';
+        return;
+      }
+      try{
+        const resp=await fetch('/myprofile',{
+          method:'PUT',
+          headers:{
+            'Content-Type':'application/json',
+            'Authorization':'Bearer '+token
+          },
+          body: JSON.stringify({ profile_pic: newProfilePic })
+        });
+        const data=await resp.json();
+        if(data.success){
+          picMsg.textContent='Foto actualizada';
+          // Actualizamos localStorage
+          loggedUser.photo = newProfilePic;
+          localStorage.setItem('loggedUser', JSON.stringify(loggedUser));
+          // Actualizamos visual
+          document.getElementById('profilePhoto').src = newProfilePic;
+        } else {
+          picMsg.textContent='Error: '+data.message;
+        }
+      }catch(e){
+        picMsg.textContent='Error de conexión';
       }
     }
   </script>

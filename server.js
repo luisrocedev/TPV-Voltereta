@@ -2,14 +2,15 @@
  * server.js - Proyecto Monolítico
  * Incorpora:
  *   - Campos avanzados de usuario (full_name, email, profile_pic)
- *   - Sección Mi Perfil en frontend
- *   - Endpoint /update-password (Refactor #2)
+ *   - Sección Mi Perfil (cada user puede cambiar SOLO su foto)
+ *   - Endpoint /myprofile (usuario no admin)
+ *   - Endpoint /update-user/:id (admin/gerente) edita otro user
+ *   - Endpoint /update-password
  *   - CRUD (Menú, Empleados, Reservas, Pedidos, Facturas, Caja)
  *   - Roles con JWT + bcrypt
  *   - Chat con Socket.IO
  *
- * NOTA: Este archivo se podría refactorizar más adelante 
- *       (dividir en routes/controllers), pero mantenemos monolito.
+ * NOTA: Mantenemos tu código y estilo. 
  ***************************************************************/
 const express = require('express');
 const mysql = require('mysql2');
@@ -78,26 +79,38 @@ function checkRole(...allowed) {
 
 // ====================== /register ======================
 app.post('/register', async (req, res) => {
-  const { username, password, role, full_name, email, profile_pic } = req.body;
+  const { username, password, role, fullname, email, profile_pic } = req.body;
+
   if (!username || !password || !role) {
     return res.status(400).json({ success: false, message: 'Faltan datos obligatorios' });
   }
-  try {
-    const hashed = await bcrypt.hash(password, 10);
-    const sql = `
-      INSERT INTO users (username, password, role, full_name, email, profile_pic)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `;
-    db.query(sql, [username, hashed, role, full_name || '', email || '', profile_pic || ''], (err, result) => {
-      if (err) {
-        return res.status(500).json({ success: false, message: 'Error en DB', error: err });
-      }
-      return res.json({ success: true, userId: result.insertId });
-    });
-  } catch (err) {
-    return res.status(500).json({ success: false, message: 'Error al registrar usuario' });
-  }
+
+  const hashed = await bcrypt.hash(password, 10);
+
+  const sql = `
+    INSERT INTO users (username, password, role, fullname, email, profile_pic)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `;
+
+  // Establecer valores por defecto adecuados (null si no se proporciona)
+  const userData = [
+    username,
+    hashed,
+    role,
+    fullname || null,
+    email || null,
+    profile_pic || null
+  ];
+
+  db.query(sql, userData, (err, result) => {
+    if (err) {
+      console.error('Error en inserción BD:', err);
+      return res.status(500).json({ success: false, message: 'Error en la base de datos', error: err.sqlMessage });
+    }
+    return res.json({ success: true, userId: result.insertId });
+  });
 });
+
 
 // ====================== /login ======================
 app.post('/login', (req, res) => {
@@ -140,7 +153,7 @@ app.post('/login', (req, res) => {
   });
 });
 
-// ====================== (Refactor #2) /update-password ======================
+// ====================== /update-password (cambiar PASS) ======================
 app.put('/update-password', verifyToken, async (req, res) => {
   const { oldPassword, newPassword } = req.body;
   if (!oldPassword || !newPassword) {
@@ -148,21 +161,17 @@ app.put('/update-password', verifyToken, async (req, res) => {
   }
   try {
     const userId = req.user.id;
-    // Obtenemos al usuario
     const sql = 'SELECT * FROM users WHERE id = ?';
     db.query(sql, [userId], async (err, results) => {
       if (err) return res.status(500).json({ success: false, message: 'Error en DB' });
       if (results.length === 0) return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
       const user = results[0];
-
-      // Validamos oldPassword
       const match = await bcrypt.compare(oldPassword, user.password);
       if (!match) return res.status(401).json({ success: false, message: 'Contraseña anterior incorrecta' });
 
-      // Actualizamos con la newPassword
       const hashed = await bcrypt.hash(newPassword, 10);
       const sqlUpd = 'UPDATE users SET password = ? WHERE id = ?';
-      db.query(sqlUpd, [hashed, userId], (err2, result) => {
+      db.query(sqlUpd, [hashed, userId], (err2) => {
         if (err2) return res.status(500).json({ success: false, message: 'Error al actualizar pass' });
         res.json({ success: true, message: 'Contraseña actualizada' });
       });
@@ -171,6 +180,45 @@ app.put('/update-password', verifyToken, async (req, res) => {
     res.status(500).json({ success: false, message: 'Error interno' });
   }
 });
+
+// ====================== /myprofile (Usuario sube su propia foto) ======================
+app.put('/myprofile', verifyToken, (req, res) => {
+  // El usuario NO admin puede cambiar solo su foto de perfil
+  if (req.user.role === 'admin' || req.user.role === 'gerente') {
+    // admin/gerente pueden usar /update-user en su lugar
+    return res.status(403).json({ success: false, message: 'Usa /update-user/:id si eres admin/gerente.' });
+  }
+
+  const userId = req.user.id;
+  const { profile_pic } = req.body;
+  if (!profile_pic) {
+    return res.status(400).json({ success: false, message: 'Falta la URL de la foto' });
+  }
+  const sql = 'UPDATE users SET profile_pic = ? WHERE id = ?';
+  db.query(sql, [profile_pic, userId], (err, result) => {
+    if (err) return res.status(500).json({ success: false, message: 'Error en DB' });
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+    }
+    res.json({ success: true, message: 'Foto de perfil actualizada' });
+  });
+});
+
+// ====================== /update-user/:id (Solo admin/gerente) ======================
+app.put('/update-user/:id', verifyToken, checkRole('admin','gerente'), (req, res) => {
+  // Permite cambiar full_name, email, profile_pic, etc.
+  const { id } = req.params;
+  const { full_name, email, profile_pic } = req.body;
+  const sql = 'UPDATE users SET full_name = ?, email = ?, profile_pic = ? WHERE id = ?';
+  db.query(sql, [full_name || '', email || '', profile_pic || '', id], (err, result) => {
+    if (err) return res.status(500).json({ success: false, message: 'Error en DB' });
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+    }
+    res.json({ success: true, message: 'Usuario actualizado' });
+  });
+});
+
 
 // ====================== MENÚ (CRUD) ======================
 app.get('/menu', verifyToken, (req, res) => {
@@ -407,7 +455,7 @@ app.post('/backup', verifyToken, checkRole('admin'),(req,res)=>{
 });
 
 // ====================== SOCKET.IO (chat + pedidos) ======================
-io.on('connection',(socket)=>{
+const serverIO = io.on('connection',(socket)=>{
   console.log(`Socket conectado: ${socket.id}`);
   socket.on('chatMessage',(msg)=>{
     io.emit('chatMessage',msg);
