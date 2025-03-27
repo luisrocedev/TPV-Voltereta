@@ -1,16 +1,11 @@
 /***************************************************************
  * server.js - Proyecto Monolítico
  * Incorpora:
- *   - Campos avanzados de usuario (full_name, email, profile_pic)
- *   - Sección Mi Perfil (cada user puede cambiar SOLO su foto)
- *   - Endpoint /myprofile (usuario no admin)
- *   - Endpoint /update-user/:id (admin/gerente) edita otro user
- *   - Endpoint /update-password
- *   - CRUD (Menú, Empleados, Reservas, Pedidos, Facturas, Caja)
+ *   - Campos avanzados de usuario
+ *   - Menú con Categorías (NUEVO)
+ *   - CRUD (Empleados, Reservas, Pedidos, etc.)
  *   - Roles con JWT + bcrypt
  *   - Chat con Socket.IO
- *
- * NOTA: Mantenemos tu código y estilo. 
  ***************************************************************/
 const express = require('express');
 const mysql = require('mysql2');
@@ -57,14 +52,14 @@ app.get('/', (req, res) => {
   res.redirect('/login.html');
 });
 
-// ====================== MIDDLEWARE JWT ======================
+// ====================== Middlewares JWT y Roles ======================
 function verifyToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   if (!authHeader) return res.status(403).json({ success: false, message: 'No token provided' });
   const token = authHeader.split(' ')[1];
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) return res.status(403).json({ success: false, message: 'Token inválido' });
-    req.user = decoded; // { id, username, role, ... }
+    req.user = decoded;
     next();
   });
 }
@@ -219,41 +214,100 @@ app.put('/update-user/:id', verifyToken, checkRole('admin','gerente'), (req, res
   });
 });
 
-
-// ====================== MENÚ (CRUD) ======================
+// ====================== CRUD MENÚ (con update y delete) ======================
 app.get('/menu', verifyToken, (req, res) => {
-  db.query('SELECT * FROM menu', (err, results) => {
+  const sql = `
+    SELECT m.id, m.name, m.price, m.category_id, c.name AS categoryName
+    FROM menu m
+    LEFT JOIN menu_categories c ON m.category_id = c.id
+    ORDER BY m.id DESC
+  `;
+  db.query(sql, (err, results) => {
     if (err) return res.status(500).json({ success: false, message: 'Error al obtener menú' });
     res.json({ success: true, data: results });
   });
 });
+
 app.post('/menu', verifyToken, checkRole('admin','gerente'), (req, res) => {
-  const { name, price } = req.body;
-  const sql = 'INSERT INTO menu (name, price) VALUES (?, ?)';
-  db.query(sql, [name, price], (err, result) => {
+  const { name, price, category_id } = req.body;
+  const sql = 'INSERT INTO menu (name, price, category_id) VALUES (?, ?, ?)';
+  db.query(sql, [name, price, category_id], (err, result) => {
     if (err) return res.status(500).json({ success: false, message: 'Error al insertar plato' });
     res.json({ success: true, newId: result.insertId });
   });
 });
+
+// 🚀 UPDATE plato
 app.put('/menu/:id', verifyToken, checkRole('admin','gerente'), (req, res) => {
   const { id } = req.params;
-  const { name, price } = req.body;
-  const sql = 'UPDATE menu SET name = ?, price = ? WHERE id = ?';
-  db.query(sql, [name, price, id], (err, result) => {
+  const { name, price, category_id } = req.body;
+  const sql = 'UPDATE menu SET name = ?, price = ?, category_id = ? WHERE id = ?';
+  db.query(sql, [name, price, category_id, id], (err, result) => {
     if (err) return res.status(500).json({ success: false, message: 'Error al actualizar plato' });
-    if (result.affectedRows === 0) return res.status(404).json({ success: false, message: 'Plato no encontrado' });
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Plato no encontrado' });
+    }
     res.json({ success: true, message: 'Plato actualizado' });
   });
 });
+
+// 🚀 DELETE plato
 app.delete('/menu/:id', verifyToken, checkRole('admin','gerente'), (req, res) => {
   const { id } = req.params;
   const sql = 'DELETE FROM menu WHERE id = ?';
   db.query(sql, [id], (err, result) => {
     if (err) return res.status(500).json({ success: false, message: 'Error al eliminar plato' });
-    if (result.affectedRows === 0) return res.status(404).json({ success: false, message: 'Plato no encontrado' });
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Plato no encontrado' });
+    }
     res.json({ success: true, message: 'Plato eliminado' });
   });
 });
+
+// ====================== CRUD CATEGORÍAS (con update y delete) ======================
+app.get('/menu-categories', verifyToken, (req, res) => {
+  db.query('SELECT * FROM menu_categories ORDER BY id DESC', (err, results) => {
+    if (err) return res.status(500).json({ success: false, message: 'Error al obtener categorías' });
+    res.json({ success: true, data: results });
+  });
+});
+
+app.post('/menu-categories', verifyToken, checkRole('admin','gerente'), (req, res) => {
+  const { name, description } = req.body;
+  const sql = 'INSERT INTO menu_categories (name, description) VALUES (?, ?)';
+  db.query(sql, [name, description], (err, result) => {
+    if (err) return res.status(500).json({ success: false, message: 'Error al crear categoría' });
+    res.json({ success: true, newId: result.insertId });
+  });
+});
+
+// 🚀 UPDATE categoría
+app.put('/menu-categories/:id', verifyToken, checkRole('admin','gerente'), (req, res) => {
+  const { id } = req.params;
+  const { name, description } = req.body;
+  const sql = 'UPDATE menu_categories SET name = ?, description = ? WHERE id = ?';
+  db.query(sql, [name, description, id], (err, result) => {
+    if (err) return res.status(500).json({ success: false, message: 'Error al actualizar categoría' });
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Categoría no encontrada' });
+    }
+    res.json({ success: true, message: 'Categoría actualizada' });
+  });
+});
+
+// 🚀 DELETE categoría
+app.delete('/menu-categories/:id', verifyToken, checkRole('admin','gerente'), (req, res) => {
+  const { id } = req.params;
+  const sql = 'DELETE FROM menu_categories WHERE id = ?';
+  db.query(sql, [id], (err, result) => {
+    if (err) return res.status(500).json({ success: false, message: 'Error al eliminar categoría' });
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Categoría no encontrada' });
+    }
+    res.json({ success: true, message: 'Categoría eliminada' });
+  });
+});
+
 
 // ====================== EMPLEADOS (CRUD) ======================
 app.get('/employees', verifyToken, (req, res) => {
@@ -455,7 +509,7 @@ app.post('/backup', verifyToken, checkRole('admin'),(req,res)=>{
 });
 
 // ====================== SOCKET.IO (chat + pedidos) ======================
-const serverIO = io.on('connection',(socket)=>{
+io.on('connection',(socket)=>{
   console.log(`Socket conectado: ${socket.id}`);
   socket.on('chatMessage',(msg)=>{
     io.emit('chatMessage',msg);
@@ -468,7 +522,6 @@ const serverIO = io.on('connection',(socket)=>{
   });
 });
 
-// Iniciamos server
 server.listen(PORT,()=>{
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
