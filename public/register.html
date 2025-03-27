@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Registro de Usuario (solo Admin)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="login-container">
+    <h1>Registrar Nuevo Usuario</h1>
+    <form id="registerForm">
+      <input type="text" id="newUsername" placeholder="Nuevo Usuario" required>
+      <input type="password" id="newPassword" placeholder="Contraseña" required>
+
+      <!-- Campos avanzados -->
+      <input type="text" id="fullName" placeholder="Nombre completo">
+      <input type="email" id="email" placeholder="Correo electrónico">
+      <input type="text" id="profilePic" placeholder="URL Foto de perfil">
+
+      <select id="newRole" required>
+        <option value="">Selecciona Rol</option>
+        <option value="admin">Admin</option>
+        <option value="chef">Chef</option>
+        <option value="mesero">Mesero</option>
+        <option value="gerente">Gerente</option>
+      </select>
+
+      <button type="submit">Registrar</button>
+    </form>
+    <p id="registerMsg"></p>
+    <a href="dashboard.html">Volver al Panel</a>
+  </div>
+
+  <script>
+    const registerForm = document.getElementById('registerForm');
+    const registerMsg = document.getElementById('registerMsg');
+
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const user = JSON.parse(localStorage.getItem('loggedUser'));
+      if (!user || user.role !== 'admin') {
+        alert('Acceso no autorizado. Solo el admin puede registrar nuevos usuarios.');
+        return;
+      }
+
+      const username    = document.getElementById('newUsername').value.trim();
+      const password    = document.getElementById('newPassword').value.trim();
+      const role        = document.getElementById('newRole').value;
+      const full_name   = document.getElementById('fullName').value.trim();
+      const email       = document.getElementById('email').value.trim();
+      const profile_pic = document.getElementById('profilePic').value.trim();
+
+      if (!username || !password || !role) return;
+
+      const response = await fetch('/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password, role, full_name, email, profile_pic })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        registerMsg.textContent = '✅ Usuario creado correctamente';
+        registerForm.reset();
+      } else {
+        registerMsg.textContent = '❌ ' + data.message;
+      }
+    });
+  </script>
+</body>
+</html>

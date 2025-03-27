@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Voltereta - Login</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="login-container">
+    <h1>Voltereta - Iniciar Sesión</h1>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Usuario" required>
+      <input type="password" id="password" placeholder="Contraseña" required>
+      <button type="submit">Entrar</button>
+    </form>
+    <p id="loginMsg"></p>
+  </div>
+
+  <script>
+    const loginForm = document.getElementById('loginForm');
+    const loginMsg  = document.getElementById('loginMsg');
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      try {
+        const resp = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await resp.json();
+        if (data.success) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('loggedUser', JSON.stringify(data.user));
+          window.location.href = 'dashboard.html';
+        } else {
+          loginMsg.textContent = 'Error: ' + data.message;
+        }
+      } catch (err) {
+        loginMsg.textContent = 'Error de conexión';
+      }
+    });
+  </script>
+</body>
+</html>

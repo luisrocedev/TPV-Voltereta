@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Voltereta - Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Voltereta Dashboard</h1>
+    <nav>
+      <ul>
+        <li><a href="#" data-section="chat">Chat</a></li>
+        <li><a href="#" data-section="menu">Menú</a></li>
+        <li><a href="#" data-section="employees">Empleados</a></li>
+        <li><a href="#" data-section="reservations">Reservas</a></li>
+        <li><a href="#" data-section="orders">Pedidos</a></li>
+        <li><a href="#" data-section="reports">Reportes</a></li>
+        <li><a href="#" data-section="profile">Mi Perfil</a></li>
+        <li><button id="logoutBtn">Salir</button></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- CHAT -->
+  <section id="chatSection" class="section-hidden">
+    <h2>Chat</h2>
+    <div id="chatContainer" class="chat-box"></div>
+    <input type="text" id="chatInput" placeholder="Mensaje...">
+    <button id="chatSend">Enviar</button>
+  </section>
+
+  <!-- MENÚ -->
+  <section id="menuSection" class="section-hidden">
+    <h2>Menú</h2>
+    <ul id="menuList"></ul>
+    <div>
+      <input type="text" id="menuName" placeholder="Nombre del plato">
+      <input type="number" id="menuPrice" placeholder="Precio">
+      <button id="menuAddBtn">Agregar Plato</button>
+    </div>
+  </section>
+
+  <!-- EMPLEADOS -->
+  <section id="employeesSection" class="section-hidden">
+    <h2>Empleados</h2>
+    <ul id="employeeList"></ul>
+    <div>
+      <input type="text" id="employeeName" placeholder="Nombre">
+      <input type="text" id="employeeRole" placeholder="Rol">
+      <button id="employeeAddBtn">Agregar Empleado</button>
+    </div>
+  </section>
+
+  <!-- RESERVAS -->
+  <section id="reservationsSection" class="section-hidden">
+    <h2>Reservas</h2>
+    <ul id="reservationList"></ul>
+    <div>
+      <input type="text" id="resCustomer" placeholder="Nombre Cliente">
+      <input type="date" id="resDate">
+      <input type="time" id="resTime">
+      <input type="number" id="resGuests" placeholder="Nº comensales">
+      <button id="resAddBtn">Crear Reserva</button>
+    </div>
+  </section>
+
+  <!-- PEDIDOS (POS/KDS) -->
+  <section id="ordersSection" class="section-hidden">
+    <h2>Pedidos (POS/KDS)</h2>
+    <button id="openOrderModalBtn">Nuevo Pedido</button>
+    <ul id="ordersList"></ul>
+  </section>
+
+  <!-- REPORTES -->
+  <section id="reportsSection" class="section-hidden">
+    <h2>Reportes</h2>
+    <div id="reportData"></div>
+    <button id="reportBtn">Ver Reportes</button>
+
+    <h3>Generar Factura Demo</h3>
+    <p id="factureMsg"></p>
+    <button id="factureBtn">Generar Factura (Demo)</button>
+  </section>
+
+  <!-- PERFIL -->
+  <section id="profileSection" class="section-hidden">
+    <h2>Mi Perfil</h2>
+    <div class="profile-card">
+      <img id="profilePhoto" src="" alt="Foto de perfil" class="profile-photo">
+      <p><strong>Usuario:</strong> <span id="profileUsername"></span></p>
+      <p><strong>Nombre completo:</strong> <span id="profileFullname"></span></p>
+      <p><strong>Email:</strong> <span id="profileEmail"></span></p>
+      <button id="editPasswordBtn">Cambiar Contraseña</button>
+    </div>
+
+    <!-- FORM CAMBIO CONTRASEÑA -->
+    <div id="passwordForm" style="display:none;margin-top:1rem;">
+      <input type="password" id="oldPass" placeholder="Contraseña anterior">
+      <input type="password" id="newPass" placeholder="Nueva contraseña">
+      <button id="savePassBtn">Guardar</button>
+      <p id="passMsg"></p>
+    </div>
+  </section>
+
+  <!-- MODAL CREAR PEDIDO -->
+  <div class="modal" id="orderModal">
+    <div class="modal-content">
+      <span id="closeOrderModal" class="close">&times;</span>
+      <h3>Crear Pedido</h3>
+      <label>Mesa:</label>
+      <input type="number" id="modalTable">
+      <label>Cliente:</label>
+      <input type="text" id="modalCustomer">
+      <label>Comentarios:</label>
+      <input type="text" id="modalComments">
+
+      <div id="orderItemsContainer"></div>
+      <button id="addItemBtn">Añadir Plato</button>
+      <button id="createOrderConfirmBtn">Crear Pedido</button>
+    </div>
+  </div>
+
+  <!-- TEMPLATE PARA ITEMS DE PEDIDO -->
+  <template id="orderItemTemplate">
+    <div class="orderItemRow">
+      <select class="orderItemSelect"></select>
+      <input type="number" class="orderItemQty" min="1" value="1">
+      <button class="removeItemBtn">X</button>
+    </div>
+  </template>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    let token = null;
+    let loggedUser = null;
+    const socket = io();
+
+    window.addEventListener('DOMContentLoaded', () => {
+      token = localStorage.getItem('token');
+      const userData = localStorage.getItem('loggedUser');
+      if (!token || !userData) {
+        window.location.href = 'login.html';
+      } else {
+        loggedUser = JSON.parse(userData);
+        initUI();
+      }
+    });
+
+    function initUI() {
+      // Logout
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('loggedUser');
+        window.location.href = 'login.html';
+      });
+
+      initNav();
+      initChat();
+      initMenu();
+      initEmployees();
+      initReservations();
+      initOrders();
+      initReports();
+      initProfile();
+
+      applyRoleUI(loggedUser.role);
+      // Por defecto, si es chef/mesero -> Pedidos, admin/gerente -> Chat (o a tu gusto).
+    }
+
+    function initNav() {
+      const navLinks = document.querySelectorAll('nav a');
+      const sections = document.querySelectorAll('section');
+      navLinks.forEach(link => {
+        link.addEventListener('click', e => {
+          e.preventDefault();
+          const target = link.dataset.section;
+          sections.forEach(sec => sec.classList.add('section-hidden'));
+          document.getElementById(target + 'Section').classList.remove('section-hidden');
+        });
+      });
+    }
+
+    // <<Refactor #1: Rol-based UI en front>>
+    function applyRoleUI(role) {
+      if (role === 'chef') {
+        // Ocultar Menú, Empleados, Reservas, Reportes
+        document.querySelector('[data-section="menu"]').parentElement.style.display = 'none';
+        document.querySelector('[data-section="employees"]').parentElement.style.display = 'none';
+        document.querySelector('[data-section="reservations"]').parentElement.style.display = 'none';
+        document.querySelector('[data-section="reports"]').parentElement.style.display = 'none';
+        // Forzar Pedidos
+        showSection('ordersSection');
+      } else if (role === 'mesero') {
+        document.querySelector('[data-section="menu"]').parentElement.style.display = 'none';
+        document.querySelector('[data-section="employees"]').parentElement.style.display = 'none';
+        document.querySelector('[data-section="reservations"]').parentElement.style.display = 'none';
+        document.querySelector('[data-section="reports"]').parentElement.style.display = 'none';
+        showSection('ordersSection');
+      } else {
+        // admin/gerente => todo OK
+        // Por defecto, Chat
+        showSection('chatSection');
+      }
+    }
+
+    function showSection(sectionId) {
+      const sections = document.querySelectorAll('section');
+      sections.forEach(sec => sec.classList.add('section-hidden'));
+      document.getElementById(sectionId).classList.remove('section-hidden');
+    }
+
+    // ================ CHAT ================
+    function initChat() {
+      const chatContainer = document.getElementById('chatContainer');
+      const chatInput = document.getElementById('chatInput');
+      const chatSend = document.getElementById('chatSend');
+
+      chatSend.addEventListener('click', () => {
+        const msg = chatInput.value.trim();
+        if (msg) {
+          socket.emit('chatMessage', msg);
+          chatInput.value = '';
+        }
+      });
+
+      socket.on('chatMessage', (message) => {
+        const p = document.createElement('p');
+        p.textContent = message;
+        chatContainer.appendChild(p);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      });
+    }
+
+    // ================ MENÚ ================
+    async function initMenu() {
+      loadMenu();
+      document.getElementById('menuAddBtn').addEventListener('click', createMenuItem);
+    }
+    async function loadMenu() {
+      try {
+        const resp = await fetch('/menu', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await resp.json();
+        if (data.success) {
+          const menuList = document.getElementById('menuList');
+          menuList.innerHTML = '';
+          data.data.forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = `${item.name} - $${item.price}`;
+            menuList.appendChild(li);
+          });
+        }
+      } catch (err) {
+        console.error('Error loadMenu:', err);
+      }
+    }
+    async function createMenuItem() {
+      const name = document.getElementById('menuName').value.trim();
+      const price = parseFloat(document.getElementById('menuPrice').value) || 0;
+      if (!name) return;
+      try {
+        const resp = await fetch('/menu', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ name, price })
+        });
+        const data = await resp.json();
+        if (data.success) {
+          document.getElementById('menuName').value = '';
+          document.getElementById('menuPrice').value = '';
+          loadMenu();
+        } else {
+          alert(data.message);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // ================ EMPLEADOS ================
+    async function initEmployees() {
+      loadEmployees();
+      document.getElementById('employeeAddBtn').addEventListener('click', createEmployee);
+    }
+    async function loadEmployees() {
+      try {
+        const resp = await fetch('/employees', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await resp.json();
+        if (data.success) {
+          const employeeList = document.getElementById('employeeList');
+          employeeList.innerHTML = '';
+          data.data.forEach(emp => {
+            const li = document.createElement('li');
+            li.textContent = `${emp.name} - ${emp.role}`;
+            employeeList.appendChild(li);
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    async function createEmployee() {
+      const name = document.getElementById('employeeName').value.trim();
+      const role = document.getElementById('employeeRole').value.trim();
+      if (!name || !role) return;
+      try {
+        const resp = await fetch('/employees', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ name, role })
+        });
+        const data = await resp.json();
+        if (data.success) {
+          document.getElementById('employeeName').value = '';
+          document.getElementById('employeeRole').value = '';
+          loadEmployees();
+        } else {
+          alert(data.message);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // ================ RESERVAS ================
+    async function initReservations() {
+      loadReservations();
+      document.getElementById('resAddBtn').addEventListener('click', createReservation);
+    }
+    async function loadReservations() {
+      try {
+        const resp = await fetch('/reservations', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await resp.json();
+        if (data.success) {
+          const reservationList = document.getElementById('reservationList');
+          reservationList.innerHTML = '';
+          data.data.forEach(r => {
+            const li = document.createElement('li');
+            li.textContent = `[${r.id}] ${r.customerName} - ${r.date} ${r.time} (${r.guests} comensales)`;
+            reservationList.appendChild(li);
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    async function createReservation() {
+      const customerName = document.getElementById('resCustomer').value.trim();
+      const date = document.getElementById('resDate').value;
+      const time = document.getElementById('resTime').value;
+      const guests = parseInt(document.getElementById('resGuests').value) || 0;
+      if (!customerName || !date || !time) return;
+      try {
+        const resp = await fetch('/reservations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ customerName, date, time, guests })
+        });
+        const data = await resp.json();
+        if (data.success) {
+          document.getElementById('resCustomer').value = '';
+          document.getElementById('resDate').value = '';
+          document.getElementById('resTime').value = '';
+          document.getElementById('resGuests').value = '';
+          loadReservations();
+        } else {
+          alert(data.message);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // ================ PEDIDOS ================
+    function initOrders() {
+      loadOrders();
+      document.getElementById('openOrderModalBtn').addEventListener('click', openOrderModal);
+      document.getElementById('closeOrderModal').addEventListener('click', closeOrderModal);
+      document.getElementById('addItemBtn').addEventListener('click', addNewOrderItem);
+      document.getElementById('createOrderConfirmBtn').addEventListener('click', createOrder);
+    }
+    async function loadOrders() {
+      try {
+        const resp = await fetch('/orders', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await resp.json();
+        if (data.success) {
+          const ordersList = document.getElementById('ordersList');
+          ordersList.innerHTML = '';
+          data.data.forEach(order => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+              <b>Pedido #${order.id}</b> |
+              Mesa: ${order.tableNumber || '-'} |
+              Cliente: ${order.customer || '-'} |
+              Estado: ${order.status} |
+              ${new Date(order.createdAt).toLocaleString()}<br/>
+              <u>Items:</u> ${order.items.map(i => `${i.menuName} x${i.quantity}`).join(', ')}
+            `;
+            if ((loggedUser.role === 'chef' || loggedUser.role === 'admin' || loggedUser.role === 'gerente')) {
+              if (order.status === 'pending') {
+                const btn = document.createElement('button');
+                btn.textContent = 'En Proceso';
+                btn.addEventListener('click', () => updateOrderStatus(order.id, 'in_process'));
+                li.appendChild(btn);
+              }
+              if (order.status === 'in_process') {
+                const btn = document.createElement('button');
+                btn.textContent = 'Listo';
+                btn.addEventListener('click', () => updateOrderStatus(order.id, 'done'));
+                li.appendChild(btn);
+              }
+            }
+            if ((loggedUser.role === 'mesero' || loggedUser.role === 'admin' || loggedUser.role === 'gerente')
+                && order.status === 'done') {
+              const deliverBtn = document.createElement('button');
+              deliverBtn.textContent = 'Entregado';
+              deliverBtn.addEventListener('click', () => updateOrderStatus(order.id, 'delivered'));
+              li.appendChild(deliverBtn);
+            }
+            ordersList.appendChild(li);
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    function openOrderModal() {
+      document.getElementById('modalTable').value = '';
+      document.getElementById('modalCustomer').value = '';
+      document.getElementById('modalComments').value = '';
+      document.getElementById('orderItemsContainer').innerHTML = '';
+      addNewOrderItem();
+      document.getElementById('orderModal').style.display = 'block';
+    }
+    function closeOrderModal() {
+      document.getElementById('orderModal').style.display = 'none';
+    }
+    async function addNewOrderItem() {
+      const tpl = document.getElementById('orderItemTemplate');
+      const row = tpl.content.cloneNode(true);
+      const select = row.querySelector('.orderItemSelect');
+      const removeBtn = row.querySelector('.removeItemBtn');
+
+      try {
+        const resp = await fetch('/menu', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await resp.json();
+        if (data.success) {
+          data.data.forEach(m => {
+            const option = document.createElement('option');
+            option.value = m.id;
+            option.textContent = `${m.name} ($${m.price})`;
+            select.appendChild(option);
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+
+      removeBtn.addEventListener('click', () => {
+        row.querySelector('.orderItemRow').remove();
+      });
+      document.getElementById('orderItemsContainer').appendChild(row);
+    }
+    async function createOrder() {
+      const tableNumber = parseInt(document.getElementById('modalTable').value) || 0;
+      const customer = document.getElementById('modalCustomer').value.trim();
+      const comments = document.getElementById('modalComments').value.trim();
+
+      const container = document.getElementById('orderItemsContainer');
+      const rows = container.querySelectorAll('.orderItemRow');
+      const items = [];
+      rows.forEach(r => {
+        const sel = r.querySelector('.orderItemSelect');
+        const qty = r.querySelector('.orderItemQty');
+        items.push({
+          menuItemId: parseInt(sel.value),
+          quantity: parseInt(qty.value) || 1
+        });
+      });
+
+      try {
+        const resp = await fetch('/orders', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ tableNumber, customer, comments, items })
+        });
+        const data = await resp.json();
+        if (data.success) {
+          closeOrderModal();
+          loadOrders();
+          socket.emit('newOrder', { orderId: data.orderId, tableNumber, items });
+        } else {
+          alert(data.message);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    async function updateOrderStatus(orderId, status) {
+      try {
+        const resp = await fetch('/orders/' + orderId, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ status })
+        });
+        const data = await resp.json();
+        if (data.success) {
+          loadOrders();
+        } else {
+          alert(data.message);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // ================ REPORTES ================
+    function initReports() {
+      document.getElementById('reportBtn').addEventListener('click', loadReports);
+      document.getElementById('factureBtn').addEventListener('click', () => {
+        document.getElementById('factureMsg').textContent = 'Factura generada (demo)...';
+      });
+    }
+    async function loadReports() {
+      try {
+        const resp = await fetch('/reports', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await resp.json();
+        if (data.success) {
+          document.getElementById('reportData').textContent =
+            `Reservas totales: ${data.totalReservations} | Ingresos facturados: $${data.totalRevenue}`;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // ================ PERFIL ================
+    function initProfile() {
+      // Mostramos datos del user
+      const user = loggedUser; 
+      document.getElementById('profileUsername').textContent = user.username;
+      document.getElementById('profileFullname').textContent = user.fullname || '---';
+      document.getElementById('profileEmail').textContent = user.email || '---';
+
+      // Foto
+      const photoURL = user.photo || user.profile_pic;
+      document.getElementById('profilePhoto').src = photoURL || 'https://via.placeholder.com/100';
+
+      // Mostrar form cambio pass
+      document.getElementById('editPasswordBtn').addEventListener('click', () => {
+        const form = document.getElementById('passwordForm');
+        form.style.display = (form.style.display === 'none' ? 'block' : 'none');
+      });
+
+      document.getElementById('savePassBtn').addEventListener('click', updatePassword);
+    }
+    async function updatePassword() {
+      const oldPass = document.getElementById('oldPass').value.trim();
+      const newPass = document.getElementById('newPass').value.trim();
+      const passMsg = document.getElementById('passMsg');
+      passMsg.textContent = '';
+
+      if (!oldPass || !newPass) {
+        passMsg.textContent = 'Faltan contraseñas';
+        return;
+      }
+
+      try {
+        const resp = await fetch('/update-password', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ oldPassword: oldPass, newPassword: newPass })
+        });
+        const data = await resp.json();
+        if (data.success) {
+          passMsg.textContent = 'Contraseña actualizada correctamente';
+        } else {
+          passMsg.textContent = 'Error: ' + data.message;
+        }
+      } catch (err) {
+        passMsg.textContent = 'Error de conexión';
+      }
+    }
+  </script>
+</body>
+</html>

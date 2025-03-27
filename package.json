@@ -1,0 +1,17 @@
+{
+  "name": "voltereta-monolitico",
+  "version": "1.0.0",
+  "description": "Proyecto monolítico con JWT, bcrypt, roles, CRUD y frontend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "mysql2": "^3.2.0",
+    "socket.io": "^4.5.4",
+    "jsonwebtoken": "^9.0.0"
+  }
+}
