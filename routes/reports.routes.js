@@ -1,7 +1,10 @@
+// routes/reports.routes.js
 const express = require('express');
 const router = express.Router();
 const { db } = require('../db');
 const { verifyToken } = require('../middlewares/auth');
+
+// No se requieren validaciones para este GET ya que no recibe parámetros
 
 // Obtener reportes de reservas e ingresos
 router.get('/', verifyToken, (req, res) => {

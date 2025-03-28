@@ -3,51 +3,97 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { body, param, validationResult } = require('express-validator');
 
 const { db, JWT_SECRET } = require('../db');
 const { verifyToken, checkRole } = require('../middlewares/auth');
 
+/**
+ * Middleware para manejar los errores de validación
+ */
+const validateFields = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res
+      .status(400)
+      .json({ success: false, errors: errors.array() });
+  }
+  next();
+};
+
 // ====================== /register (solo admin) ======================
-router.post('/register', verifyToken, checkRole('admin'), async (req, res) => {
-  const { username, password, role, fullname, email, profile_pic } = req.body;
+router.post(
+  '/register',
+  verifyToken,
+  checkRole('admin'),
+  [
+    body('username')
+      .notEmpty()
+      .withMessage('El usuario es obligatorio'),
+    body('password')
+      .notEmpty()
+      .withMessage('La contraseña es obligatoria'),
+    body('role')
+      .notEmpty()
+      .withMessage('El rol es obligatorio'),
+    body('email')
+      .optional()
+      .isEmail()
+      .withMessage('El correo debe ser válido'),
+    body('fullname')
+      .optional()
+      .trim(),
+    body('profile_pic')
+      .optional()
+      .isURL()
+      .withMessage('La URL de la foto debe ser válida')
+  ],
+  validateFields,
+  async (req, res) => {
+    const { username, password, role, fullname, email, profile_pic } = req.body;
 
-  if (!username || !password || !role) {
-    return res.status(400).json({ success: false, message: 'Faltan datos obligatorios' });
+    try {
+      const hashed = await bcrypt.hash(password, 10);
+      const sql = `
+        INSERT INTO users (username, password, role, fullname, email, profile_pic)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `;
+      const userData = [
+        username,
+        hashed,
+        role,
+        fullname || null,
+        email || null,
+        profile_pic || null
+      ];
+
+      db.query(sql, userData, (err, result) => {
+        if (err) {
+          console.error('Error en inserción BD:', err);
+          return res.status(500).json({ success: false, message: 'Error en la base de datos', error: err.sqlMessage });
+        }
+        return res.json({ success: true, userId: result.insertId });
+      });
+    } catch (error) {
+      return res.status(500).json({ success: false, message: 'Error interno', error });
+    }
   }
+);
 
-  try {
-    const hashed = await bcrypt.hash(password, 10);
-
-    const sql = `
-      INSERT INTO users (username, password, role, fullname, email, profile_pic)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `;
-    const userData = [
-      username,
-      hashed,
-      role,
-      fullname || null,
-      email || null,
-      profile_pic || null
-    ];
-
-    db.query(sql, userData, (err, result) => {
-      if (err) {
-        console.error('Error en inserción BD:', err);
-        return res.status(500).json({ success: false, message: 'Error en la base de datos', error: err.sqlMessage });
-      }
-      return res.json({ success: true, userId: result.insertId });
-    });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: 'Error interno', error });
-  }
-});
-  
-  
-  // ====================== /login ======================
-  router.post('/login', (req, res) => {
+// ====================== /login ======================
+router.post(
+  '/login',
+  [
+    body('username')
+      .notEmpty()
+      .withMessage('El usuario es obligatorio'),
+    body('password')
+      .notEmpty()
+      .withMessage('La contraseña es obligatoria')
+  ],
+  validateFields,
+  (req, res) => {
     const { username, password } = req.body;
-    if (!username || !password) return res.status(400).json({ success: false, message: 'Faltan datos' });
     const sql = 'SELECT * FROM users WHERE username = ?';
     db.query(sql, [username], async (err, results) => {
       if (err) return res.status(500).json({ success: false, message: 'Error en DB' });
@@ -83,14 +129,24 @@ router.post('/register', verifyToken, checkRole('admin'), async (req, res) => {
         }
       });
     });
-  });
-  
-  // ====================== /update-password (cambiar PASS) ======================
-  router.put('/update-password', verifyToken, async (req, res) => {
+  }
+);
+
+// ====================== /update-password (cambiar PASS) ======================
+router.put(
+  '/update-password',
+  verifyToken,
+  [
+    body('oldPassword')
+      .notEmpty()
+      .withMessage('La contraseña antigua es obligatoria'),
+    body('newPassword')
+      .notEmpty()
+      .withMessage('La nueva contraseña es obligatoria')
+  ],
+  validateFields,
+  async (req, res) => {
     const { oldPassword, newPassword } = req.body;
-    if (!oldPassword || !newPassword) {
-      return res.status(400).json({ success: false, message: 'Faltan contraseñas' });
-    }
     try {
       const userId = req.user.id;
       const sql = 'SELECT * FROM users WHERE id = ?';
@@ -111,21 +167,29 @@ router.post('/register', verifyToken, checkRole('admin'), async (req, res) => {
     } catch (error) {
       res.status(500).json({ success: false, message: 'Error interno' });
     }
-  });
-  
-  // ====================== /myprofile (Usuario sube su propia foto) ======================
-  router.put('/myprofile', verifyToken, (req, res) => {
+  }
+);
+
+// ====================== /myprofile (Usuario sube su propia foto) ======================
+router.put(
+  '/myprofile',
+  verifyToken,
+  [
+    body('profile_pic')
+      .notEmpty()
+      .withMessage('Falta la URL de la foto')
+      .isURL()
+      .withMessage('La URL de la foto debe ser válida')
+  ],
+  validateFields,
+  (req, res) => {
     // El usuario NO admin puede cambiar solo su foto de perfil
     if (req.user.role === 'admin' || req.user.role === 'gerente') {
-      // admin/gerente pueden usar /update-user en su lugar
       return res.status(403).json({ success: false, message: 'Usa /update-user/:id si eres admin/gerente.' });
     }
   
     const userId = req.user.id;
     const { profile_pic } = req.body;
-    if (!profile_pic) {
-      return res.status(400).json({ success: false, message: 'Falta la URL de la foto' });
-    }
     const sql = 'UPDATE users SET profile_pic = ? WHERE id = ?';
     db.query(sql, [profile_pic, userId], (err, result) => {
       if (err) return res.status(500).json({ success: false, message: 'Error en DB' });
@@ -134,11 +198,32 @@ router.post('/register', verifyToken, checkRole('admin'), async (req, res) => {
       }
       res.json({ success: true, message: 'Foto de perfil actualizada' });
     });
-  });
-  
-  // ====================== /update-user/:id (Solo admin/gerente) ======================
-  router.put('/update-user/:id', verifyToken, checkRole('admin','gerente'), (req, res) => {
-    // Permite cambiar full_name, email, profile_pic, etc.
+  }
+);
+
+// ====================== /update-user/:id (Solo admin/gerente) ======================
+router.put(
+  '/update-user/:id',
+  verifyToken,
+  checkRole('admin','gerente'),
+  [
+    param('id')
+      .isNumeric()
+      .withMessage('El ID debe ser numérico'),
+    body('full_name')
+      .optional()
+      .trim(),
+    body('email')
+      .optional()
+      .isEmail()
+      .withMessage('El correo debe ser válido'),
+    body('profile_pic')
+      .optional()
+      .isURL()
+      .withMessage('La URL de la foto debe ser válida')
+  ],
+  validateFields,
+  (req, res) => {
     const { id } = req.params;
     const { full_name, email, profile_pic } = req.body;
     const sql = 'UPDATE users SET full_name = ?, email = ?, profile_pic = ? WHERE id = ?';
@@ -149,6 +234,7 @@ router.post('/register', verifyToken, checkRole('admin'), async (req, res) => {
       }
       res.json({ success: true, message: 'Usuario actualizado' });
     });
-  });
+  }
+);
 
 module.exports = router;
