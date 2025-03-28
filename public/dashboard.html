@@ -10,14 +10,42 @@
     <h1>Voltereta Dashboard</h1>
     <nav>
       <ul>
-        <li><a href="#" data-section="chat">Chat</a></li>
-        <li><a href="#" data-section="menu">Menú</a></li>
-        <li><a href="#" data-section="employees">Empleados</a></li>
-        <li><a href="#" data-section="reservations">Reservas</a></li>
-        <li><a href="#" data-section="orders">Pedidos</a></li>
-        <li><a href="#" data-section="reports">Reportes</a></li>
-        <li><a href="#" data-section="profile">Mi Perfil</a></li>
-        <li><button id="logoutBtn">Salir</button></li>
+        <!-- Chat: todos los roles -->
+        <li data-roles="admin,gerente,chef,mesero">
+          <a href="#" data-section="chat">Chat</a>
+        </li>
+        <!-- Menú: supongamos admin, gerente, chef -->
+        <li data-roles="admin,gerente,chef">
+          <a href="#" data-section="menu">Menú</a>
+        </li>
+        <!-- Empleados: solo admin y gerente -->
+        <li data-roles="admin,gerente">
+          <a href="#" data-section="employees">Empleados</a>
+        </li>
+        <!-- Reservas: admin, gerente, mesero -->
+        <li data-roles="admin,gerente,mesero">
+          <a href="#" data-section="reservations">Reservas</a>
+        </li>
+        <!-- Pedidos (POS/KDS): admin, gerente, mesero, chef -->
+        <li data-roles="admin,gerente,mesero,chef">
+          <a href="#" data-section="orders">Pedidos</a>
+        </li>
+        <!-- Reportes: admin, gerente -->
+        <li data-roles="admin,gerente">
+          <a href="#" data-section="reports">Reportes</a>
+        </li>
+        <!-- Registrar Usuarios: solo admin -->
+        <li data-roles="admin">
+          <a href="#" data-section="registerUsers">Registrar Usuarios</a>
+        </li>
+        <!-- Perfil: todos los roles -->
+        <li data-roles="admin,gerente,chef,mesero">
+          <a href="#" data-section="profile">Mi Perfil</a>
+        </li>
+
+        <li>
+          <button id="logoutBtn">Salir</button>
+        </li>
       </ul>
     </nav>
   </header>
@@ -33,11 +61,7 @@
   <!-- MENÚ -->
   <section id="menuSection" class="section-hidden">
     <h2>Menú</h2>
-
-    <!-- Listado de platos -->
     <ul id="menuList"></ul>
-
-    <!-- Crear nuevo plato -->
     <h3>Agregar nuevo plato</h3>
     <div>
       <input type="text" id="menuName" placeholder="Nombre del plato">
@@ -47,8 +71,6 @@
       </select>
       <button id="menuAddBtn">Agregar Plato</button>
     </div>
-
-    <!-- Modal para Editar Plato -->
     <div class="modal" id="editMenuModal">
       <div class="modal-content">
         <span id="closeEditMenuModal" class="close">&times;</span>
@@ -63,18 +85,13 @@
         <button id="saveMenuChangesBtn">Guardar Cambios</button>
       </div>
     </div>
-
     <h3>Categorías del Menú</h3>
     <ul id="menuCategoriesList"></ul>
-
-    <!-- Crear nueva categoría -->
     <div>
       <input type="text" id="catName" placeholder="Nombre categoría">
       <input type="text" id="catDesc" placeholder="Descripción (opcional)">
       <button id="catAddBtn">Agregar Categoría</button>
     </div>
-
-    <!-- Modal para Editar Categoría -->
     <div class="modal" id="editCategoryModal">
       <div class="modal-content">
         <span id="closeEditCategoryModal" class="close">&times;</span>
@@ -98,8 +115,6 @@
       <input type="text" id="employeeRole" placeholder="Rol">
       <button id="employeeAddBtn">Agregar Empleado</button>
     </div>
-
-    <!-- Modal Editar Empleado (solo admin/gerente) -->
     <div class="modal" id="editEmployeeModal">
       <div class="modal-content">
         <span id="closeEditEmpModal" class="close">&times;</span>
@@ -113,6 +128,27 @@
         <button id="saveEmpChanges">Guardar Cambios</button>
       </div>
     </div>
+  </section>
+
+  <!-- REGISTRAR USUARIOS -->
+  <section id="registerUsersSection" class="section-hidden">
+    <h2>Registrar Nuevo Usuario (Admin)</h2>
+    <form id="adminRegisterForm">
+      <input type="text" id="regUsername" placeholder="Usuario" required>
+      <input type="password" id="regPassword" placeholder="Contraseña" required>
+      <select id="regRole" required>
+        <option value="">Selecciona Rol</option>
+        <option value="admin">Admin</option>
+        <option value="chef">Chef</option>
+        <option value="mesero">Mesero</option>
+        <option value="gerente">Gerente</option>
+      </select>
+      <input type="text" id="regFullname" placeholder="Nombre completo">
+      <input type="email" id="regEmail" placeholder="Correo electrónico">
+      <input type="text" id="regProfilePic" placeholder="URL foto de perfil">
+      <button type="submit">Registrar</button>
+    </form>
+    <p id="regMsg"></p>
   </section>
 
   <!-- RESERVAS -->
@@ -140,13 +176,12 @@
     <h2>Reportes</h2>
     <div id="reportData"></div>
     <button id="reportBtn">Ver Reportes</button>
-
     <h3>Generar Factura Demo</h3>
     <p id="factureMsg"></p>
     <button id="factureBtn">Generar Factura (Demo)</button>
   </section>
 
-  <!-- PERFIL -->
+  <!-- PERFIL (todos los roles) -->
   <section id="profileSection" class="section-hidden">
     <h2>Mi Perfil</h2>
     <div class="profile-card">
@@ -154,18 +189,19 @@
       <p><strong>Usuario:</strong> <span id="profileUsername"></span></p>
       <p><strong>Nombre completo:</strong> <span id="profileFullname"></span></p>
       <p><strong>Email:</strong> <span id="profileEmail"></span></p>
-      <button id="editPasswordBtn">Cambiar Contraseña</button>
     </div>
-
-    <div id="passwordForm" style="display:none;margin-top:1rem;">
+    <hr>
+    <!-- Actualizar contraseña -->
+    <div style="margin:1rem 0;">
+      <h3>Cambiar Contraseña</h3>
       <input type="password" id="oldPass" placeholder="Contraseña anterior">
       <input type="password" id="newPass" placeholder="Nueva contraseña">
       <button id="savePassBtn">Guardar</button>
       <p id="passMsg"></p>
     </div>
-
-    <!-- SOLO para user no admin => cambiar su propia foto -->
-    <div id="updatePicContainer" style="margin-top:1rem; display:none;">
+    <hr>
+    <!-- Actualizar foto de perfil -->
+    <div style="margin:1rem 0;">
       <h3>Actualizar Foto</h3>
       <input type="text" id="newProfilePic" placeholder="URL nueva foto">
       <button id="updateMyPhotoBtn">Actualizar</button>
@@ -199,778 +235,8 @@
     </div>
   </template>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    let token = null;
-    let loggedUser = null;
-    let editingEmpId = null;
-
-    const socket = io();
-
-    window.addEventListener('DOMContentLoaded', () => {
-      token = localStorage.getItem('token');
-      const userData = localStorage.getItem('loggedUser');
-      if (!token || !userData) {
-        window.location.href = 'login.html';
-      } else {
-        loggedUser = JSON.parse(userData);
-        initUI();
-      }
-    });
-
-    function initUI() {
-      document.getElementById('logoutBtn').addEventListener('click', () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('loggedUser');
-        window.location.href = 'login.html';
-      });
-      initNav();
-      initChat();
-      initMenu();
-      initEmployees();
-      initReservations();
-      initOrders();
-      initReports();
-      initProfile();
-      applyRoleUI(loggedUser.role);
-    }
-
-    function initNav() {
-      const navLinks = document.querySelectorAll('nav a');
-      const sections = document.querySelectorAll('section');
-      navLinks.forEach(link => {
-        link.addEventListener('click', e => {
-          e.preventDefault();
-          const target = link.dataset.section;
-          sections.forEach(sec => sec.classList.add('section-hidden'));
-          document.getElementById(target + 'Section').classList.remove('section-hidden');
-        });
-      });
-    }
-
-    // Roles
-    function applyRoleUI(role) {
-      if (role === 'chef' || role === 'mesero') {
-        // Ocultar Menú, Empleados, Reservas, Reportes
-        document.querySelector('[data-section="menu"]').parentElement.style.display = 'none';
-        document.querySelector('[data-section="employees"]').parentElement.style.display = 'none';
-        document.querySelector('[data-section="reservations"]').parentElement.style.display = 'none';
-        document.querySelector('[data-section="reports"]').parentElement.style.display = 'none';
-        showSection('ordersSection');
-      } else {
-        // admin/gerente => todo OK
-        showSection('chatSection');
-      }
-
-      // Si no es admin/gerente => mostrar updatePicContainer
-      if (role === 'admin' || role === 'gerente') {
-        document.getElementById('updatePicContainer').style.display='none';
-      } else {
-        // user normal => ver container para cambiar su foto
-        document.getElementById('updatePicContainer').style.display='block';
-      }
-    }
-    function showSection(id) {
-      const secs = document.querySelectorAll('section');
-      secs.forEach(s => s.classList.add('section-hidden'));
-      document.getElementById(id).classList.remove('section-hidden');
-    }
-
-    // ================ CHAT ================
-    function initChat() {
-      const chatContainer = document.getElementById('chatContainer');
-      const chatInput = document.getElementById('chatInput');
-      const chatSend = document.getElementById('chatSend');
-
-      chatSend.addEventListener('click', () => {
-        const msg = chatInput.value.trim();
-        if (msg) {
-          socket.emit('chatMessage', msg);
-          chatInput.value = '';
-        }
-      });
-
-      socket.on('chatMessage', (message) => {
-        const p = document.createElement('p');
-        p.textContent = message;
-        chatContainer.appendChild(p);
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-      });
-    }
-
-    // ================ MENÚ ================
-    let editingMenuId = null;
-    let editingCatId  = null;
-
-    async function initMenu() {
-      loadMenu();
-      loadMenuCategories();
-
-      document.getElementById('menuAddBtn').addEventListener('click', createMenuItem);
-      document.getElementById('catAddBtn').addEventListener('click', createCategory);
-
-      // Modales plato
-      document.getElementById('closeEditMenuModal').addEventListener('click', () => {
-        document.getElementById('editMenuModal').style.display = 'none';
-      });
-      document.getElementById('saveMenuChangesBtn').addEventListener('click', saveMenuChanges);
-
-      // Modales categoría
-      document.getElementById('closeEditCategoryModal').addEventListener('click', () => {
-        document.getElementById('editCategoryModal').style.display = 'none';
-      });
-      document.getElementById('saveCatChangesBtn').addEventListener('click', saveCatChanges);
-    }
-
-    // ====================== CRUD Platos ======================
-
-    async function loadMenu() {
-      try {
-        const resp = await fetch('/api/menu/', {
-          headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const data = await resp.json();
-        if (data.success) {
-          const menuList = document.getElementById('menuList');
-          menuList.innerHTML = '';
-          data.data.forEach(item => {
-            const li = document.createElement('li');
-            const catName = item.categoryName ? ` [${item.categoryName}]` : '';
-            li.innerHTML = `
-              <b>${item.name}</b> - $${item.price} ${catName}
-              <button class="menu-edit-btn" data-id="${item.id}">Editar</button>
-              <button class="menu-del-btn" data-id="${item.id}">Eliminar</button>
-            `;
-            menuList.appendChild(li);
-          });
-
-          // Botones Editar/Eliminar
-          document.querySelectorAll('.menu-edit-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-              openEditMenuModal(btn.dataset.id);
-            });
-          });
-          document.querySelectorAll('.menu-del-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-              deleteMenuItem(btn.dataset.id);
-            });
-          });
-        }
-      } catch (err) {
-        console.error('Error loadMenu:', err);
-      }
-    }
-
-    async function createMenuItem() {
-      const name = document.getElementById('menuName').value.trim();
-      const price = parseFloat(document.getElementById('menuPrice').value) || 0;
-      const category_id = document.getElementById('menuCategory').value || null;
-      if (!name) return;
-
-      try {
-        const resp = await fetch('/api/menu/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token
-          },
-          body: JSON.stringify({ name, price, category_id })
-        });
-        const data = await resp.json();
-        if (data.success) {
-          document.getElementById('menuName').value = '';
-          document.getElementById('menuPrice').value = '';
-          loadMenu();
-        } else {
-          alert(data.message);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    // Abrir modal Editar plato
-    function openEditMenuModal(id) {
-      editingMenuId = id;
-      // Obtenemos datos de /menu (o los tenemos local)
-      // En este ejemplo: pedimos a la API o filtramos la lista local
-      // Hacemos un fetch /menu para un item en particular => simplificaré:
-      fetch('/api/menu/', { headers: { 'Authorization': 'Bearer ' + token } })
-        .then(r => r.json())
-        .then(d => {
-          if (d.success) {
-            const item = d.data.find(x => x.id == id);
-            if (!item) return alert('Plato no encontrado en la lista local');
-            // Llenar modal
-            document.getElementById('editMenuId').value = item.id;
-            document.getElementById('editMenuName').value = item.name;
-            document.getElementById('editMenuPrice').value = item.price;
-            // Cargar categorías en combo
-            loadMenuCategoriesForEdit(item.category_id);
-            // Abrir modal
-            document.getElementById('editMenuModal').style.display = 'block';
-          }
-        });
-    }
-
-    async function loadMenuCategoriesForEdit(selectedCatId) {
-      // Similar a loadMenuCategories, pero llenamos el combo "editMenuCategory"
-      const resp = await fetch('/api/menu/menu-categories/', { headers: { 'Authorization': 'Bearer ' + token }});
-      const data = await resp.json();
-      if (!data.success) return;
-      const sel = document.getElementById('editMenuCategory');
-      sel.innerHTML = '<option value="">Sin categoría</option>';
-      data.data.forEach(cat => {
-        const opt = document.createElement('option');
-        opt.value = cat.id;
-        opt.textContent = cat.name;
-        if (cat.id == selectedCatId) opt.selected = true;
-        sel.appendChild(opt);
-      });
-    }
-
-    // Guardar cambios plato
-    async function saveMenuChanges() {
-      const id = document.getElementById('editMenuId').value;
-      const name = document.getElementById('editMenuName').value.trim();
-      const price = parseFloat(document.getElementById('editMenuPrice').value) || 0;
-      const category_id = document.getElementById('editMenuCategory').value || null;
-
-      if (!id || !name) return alert('Faltan datos');
-      try {
-        const resp = await fetch('/api/menu/' + id, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token
-          },
-          body: JSON.stringify({ name, price, category_id })
-        });
-        const data = await resp.json();
-        if (data.success) {
-          document.getElementById('editMenuModal').style.display = 'none';
-          loadMenu();
-        } else {
-          alert('Error editando plato: ' + data.message);
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    // Eliminar plato
-    async function deleteMenuItem(id) {
-      if (!confirm('¿Seguro que deseas eliminar este plato?')) return;
-      try {
-        const resp = await fetch('/api/menu/' + id, {
-          method: 'DELETE',
-          headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const data = await resp.json();
-        if (data.success) {
-          loadMenu();
-        } else {
-          alert('Error al eliminar: ' + data.message);
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    // ====================== CRUD Categorías ======================
-
-    async function loadMenuCategories() {
-      try {
-        const resp = await fetch('/api/menu/menu-categories', {
-          headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const data = await resp.json();
-        if (data.success) {
-          const selectCat = document.getElementById('menuCategory');
-          const list = document.getElementById('menuCategoriesList');
-          selectCat.innerHTML = '<option value="">Sin categoría</option>';
-          list.innerHTML = '';
-
-          data.data.forEach(cat => {
-            // Opción en combo (crear plato)
-            const opt = document.createElement('option');
-            opt.value = cat.id;
-            opt.textContent = cat.name;
-            selectCat.appendChild(opt);
-
-            // Listado
-            const li = document.createElement('li');
-            li.innerHTML = `
-              <b>${cat.name}</b> - ${cat.description || ''}
-              <button class="cat-edit-btn" data-id="${cat.id}">Editar</button>
-              <button class="cat-del-btn" data-id="${cat.id}">Eliminar</button>
-            `;
-            list.appendChild(li);
-          });
-
-          // Botones
-          document.querySelectorAll('.cat-edit-btn').forEach(btn => {
-            btn.addEventListener('click', () => openEditCategoryModal(btn.dataset.id));
-          });
-          document.querySelectorAll('.cat-del-btn').forEach(btn => {
-            btn.addEventListener('click', () => deleteCategory(btn.dataset.id));
-          });
-        }
-      } catch (err) {
-        console.error('Error loadMenuCategories:', err);
-      }
-    }
-
-    async function createCategory() {
-      const name = document.getElementById('catName').value.trim();
-      const description = document.getElementById('catDesc').value.trim();
-      if (!name) return;
-
-      try {
-        const resp = await fetch('/api/menu/menu-categories', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token
-          },
-          body: JSON.stringify({ name, description })
-        });
-        const data = await resp.json();
-        if (data.success) {
-          document.getElementById('catName').value = '';
-          document.getElementById('catDesc').value = '';
-          loadMenuCategories();
-        } else {
-          alert('Error al crear categoría');
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    // Editar Categoría (abrir modal)
-    function openEditCategoryModal(id) {
-      editingCatId = id;
-      fetch('/api/menu/menu-categories', { headers: { 'Authorization': 'Bearer ' + token } })
-        .then(r => r.json())
-        .then(d => {
-          if (!d.success) return;
-          const cat = d.data.find(x => x.id == id);
-          if (!cat) return alert('Categoría no encontrada');
-          // Rellenar modal
-          document.getElementById('editCatId').value = cat.id;
-          document.getElementById('editCatName').value = cat.name;
-          document.getElementById('editCatDesc').value = cat.description || '';
-          document.getElementById('editCategoryModal').style.display = 'block';
-        });
-    }
-
-    // Guardar cambios categoría
-    async function saveCatChanges() {
-      const id = document.getElementById('editCatId').value;
-      const name = document.getElementById('editCatName').value.trim();
-      const description = document.getElementById('editCatDesc').value.trim();
-
-      if (!id || !name) return alert('Faltan datos');
-      try {
-        const resp = await fetch('/api/menu/menu-categories/' + id, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token
-          },
-          body: JSON.stringify({ name, description })
-        });
-        const data = await resp.json();
-        if (data.success) {
-          document.getElementById('editCategoryModal').style.display = 'none';
-          loadMenuCategories();
-        } else {
-          alert('Error al editar categoría: ' + data.message);
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    // Eliminar categoría
-    async function deleteCategory(id) {
-      if (!confirm('¿Seguro que deseas eliminar esta categoría?')) return;
-      try {
-        const resp = await fetch('/api/menu/menu-categories/' + id, {
-          method: 'DELETE',
-          headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const data = await resp.json();
-        if (data.success) {
-          loadMenuCategories();
-          // Nota: Si hay platos con esa categoría,
-          // se quedarán con category_id=NULL (ON DELETE SET NULL).
-        } else {
-          alert('Error al eliminar categoría: ' + data.message);
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    // ================ EMPLEADOS ================
-    async function initEmployees() {
-      loadEmployees();
-      document.getElementById('employeeAddBtn').addEventListener('click', createEmployee);
-    }
-    async function loadEmployees() {
-      try {
-        const resp = await fetch('/api/employees', {
-          headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const data = await resp.json();
-        if (data.success) {
-          const employeeList = document.getElementById('employeeList');
-          employeeList.innerHTML = '';
-          data.data.forEach(emp => {
-            const li = document.createElement('li');
-            li.textContent = `${emp.name} - ${emp.role}`;
-            employeeList.appendChild(li);
-          });
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
-    async function createEmployee() {
-      const name = document.getElementById('employeeName').value.trim();
-      const role = document.getElementById('employeeRole').value.trim();
-      if (!name || !role) return;
-      try {
-        const resp = await fetch('/api/employees', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token
-          },
-          body: JSON.stringify({ name, role })
-        });
-        const data = await resp.json();
-        if (data.success) {
-          document.getElementById('employeeName').value = '';
-          document.getElementById('employeeRole').value = '';
-          loadEmployees();
-        } else {
-          alert(data.message);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    // ================ RESERVAS ================
-    async function initReservations() {
-      loadReservations();
-      document.getElementById('resAddBtn').addEventListener('click', createReservation);
-    }
-    async function loadReservations() {
-      try {
-        const resp = await fetch('/api/reservations', {
-          headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const data = await resp.json();
-        if (data.success) {
-          const reservationList = document.getElementById('reservationList');
-          reservationList.innerHTML = '';
-          data.data.forEach(r => {
-            const li = document.createElement('li');
-            li.textContent = `[${r.id}] ${r.customerName} - ${r.date} ${r.time} (${r.guests} comensales)`;
-            reservationList.appendChild(li);
-          });
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
-    async function createReservation() {
-      const customerName = document.getElementById('resCustomer').value.trim();
-      const date = document.getElementById('resDate').value;
-      const time = document.getElementById('resTime').value;
-      const guests = parseInt(document.getElementById('resGuests').value) || 0;
-      if (!customerName || !date || !time) return;
-      try {
-        const resp = await fetch('/api/reservations', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token
-          },
-          body: JSON.stringify({ customerName, date, time, guests })
-        });
-        const data = await resp.json();
-        if (data.success) {
-          document.getElementById('resCustomer').value = '';
-          document.getElementById('resDate').value = '';
-          document.getElementById('resTime').value = '';
-          document.getElementById('resGuests').value = '';
-          loadReservations();
-        } else {
-          alert(data.message);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    // ================ PEDIDOS ================
-    function initOrders() {
-      loadOrders();
-      document.getElementById('openOrderModalBtn').addEventListener('click', openOrderModal);
-      document.getElementById('closeOrderModal').addEventListener('click', closeOrderModal);
-      document.getElementById('addItemBtn').addEventListener('click', addNewOrderItem);
-      document.getElementById('createOrderConfirmBtn').addEventListener('click', createOrder);
-    }
-    async function loadOrders() {
-      try {
-        const resp = await fetch('/api/orders', {
-          headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const data = await resp.json();
-        if (data.success) {
-          const ordersList = document.getElementById('ordersList');
-          ordersList.innerHTML = '';
-          data.data.forEach(order => {
-            const li = document.createElement('li');
-            li.innerHTML = `
-              <b>Pedido #${order.id}</b> |
-              Mesa: ${order.tableNumber || '-'} |
-              Cliente: ${order.customer || '-'} |
-              Estado: ${order.status} |
-              ${new Date(order.createdAt).toLocaleString()}<br/>
-              <u>Items:</u> ${order.items.map(i => `${i.menuName} x${i.quantity}`).join(', ')}
-            `;
-            if ((loggedUser.role === 'chef' || loggedUser.role === 'admin' || loggedUser.role === 'gerente')) {
-              if (order.status === 'pending') {
-                const btn = document.createElement('button');
-                btn.textContent = 'En Proceso';
-                btn.addEventListener('click', () => updateOrderStatus(order.id, 'in_process'));
-                li.appendChild(btn);
-              }
-              if (order.status === 'in_process') {
-                const btn = document.createElement('button');
-                btn.textContent = 'Listo';
-                btn.addEventListener('click', () => updateOrderStatus(order.id, 'done'));
-                li.appendChild(btn);
-              }
-            }
-            if ((loggedUser.role === 'mesero' || loggedUser.role === 'admin' || loggedUser.role === 'gerente')
-                && order.status === 'done') {
-              const deliverBtn = document.createElement('button');
-              deliverBtn.textContent = 'Entregado';
-              deliverBtn.addEventListener('click', () => updateOrderStatus(order.id, 'delivered'));
-              li.appendChild(deliverBtn);
-            }
-            ordersList.appendChild(li);
-          });
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
-    function openOrderModal() {
-      document.getElementById('modalTable').value = '';
-      document.getElementById('modalCustomer').value = '';
-      document.getElementById('modalComments').value = '';
-      document.getElementById('orderItemsContainer').innerHTML = '';
-      addNewOrderItem();
-      document.getElementById('orderModal').style.display = 'block';
-    }
-    function closeOrderModal() {
-      document.getElementById('orderModal').style.display = 'none';
-    }
-    async function addNewOrderItem() {
-      const tpl = document.getElementById('orderItemTemplate');
-      const row = tpl.content.cloneNode(true);
-      const select = row.querySelector('.orderItemSelect');
-      const removeBtn = row.querySelector('.removeItemBtn');
-
-      try {
-        const resp = await fetch('/api/menu', {
-          headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const data = await resp.json();
-        if (data.success) {
-          data.data.forEach(m => {
-            const option = document.createElement('option');
-            option.value = m.id;
-            option.textContent = `${m.name} ($${m.price})`;
-            select.appendChild(option);
-          });
-        }
-      } catch (err) {
-        console.error(err);
-      }
-
-      removeBtn.addEventListener('click', () => {
-        row.querySelector('.orderItemRow').remove();
-      });
-      document.getElementById('orderItemsContainer').appendChild(row);
-    }
-    async function createOrder() {
-      const tableNumber = parseInt(document.getElementById('modalTable').value) || 0;
-      const customer = document.getElementById('modalCustomer').value.trim();
-      const comments = document.getElementById('modalComments').value.trim();
-
-      const container = document.getElementById('orderItemsContainer');
-      const rows = container.querySelectorAll('.orderItemRow');
-      const items = [];
-      rows.forEach(r => {
-        const sel = r.querySelector('.orderItemSelect');
-        const qty = r.querySelector('.orderItemQty');
-        items.push({
-          menuItemId: parseInt(sel.value),
-          quantity: parseInt(qty.value) || 1
-        });
-      });
-
-      try {
-        const resp = await fetch('/api/orders', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token
-          },
-          body: JSON.stringify({ tableNumber, customer, comments, items })
-        });
-        const data = await resp.json();
-        if (data.success) {
-          closeOrderModal();
-          loadOrders();
-          socket.emit('newOrder', { orderId: data.orderId, tableNumber, items });
-        } else {
-          alert(data.message);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
-    async function updateOrderStatus(orderId, status) {
-      try {
-        const resp = await fetch('/api/orders/' + orderId, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token
-          },
-          body: JSON.stringify({ status })
-        });
-        const data = await resp.json();
-        if (data.success) {
-          loadOrders();
-        } else {
-          alert(data.message);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    // ================ REPORTES ================
-    function initReports() {
-      document.getElementById('reportBtn').addEventListener('click', loadReports);
-      document.getElementById('factureBtn').addEventListener('click', () => {
-        document.getElementById('factureMsg').textContent = 'Factura generada (demo)...';
-      });
-    }
-    async function loadReports() {
-      try {
-        const resp = await fetch('/api/reports', {
-          headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const data = await resp.json();
-        if (data.success) {
-          document.getElementById('reportData').textContent =
-            `Reservas totales: ${data.totalReservations} | Ingresos facturados: $${data.totalRevenue}`;
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    // ================ PERFIL ================
-    function initProfile() {
-      const user = loggedUser;
-      document.getElementById('profileUsername').textContent = user.username;
-      document.getElementById('profileFullname').textContent = user.fullname || '---';
-      document.getElementById('profileEmail').textContent = user.email || '---';
-      const photoURL = user.photo || user.profile_pic;
-      document.getElementById('profilePhoto').src = photoURL || 'https://via.placeholder.com/100';
-
-      document.getElementById('editPasswordBtn').addEventListener('click', () => {
-        const f = document.getElementById('passwordForm');
-        f.style.display = (f.style.display === 'none' ? 'block' : 'none');
-      });
-      document.getElementById('savePassBtn').addEventListener('click', updatePassword);
-
-      // Botón cambiar foto (solo user normal => updatePicContainer)
-      document.getElementById('updateMyPhotoBtn').addEventListener('click', updateMyPhoto);
-    }
-    async function updatePassword() {
-      const oldPass = document.getElementById('oldPass').value.trim();
-      const newPass = document.getElementById('newPass').value.trim();
-      const passMsg = document.getElementById('passMsg');
-      passMsg.textContent = '';
-      if (!oldPass || !newPass) {
-        passMsg.textContent = 'Faltan contraseñas';
-        return;
-      }
-      try {
-        const resp = await fetch('/api/auth/update-password', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token
-          },
-          body: JSON.stringify({ oldPassword: oldPass, newPassword: newPass })
-        });
-        const data = await resp.json();
-        if (data.success) {
-          passMsg.textContent = 'Contraseña actualizada correctamente';
-        } else {
-          passMsg.textContent = 'Error: ' + data.message;
-        }
-      } catch (e) {
-        passMsg.textContent = 'Error de conexión';
-      }
-    }
-    async function updateMyPhoto() {
-      const picMsg = document.getElementById('picMsg');
-      const newProfilePic = document.getElementById('newProfilePic').value.trim();
-      picMsg.textContent = '';
-      if (!newProfilePic) {
-        picMsg.textContent = 'Falta la URL de la foto';
-        return;
-      }
-      try {
-        const resp = await fetch('/api/auth/myprofile', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token
-          },
-          body: JSON.stringify({ profile_pic: newProfilePic })
-        });
-        const data = await resp.json();
-        if (data.success) {
-          picMsg.textContent = 'Foto actualizada';
-          // Actualizamos localStorage
-          loggedUser.photo = newProfilePic;
-          localStorage.setItem('loggedUser', JSON.stringify(loggedUser));
-          // Actualizamos visual
-          document.getElementById('profilePhoto').src = newProfilePic;
-        } else {
-          picMsg.textContent = 'Error: ' + data.message;
-        }
-      } catch (e) {
-        picMsg.textContent = 'Error de conexión';
-      }
-    }
-  </script>
+  <!-- Incluir socket.io desde el CDN -->
+  <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>

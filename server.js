@@ -1,22 +1,11 @@
-/***************************************************************
- * server.js - Proyecto Monolítico
- * Incorpora:
- *   - Campos avanzados de usuario
- *   - Menú con Categorías (NUEVO)
- *   - CRUD (Empleados, Reservas, Pedidos, etc.)
- *   - Roles con JWT + bcrypt
- *   - Chat con Socket.IO
- ***************************************************************/
 require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const socketIO = require('socket.io');
 
-
 // Importamos nuestra conexión a la BD (db.js)
 const { db } = require('./db');
 const { verifyToken, checkRole } = require('./middlewares/auth');
-
 
 // Importamos las rutas de la carpeta /routes
 const authRoutes = require('./routes/auth.routes');
@@ -32,7 +21,6 @@ const cashRoutes = require('./routes/cash.routes');
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
-
 app.use(express.json());
 
 // Servimos la carpeta 'public' (HTML, CSS, JS front)
@@ -58,10 +46,8 @@ app.post('/backup', verifyToken, checkRole('admin'),(req,res)=>{
   res.json({success:true,message:'Backup placeholder'});
 });
 
-
 const { initSocket } = require('./socket');
 initSocket(io); // para inicializar la lógica del socket
-
 
 // Finalmente, arrancamos el servidor
 const PORT = process.env.PORT || 3000;

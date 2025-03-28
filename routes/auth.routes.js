@@ -1,3 +1,4 @@
+// routes/auth.routes.js
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
@@ -6,24 +7,21 @@ const jwt = require('jsonwebtoken');
 const { db, JWT_SECRET } = require('../db');
 const { verifyToken, checkRole } = require('../middlewares/auth');
 
+// ====================== /register (solo admin) ======================
+router.post('/register', verifyToken, checkRole('admin'), async (req, res) => {
+  const { username, password, role, fullname, email, profile_pic } = req.body;
 
-// ====================== /register ======================
+  if (!username || !password || !role) {
+    return res.status(400).json({ success: false, message: 'Faltan datos obligatorios' });
+  }
 
-router.post('/register', async (req, res) => {
-    const { username, password, role, fullname, email, profile_pic } = req.body;
-  
-    if (!username || !password || !role) {
-      return res.status(400).json({ success: false, message: 'Faltan datos obligatorios' });
-    }
-  
+  try {
     const hashed = await bcrypt.hash(password, 10);
-  
+
     const sql = `
       INSERT INTO users (username, password, role, fullname, email, profile_pic)
       VALUES (?, ?, ?, ?, ?, ?)
     `;
-  
-    // Establecer valores por defecto adecuados (null si no se proporciona)
     const userData = [
       username,
       hashed,
@@ -32,7 +30,7 @@ router.post('/register', async (req, res) => {
       email || null,
       profile_pic || null
     ];
-  
+
     db.query(sql, userData, (err, result) => {
       if (err) {
         console.error('Error en inserción BD:', err);
@@ -40,7 +38,10 @@ router.post('/register', async (req, res) => {
       }
       return res.json({ success: true, userId: result.insertId });
     });
-  });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Error interno', error });
+  }
+});
   
   
   // ====================== /login ======================
@@ -151,4 +152,3 @@ router.post('/register', async (req, res) => {
   });
 
 module.exports = router;
-  

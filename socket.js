@@ -1,3 +1,4 @@
+// socket.js en la raíz
 function initSocket(io) {
   io.on('connection', (socket) => {
     console.log(`Socket conectado: ${socket.id}`);

@@ -53,10 +53,11 @@
 
       if (!username || !password || !role) return;
 
-      const response = await fetch('/register', {
+      // IMPORTANTE: la ruta real es /api/auth/register, no /register
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, role, full_name, email, profile_pic })
+        body: JSON.stringify({ username, password, role, fullname: full_name, email, profile_pic })
       });
 
       const data = await response.json();
