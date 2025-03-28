@@ -14,8 +14,21 @@ export function initUI() {
       const section = link.getAttribute('data-section'); // p.e. "chat"
       const targetId = section + 'Section';              // p.e. "chatSection"
       document.getElementById(targetId).classList.remove('section-hidden');
+
+      // Feedback visual: destacar el link activo
+      links.forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
     });
   });
+
+  // Lógica para el botón hamburger (menú móvil)
+  const hamburger = document.querySelector('.hamburger');
+  const navUl = document.querySelector('nav ul');
+  if (hamburger && navUl) {
+    hamburger.addEventListener('click', () => {
+      navUl.classList.toggle('active');
+    });
+  }
 }
 
 export function applyRoleUI(role) {
@@ -23,7 +36,7 @@ export function applyRoleUI(role) {
   const menuItems = document.querySelectorAll('nav ul li[data-roles]');
   menuItems.forEach(li => {
     const rolesAllowed = li.getAttribute('data-roles').split(',');
-    // limpiar espacios en blanco:
+    // Limpiar espacios en blanco:
     const trimmedRoles = rolesAllowed.map(r => r.trim());
     if (!trimmedRoles.includes(role)) {
       li.style.display = 'none';

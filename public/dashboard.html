@@ -8,7 +8,9 @@
 <body>
   <header>
     <h1>Voltereta Dashboard</h1>
-    <nav>
+    <!-- Botón de menú para dispositivos móviles -->
+    <button class="hamburger" aria-label="Abrir menú de navegación">&#9776;</button>
+    <nav aria-label="Navegación Principal">
       <ul>
         <!-- Chat: todos los roles -->
         <li data-roles="admin,gerente,chef,mesero">
@@ -42,7 +44,6 @@
         <li data-roles="admin,gerente,chef,mesero">
           <a href="#" data-section="profile">Mi Perfil</a>
         </li>
-
         <li>
           <button id="logoutBtn">Salir</button>
         </li>
@@ -50,11 +51,12 @@
     </nav>
   </header>
 
+  <!-- Secciones del Dashboard -->
   <!-- CHAT -->
   <section id="chatSection" class="section-hidden">
     <h2>Chat en tiempo real</h2>
-    <div id="chatContainer" class="chat-box"></div>
-    <input type="text" id="chatInput" placeholder="Mensaje...">
+    <div id="chatContainer" class="chat-box" aria-live="polite"></div>
+    <input type="text" id="chatInput" placeholder="Mensaje..." aria-label="Mensaje">
     <button id="chatSend">Enviar</button>
   </section>
 
