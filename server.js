@@ -3,11 +3,11 @@ const express = require('express');
 const http = require('http');
 const socketIO = require('socket.io');
 
-// Importamos nuestra conexión a la BD (db.js)
+// Importamos la conexión a la BD (db.js) – ahora usando un pool
 const { db } = require('./db');
 const { verifyToken, checkRole } = require('./middlewares/auth');
 
-// Importamos las rutas de la carpeta /routes
+// Importamos las rutas
 const authRoutes = require('./routes/auth.routes');
 const menuRoutes = require('./routes/menu.routes');
 const employeesRoutes = require('./routes/employees.routes');
@@ -17,21 +17,21 @@ const reportsRoutes = require('./routes/reports.routes');
 const reservationRoutes = require('./routes/reservation.routes');
 const cashRoutes = require('./routes/cash.routes');
 
-// Creamos la app de Express y el servidor HTTP
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
+
 app.use(express.json());
 
-// Servimos la carpeta 'public' (HTML, CSS, JS front)
-app.use(express.static('public'));
+// SERVICIO DE ARCHIVOS ESTÁTICOS CON CACHE (uso de CDN y cache-control)
+app.use(express.static('public', { maxAge: '1d' }));
 
-// Redirigir '/' a '/login.html' como página de inicio
+// Redirigir '/' a '/login.html'
 app.get('/', (req, res) => {
   res.redirect('/login.html');
 });
 
-// Montamos las rutas: cada ruta se monta con un prefijo, p.e. /api/auth
+// Montamos las rutas (prefijo /api)
 app.use('/api/auth', authRoutes);
 app.use('/api/menu', menuRoutes);
 app.use('/api/employees', employeesRoutes);
@@ -42,14 +42,13 @@ app.use('/api/reservations', reservationRoutes);
 app.use('/api/cash', cashRoutes);
 
 // ====================== BACKUP (placeholder) ======================
-app.post('/backup', verifyToken, checkRole('admin'),(req,res)=>{
-  res.json({success:true,message:'Backup placeholder'});
+app.post('/backup', verifyToken, checkRole('admin'), (req, res) => {
+  res.json({ success: true, message: 'Backup placeholder' });
 });
 
 const { initSocket } = require('./socket');
-initSocket(io); // para inicializar la lógica del socket
+initSocket(io); // Inicializamos la lógica del socket
 
-// Finalmente, arrancamos el servidor
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);

@@ -1,17 +1,9 @@
 // public/js/main.js
-import { initAuth } from './auth.js';
-import { initChat } from './chat.js';
-import { initMenu } from './menu.js';
-import { initEmployees } from './employees.js';
-import { initReservations } from './reservations.js';
-import { initOrders } from './orders.js';
-import { initReports } from './reports.js';
-import { initUI, applyRoleUI } from './ui.js';
 
 let token = null;
 let loggedUser = null;
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   token = localStorage.getItem('token');
   const userData = localStorage.getItem('loggedUser');
 
@@ -20,23 +12,40 @@ window.addEventListener('DOMContentLoaded', () => {
   } else {
     loggedUser = JSON.parse(userData);
 
-    // 1) Inicializa la parte visual (navegación)
+    // Cargar e inicializar UI (navegación y ajustes de rol)
+    const { initUI, applyRoleUI } = await import('./ui.js');
     initUI();
-
-    // 2) Ajuste de la UI según el rol
     applyRoleUI(loggedUser.role);
 
-    // 3) Manejo de Auth, logout, forms de registrar, etc.
+    // Inicializar autenticación (Auth) de forma temprana
+    const { initAuth } = await import('./auth.js');
     initAuth(token, loggedUser);
 
-    // 4) Chat en tiempo real
-    initChat();
-
-    // 5) Módulos
-    initMenu(token);
-    initEmployees(token);
-    initReservations(token);
-    initOrders(token, loggedUser);
-    initReports(token);
+    // Establecer lazy loading para los módulos de cada sección
+    const sectionLinks = document.querySelectorAll('nav ul li a[data-section]');
+    sectionLinks.forEach(link => {
+      link.addEventListener('click', async () => {
+        const section = link.getAttribute('data-section');
+        if (section === 'chat') {
+          const { initChat } = await import('./chat.js');
+          initChat();
+        } else if (section === 'menu') {
+          const { initMenu } = await import('./menu.js');
+          initMenu(token);
+        } else if (section === 'employees') {
+          const { initEmployees } = await import('./employees.js');
+          initEmployees(token);
+        } else if (section === 'reservations') {
+          const { initReservations } = await import('./reservations.js');
+          initReservations(token);
+        } else if (section === 'orders') {
+          const { initOrders } = await import('./orders.js');
+          initOrders(token, loggedUser);
+        } else if (section === 'reports') {
+          const { initReports } = await import('./reports.js');
+          initReports(token);
+        }
+      });
+    });
   }
 });
