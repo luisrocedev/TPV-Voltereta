@@ -33,38 +33,46 @@ export async function loadOrders() {
 
       ordersList.innerHTML = '';
       data.data.forEach(order => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-          <b>Pedido #${order.id}</b> |
-          Mesa: ${order.tableNumber || '-'} |
-          Cliente: ${order.customer || '-'} |
-          Estado: ${order.status} |
-          ${new Date(order.createdAt).toLocaleString()}<br/>
-          <u>Items:</u> ${order.items.map(i => `${i.menuName} x${i.quantity}`).join(', ')}
+        const div = document.createElement('div');
+        div.className = `order-card ${order.status}`;
+
+        div.innerHTML = `
+          <h3>Pedido #${order.id}</h3>
+          <p><strong>Mesa:</strong> ${order.tableNumber || '-'}</p>
+          <p><strong>Cliente:</strong> ${order.customer || '-'}</p>
+          <p><strong>Estado:</strong> ${order.status}</p>
+          <p><strong>Fecha:</strong> ${new Date(order.createdAt).toLocaleString()}</p>
+          <div class="order-items"><strong>Items:</strong><br/> ${order.items.map(i => `${i.menuName} x${i.quantity}`).join('<br/>')}</div>
+          <div class="order-actions"></div>
         `;
-        // Botones para cambiar estado
-        if (currentUser && (currentUser.role === 'chef' || currentUser.role === 'admin' || currentUser.role === 'gerente')) {
+
+        const actions = div.querySelector('.order-actions');
+
+        if (currentUser && ['chef', 'admin', 'gerente'].includes(currentUser.role)) {
           if (order.status === 'pending') {
             const btn = document.createElement('button');
-            btn.textContent = 'En Proceso';
-            btn.addEventListener('click', () => updateOrderStatus(order.id, 'in_process'));
-            li.appendChild(btn);
+            btn.textContent = 'Marcar En Proceso';
+            btn.classList.add('to-process');
+            btn.onclick = () => updateOrderStatus(order.id, 'in_process');
+            actions.appendChild(btn);
           }
           if (order.status === 'in_process') {
             const btn = document.createElement('button');
-            btn.textContent = 'Listo';
-            btn.addEventListener('click', () => updateOrderStatus(order.id, 'done'));
-            li.appendChild(btn);
+            btn.textContent = 'Marcar Listo';
+            btn.classList.add('to-done');
+            btn.onclick = () => updateOrderStatus(order.id, 'done');
+            actions.appendChild(btn);
           }
         }
-        if (currentUser && (currentUser.role === 'mesero' || currentUser.role === 'admin' || currentUser.role === 'gerente')
-            && order.status === 'done') {
-          const deliverBtn = document.createElement('button');
-          deliverBtn.textContent = 'Entregado';
-          deliverBtn.addEventListener('click', () => updateOrderStatus(order.id, 'delivered'));
-          li.appendChild(deliverBtn);
+        if (currentUser && ['mesero', 'admin', 'gerente'].includes(currentUser.role) && order.status === 'done') {
+          const btn = document.createElement('button');
+          btn.textContent = 'Marcar Entregado';
+          btn.classList.add('to-delivered');
+          btn.onclick = () => updateOrderStatus(order.id, 'delivered');
+          actions.appendChild(btn);
         }
-        ordersList.appendChild(li);
+
+        ordersList.appendChild(div);
       });
     }
   } catch (err) {
@@ -77,7 +85,7 @@ export function openOrderModal() {
   document.getElementById('modalCustomer').value = '';
   document.getElementById('modalComments').value = '';
   document.getElementById('orderItemsContainer').innerHTML = '';
-  addNewOrderItem(); // para tener al menos un campo
+  addNewOrderItem();
   document.getElementById('orderModal').style.display = 'block';
 }
 
@@ -85,9 +93,6 @@ export function closeOrderModal() {
   document.getElementById('orderModal').style.display = 'none';
 }
 
-/**
- * Añade un nuevo row de "item" en el modal de crear pedido
- */
 export async function addNewOrderItem() {
   const tpl = document.getElementById('orderItemTemplate');
   if (!tpl) return;
@@ -96,7 +101,6 @@ export async function addNewOrderItem() {
   const select = row.querySelector('.orderItemSelect');
   const removeBtn = row.querySelector('.removeItemBtn');
 
-  // Cargamos el menú para rellenar el select
   try {
     const resp = await fetch('/api/menu', {
       headers: { 'Authorization': 'Bearer ' + internalToken }
@@ -120,9 +124,6 @@ export async function addNewOrderItem() {
   document.getElementById('orderItemsContainer').appendChild(row);
 }
 
-/**
- * Crear un pedido (POST /api/orders)
- */
 export async function createOrder() {
   const tableNumber = parseInt(document.getElementById('modalTable').value) || 0;
   const customer = document.getElementById('modalCustomer').value.trim();
@@ -153,7 +154,6 @@ export async function createOrder() {
     if (data.success) {
       closeOrderModal();
       await loadOrders();
-      // Emitimos evento socket
       socket.emit('newOrder', { orderId: data.orderId, tableNumber, items });
     } else {
       alert(data.message);
