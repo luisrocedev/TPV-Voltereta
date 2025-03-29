@@ -16,6 +16,8 @@ const ordersRoutes = require('./routes/orders.routes');
 const reportsRoutes = require('./routes/reports.routes');
 const reservationRoutes = require('./routes/reservation.routes');
 const cashRoutes = require('./routes/cash.routes');
+const supportRoutes = require('./routes/support.routes');
+
 
 const app = express();
 const server = http.createServer(app);
@@ -40,6 +42,7 @@ app.use('/api/orders', ordersRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/reservations', reservationRoutes);
 app.use('/api/cash', cashRoutes);
+app.use('/api/support', supportRoutes); // <-- Nueva ruta de soporte
 
 // ====================== BACKUP (placeholder) ======================
 app.post('/backup', verifyToken, checkRole('admin'), (req, res) => {

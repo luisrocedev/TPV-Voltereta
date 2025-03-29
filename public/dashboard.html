@@ -12,40 +12,36 @@
     <button class="hamburger" aria-label="Abrir menú de navegación">&#9776;</button>
     <nav aria-label="Navegación Principal">
       <ul>
-        <!-- Chat: todos los roles -->
         <li data-roles="admin,gerente,chef,mesero">
           <a href="#" data-section="chat">Chat</a>
         </li>
-        <!-- Menú: supongamos admin, gerente, chef -->
         <li data-roles="admin,gerente,chef">
           <a href="#" data-section="menu">Menú</a>
         </li>
-        <!-- Empleados: solo admin y gerente -->
         <li data-roles="admin,gerente">
           <a href="#" data-section="employees">Empleados</a>
         </li>
-        <!-- Reservas: admin, gerente, mesero -->
         <li data-roles="admin,gerente,mesero">
           <a href="#" data-section="reservations">Reservas</a>
         </li>
-        <!-- Pedidos (POS/KDS): admin, gerente, mesero, chef -->
         <li data-roles="admin,gerente,mesero,chef">
           <a href="#" data-section="orders">Pedidos</a>
         </li>
-        <!-- Reportes: admin, gerente -->
         <li data-roles="admin,gerente">
           <a href="#" data-section="reports">Reportes</a>
         </li>
-        <!-- Registrar Usuarios: solo admin -->
         <li data-roles="admin">
           <a href="#" data-section="registerUsers">Registrar Usuarios</a>
         </li>
-        <!-- Perfil: todos los roles -->
         <li data-roles="admin,gerente,chef,mesero">
           <a href="#" data-section="profile">Mi Perfil</a>
         </li>
         <li>
           <button id="logoutBtn">Salir</button>
+        </li>
+        <!-- Opción para Soporte Técnico -->
+        <li data-roles="admin,gerente,chef,mesero">
+          <a href="#" data-section="support">Soporte Técnico</a>
         </li>
       </ul>
     </nav>
@@ -183,7 +179,7 @@
     <button id="factureBtn">Generar Factura (Demo)</button>
   </section>
 
-  <!-- PERFIL (todos los roles) -->
+  <!-- PERFIL -->
   <section id="profileSection" class="section-hidden">
     <h2>Mi Perfil</h2>
     <div class="profile-card">
@@ -193,7 +189,6 @@
       <p><strong>Email:</strong> <span id="profileEmail"></span></p>
     </div>
     <hr>
-    <!-- Actualizar contraseña -->
     <div style="margin:1rem 0;">
       <h3>Cambiar Contraseña</h3>
       <input type="password" id="oldPass" placeholder="Contraseña anterior">
@@ -202,12 +197,29 @@
       <p id="passMsg"></p>
     </div>
     <hr>
-    <!-- Actualizar foto de perfil -->
     <div style="margin:1rem 0;">
       <h3>Actualizar Foto</h3>
       <input type="text" id="newProfilePic" placeholder="URL nueva foto">
       <button id="updateMyPhotoBtn">Actualizar</button>
       <p id="picMsg"></p>
+    </div>
+  </section>
+
+  <!-- Soporte Técnico -->
+  <section id="supportSection" class="section-hidden">
+    <h2>Soporte Técnico</h2>
+    <div id="supportFormContainer">
+      <h3>Reporta una incidencia</h3>
+      <form id="supportForm">
+        <input type="text" id="ticketSubject" placeholder="Asunto" required>
+        <textarea id="ticketDescription" placeholder="Describe tu problema" required></textarea>
+        <button type="submit">Enviar Ticket</button>
+      </form>
+      <p id="supportMsg"></p>
+    </div>
+    <div id="supportTicketsContainer" style="display:none;">
+      <h3>Tickets de Soporte</h3>
+      <div id="ticketsList"></div>
     </div>
   </section>
 
@@ -237,7 +249,7 @@
     </div>
   </template>
 
-  <!-- Incluir socket.io desde el CDN -->
+  <!-- Incluir Socket.io desde el CDN -->
   <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
   <script type="module" src="js/main.js"></script>
 </body>

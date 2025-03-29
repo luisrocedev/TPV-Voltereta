@@ -44,6 +44,9 @@ window.addEventListener('DOMContentLoaded', async () => {
         } else if (section === 'reports') {
           const { initReports } = await import('./reports.js');
           initReports(token);
+        } else if (section === 'support') {
+          const { initSupport } = await import('./support.js');
+          initSupport(token, loggedUser);
         }
       });
     });
