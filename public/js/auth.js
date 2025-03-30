@@ -1,51 +1,68 @@
 // public/js/auth.js
+
 let internalToken = null;
 let currentUser   = null;
 
+/**
+ * Inicializa la autenticación con el token y el usuario logueado.
+ * Además, configura los eventListeners de logout, registro y actualización de datos.
+ */
 export function initAuth(token, user) {
+  // Guardamos token y user en variables internas
   internalToken = token;
   currentUser   = user;
 
-  // Vinculamos el botón de "Salir" a la función logout
+  // Botón de logout
   const logoutBtn = document.getElementById('logoutBtn');
-  if (logoutBtn) logoutBtn.addEventListener('click', logout);
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', logout);
+  }
 
-  // Formulario para registrar (solo admin)
+  // Formulario de registro de usuarios (solo visible si el rol corresponde)
   const adminRegisterForm = document.getElementById('adminRegisterForm');
   if (adminRegisterForm) {
     adminRegisterForm.addEventListener('submit', registerNewUser);
   }
 
-  // Botón para cambiar password
+  // Botón para actualizar contraseña
   const savePassBtn = document.getElementById('savePassBtn');
   if (savePassBtn) {
     savePassBtn.addEventListener('click', updatePassword);
   }
 
-  // Botón para cambiar foto
+  // Botón para actualizar la foto de perfil
   const updateMyPhotoBtn = document.getElementById('updateMyPhotoBtn');
   if (updateMyPhotoBtn) {
     updateMyPhotoBtn.addEventListener('click', updateMyPhoto);
   }
 }
 
+/**
+ * Cierra la sesión del usuario eliminando los datos de LocalStorage.
+ */
 function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('loggedUser');
   window.location.href = 'login.html';
 }
 
-// Actualizar contraseña
+/**
+ * Actualiza la contraseña del usuario autenticado.
+ */
 export async function updatePassword() {
-  const oldPass = document.getElementById('oldPass').value.trim();
-  const newPass = document.getElementById('newPass').value.trim();
+  const oldPass = document.getElementById('oldPass')?.value.trim();
+  const newPass = document.getElementById('newPass')?.value.trim();
   const passMsg = document.getElementById('passMsg');
-  passMsg.textContent = '';
+  
+  // Limpiamos mensaje anterior
+  if (passMsg) passMsg.textContent = '';
 
+  // Validamos campos
   if (!oldPass || !newPass) {
-    passMsg.textContent = 'Faltan contraseñas';
+    if (passMsg) passMsg.textContent = 'Faltan contraseñas';
     return;
   }
+
   try {
     const resp = await fetch('/api/auth/update-password', {
       method: 'PUT',
@@ -55,68 +72,95 @@ export async function updatePassword() {
       },
       body: JSON.stringify({ oldPassword: oldPass, newPassword: newPass })
     });
+
     const data = await resp.json();
     if (data.success) {
-      passMsg.textContent = 'Contraseña actualizada correctamente';
+      if (passMsg) passMsg.textContent = 'Contraseña actualizada correctamente';
     } else {
-      passMsg.textContent = 'Error: ' + data.message;
+      if (passMsg) passMsg.textContent = 'Error: ' + data.message;
     }
   } catch (e) {
-    passMsg.textContent = 'Error de conexión';
+    if (passMsg) passMsg.textContent = 'Error de conexión';
   }
 }
 
-// Actualizar foto de perfil
+/**
+ * Sube una nueva foto de perfil al servidor.
+ */
 export async function updateMyPhoto() {
-  const picMsg = document.getElementById('picMsg');
-  const newProfilePic = document.getElementById('newProfilePic').value.trim();
-  picMsg.textContent = '';
+  const picMsg   = document.getElementById('picMsg');
+  const fileInput = document.getElementById('photoFile');
+  
+  // Limpiamos mensaje anterior
+  if (picMsg) picMsg.textContent = '';
 
-  if (!newProfilePic) {
-    picMsg.textContent = 'Falta la URL de la foto';
+  // 1) Comprobamos que el input de archivo exista
+  if (!fileInput) {
+    if (picMsg) picMsg.textContent = 'Error: no se encontró el campo de archivo en el DOM.';
     return;
   }
+
+  // 2) Validamos que el usuario haya seleccionado un archivo
+  if (!fileInput.files || fileInput.files.length === 0) {
+    if (picMsg) picMsg.textContent = 'Selecciona una imagen JPG o PNG antes de subir.';
+    return;
+  }
+
+  const file = fileInput.files[0];
+
+  // 3) Preparamos el FormData con el archivo
+  const formData = new FormData();
+  formData.append('photo', file);
+
   try {
-    const resp = await fetch('/api/auth/myprofile', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + internalToken
-      },
-      body: JSON.stringify({ profile_pic: newProfilePic })
+    // Petición al endpoint de subida de foto
+    const resp = await fetch('/api/auth/upload-photo', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + internalToken },
+      body: formData
     });
     const data = await resp.json();
+
     if (data.success) {
-      picMsg.textContent = 'Foto actualizada';
-      // Actualizamos la foto en la variable local y en pantalla
-      if (currentUser) currentUser.photo = newProfilePic;
+      // Actualizamos la foto del usuario en localStorage
+      currentUser.photo = data.photoUrl;
       localStorage.setItem('loggedUser', JSON.stringify(currentUser));
-      document.getElementById('profilePhoto').src = newProfilePic;
+
+      // Actualizamos la foto del perfil en el DOM si está presente
+      const profilePhoto = document.getElementById('profilePhoto');
+      if (profilePhoto) {
+        profilePhoto.src = data.photoUrl;
+      }
+
+      if (picMsg) picMsg.textContent = 'Foto actualizada correctamente';
     } else {
-      picMsg.textContent = 'Error: ' + data.message;
+      if (picMsg) picMsg.textContent = 'Error: ' + data.message;
     }
-  } catch (e) {
-    picMsg.textContent = 'Error de conexión';
+  } catch (err) {
+    console.error(err);
+    if (picMsg) picMsg.textContent = 'Error de conexión al subir la foto';
   }
 }
 
-// Registrar un nuevo usuario (solo admin)
+/**
+ * Registra un nuevo usuario (solo si el rol del usuario actual lo permite).
+ */
 async function registerNewUser(e) {
   e.preventDefault();
 
-  // Recuperamos campos
   const regMsg = document.getElementById('regMsg');
-  regMsg.textContent = '';
+  if (regMsg) regMsg.textContent = '';
 
-  const username = document.getElementById('regUsername').value.trim();
-  const password = document.getElementById('regPassword').value.trim();
-  const role     = document.getElementById('regRole').value;
-  const fullname = document.getElementById('regFullname').value.trim();
-  const email    = document.getElementById('regEmail').value.trim();
-  const profile_pic = document.getElementById('regProfilePic').value.trim();
+  const username    = document.getElementById('regUsername')?.value.trim();
+  const password    = document.getElementById('regPassword')?.value.trim();
+  const role        = document.getElementById('regRole')?.value;
+  const fullname    = document.getElementById('regFullname')?.value.trim();
+  const email       = document.getElementById('regEmail')?.value.trim();
+  const profile_pic = document.getElementById('regProfilePic')?.value.trim();
 
+  // Validamos campos necesarios
   if (!username || !password || !role) {
-    regMsg.textContent = 'Faltan datos (usuario, pass o rol).';
+    if (regMsg) regMsg.textContent = 'Faltan datos (usuario, pass o rol).';
     return;
   }
 
@@ -125,25 +169,36 @@ async function registerNewUser(e) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + internalToken // MUY IMPORTANTE
+        'Authorization': 'Bearer ' + internalToken
       },
-      body: JSON.stringify({ username, password, role, fullname, email, profile_pic })
+      body: JSON.stringify({
+        username,
+        password,
+        role,
+        fullname,
+        email,
+        profile_pic
+      })
     });
+
     const data = await resp.json();
     if (data.success) {
-      regMsg.textContent = 'Usuario creado con ID ' + data.userId;
-      // Limpiar formulario
-      document.getElementById('regUsername').value = '';
-      document.getElementById('regPassword').value = '';
-      document.getElementById('regRole').value     = '';
-      document.getElementById('regFullname').value = '';
-      document.getElementById('regEmail').value    = '';
-      document.getElementById('regProfilePic').value = '';
+      if (regMsg) regMsg.textContent = 'Usuario creado con ID ' + data.userId;
+
+      // Limpiamos el formulario
+      const fieldsToClear = [
+        'regUsername', 'regPassword', 'regRole',
+        'regFullname', 'regEmail', 'regProfilePic'
+      ];
+      fieldsToClear.forEach(id => {
+        const field = document.getElementById(id);
+        if (field) field.value = '';
+      });
     } else {
-      regMsg.textContent = 'Error: ' + data.message;
+      if (regMsg) regMsg.textContent = 'Error: ' + data.message;
     }
   } catch (err) {
     console.error(err);
-    regMsg.textContent = 'Error de conexión o servidor.';
+    if (regMsg) regMsg.textContent = 'Error de conexión o servidor.';
   }
 }

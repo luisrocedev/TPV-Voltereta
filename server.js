@@ -18,7 +18,6 @@ const reservationRoutes = require('./routes/reservation.routes');
 const cashRoutes = require('./routes/cash.routes');
 const supportRoutes = require('./routes/support.routes');
 
-
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
@@ -49,8 +48,9 @@ app.post('/backup', verifyToken, checkRole('admin'), (req, res) => {
   res.json({ success: true, message: 'Backup placeholder' });
 });
 
+// Socket.io
 const { initSocket } = require('./socket');
-initSocket(io); // Inicializamos la lógica del socket
+initSocket(io);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {

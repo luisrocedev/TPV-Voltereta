@@ -21,7 +21,7 @@ export function initUI() {
     });
   });
 
-  // Lógica para el botón hamburger (menú móvil)
+  // Lógica para el botón hamburger (menú móvil), si existiese
   const hamburger = document.querySelector('.hamburger');
   const navUl = document.querySelector('nav ul');
   if (hamburger && navUl) {
@@ -41,11 +41,11 @@ export function applyRoleUI(role) {
     if (!trimmedRoles.includes(role)) {
       li.style.display = 'none';
     } else {
-      li.style.display = 'inline-block'; // o 'list-item', depende de tu CSS
+      li.style.display = 'inline-block'; // o 'list-item'
     }
   });
 
-  // 3) Actualizar la sección de perfil con datos
+  // 2) Actualizar la sección de perfil con datos
   const userData = JSON.parse(localStorage.getItem('loggedUser'));
   if (userData) {
     if (document.getElementById('profilePhoto')) {
@@ -62,5 +62,3 @@ export function applyRoleUI(role) {
     }
   }
 }
-
-

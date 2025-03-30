@@ -7,6 +7,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   token = localStorage.getItem('token');
   const userData = localStorage.getItem('loggedUser');
 
+  // Si no hay token o usuario en localStorage, redirigimos a login
   if (!token || !userData) {
     window.location.href = 'login.html';
   } else {
@@ -26,6 +27,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     sectionLinks.forEach(link => {
       link.addEventListener('click', async () => {
         const section = link.getAttribute('data-section');
+        // Cargar el módulo solo cuando se hace clic en la sección
         if (section === 'chat') {
           const { initChat } = await import('./chat.js');
           initChat();
