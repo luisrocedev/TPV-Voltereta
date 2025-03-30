@@ -6,251 +6,268 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1>Voltereta Dashboard</h1>
-    <!-- Botón de menú para dispositivos móviles -->
-    <button class="hamburger" aria-label="Abrir menú de navegación">&#9776;</button>
-    <nav aria-label="Navegación Principal">
-      <ul>
-        <li data-roles="admin,gerente,chef,mesero">
-          <a href="#" data-section="chat">Chat</a>
-        </li>
-        <li data-roles="admin,gerente,chef">
-          <a href="#" data-section="menu">Menú</a>
-        </li>
-        <li data-roles="admin,gerente">
-          <a href="#" data-section="employees">Empleados</a>
-        </li>
-        <li data-roles="admin,gerente,mesero">
-          <a href="#" data-section="reservations">Reservas</a>
-        </li>
-        <li data-roles="admin,gerente,mesero,chef">
-          <a href="#" data-section="orders">Pedidos</a>
-        </li>
-        <li data-roles="admin,gerente">
-          <a href="#" data-section="reports">Reportes</a>
-        </li>
-        <li data-roles="admin">
-          <a href="#" data-section="registerUsers">Registrar Usuarios</a>
-        </li>
-        <li data-roles="admin,gerente,chef,mesero">
-          <a href="#" data-section="profile">Mi Perfil</a>
-        </li>
-        <li>
-          <button id="logoutBtn">Salir</button>
-        </li>
-        <!-- Opción para Soporte Técnico -->
-        <li data-roles="admin,gerente,chef,mesero">
-          <a href="#" data-section="support">Soporte Técnico</a>
-        </li>
-      </ul>
-    </nav>
-  </header>
 
-  <!-- Secciones del Dashboard -->
-  <!-- CHAT -->
-  <section id="chatSection" class="section-hidden">
-    <h2>Chat en tiempo real</h2>
-    <div id="chatContainer" class="chat-box" aria-live="polite"></div>
-    <input type="text" id="chatInput" placeholder="Mensaje..." aria-label="Mensaje">
-    <button id="chatSend">Enviar</button>
-  </section>
+  <!-- Barra de navegación lateral (Navegación Principal) -->
+  <nav aria-label="Navegación Principal">
+    <ul>
+      <li data-roles="admin,gerente,chef,mesero">
+        <a href="#" data-section="chat">Chat</a>
+      </li>
+      <li data-roles="admin,gerente,chef">
+        <a href="#" data-section="menu">Menú</a>
+      </li>
+      <li data-roles="admin,gerente">
+        <a href="#" data-section="employees">Empleados</a>
+      </li>
+      <li data-roles="admin,gerente,mesero">
+        <a href="#" data-section="reservations">Reservas</a>
+      </li>
+      <li data-roles="admin,gerente,mesero,chef">
+        <a href="#" data-section="orders">Pedidos</a>
+      </li>
+      <li data-roles="admin,gerente">
+        <a href="#" data-section="reports">Reportes</a>
+      </li>
+      <li data-roles="admin">
+        <a href="#" data-section="registerUsers">Registrar Usuarios</a>
+      </li>
+      <li data-roles="admin,gerente,chef,mesero">
+        <a href="#" data-section="profile">Mi Perfil</a>
+      </li>
+      <li data-roles="admin,gerente,chef,mesero">
+        <a href="#" data-section="support">Soporte Técnico</a>
+      </li>
+      <li>
+        <button id="logoutBtn">Salir</button>
+      </li>
+    </ul>
+  </nav>
 
-  <!-- MENÚ -->
-  <section id="menuSection" class="section-hidden">
-    <h2>Menú</h2>
-    <ul id="menuList"></ul>
-    <h3>Agregar nuevo plato</h3>
-    <div>
-      <input type="text" id="menuName" placeholder="Nombre del plato">
-      <input type="number" id="menuPrice" placeholder="Precio">
-      <select id="menuCategory">
-        <option value="">Sin categoría</option>
-      </select>
-      <button id="menuAddBtn">Agregar Plato</button>
-    </div>
-    <div class="modal" id="editMenuModal">
-      <div class="modal-content">
-        <span id="closeEditMenuModal" class="close">&times;</span>
-        <h3>Editar Plato</h3>
-        <input type="hidden" id="editMenuId">
-        <label>Nombre:</label>
-        <input type="text" id="editMenuName">
-        <label>Precio:</label>
-        <input type="number" id="editMenuPrice">
-        <label>Categoría:</label>
-        <select id="editMenuCategory"></select>
-        <button id="saveMenuChangesBtn">Guardar Cambios</button>
+  <!-- Contenido principal de la aplicación -->
+  <main>
+
+    <!-- Encabezado del dashboard -->
+    <header>
+      <h1>Voltereta - Dashboard</h1>
+    </header>
+
+    <!-- Sección de Chat -->
+    <section id="chatSection" class="section-hidden" aria-labelledby="chatTitle">
+      <h2 id="chatTitle">Chat en tiempo real</h2>
+      <div id="chatContainer" class="chat-box" aria-live="polite"></div>
+      <input type="text" id="chatInput" placeholder="Mensaje..." aria-label="Mensaje">
+      <button id="chatSend">Enviar</button>
+    </section>
+
+    <!-- Sección de Menú -->
+    <section id="menuSection" class="section-hidden" aria-labelledby="menuTitle">
+      <h2 id="menuTitle">Menú</h2>
+      <ul id="menuList"></ul>
+
+      <h3>Agregar nuevo plato</h3>
+      <div>
+        <input type="text" id="menuName" placeholder="Nombre del plato">
+        <input type="number" id="menuPrice" placeholder="Precio">
+        <select id="menuCategory">
+          <option value="">Sin categoría</option>
+        </select>
+        <button id="menuAddBtn">Agregar Plato</button>
       </div>
-    </div>
-    <h3>Categorías del Menú</h3>
-    <ul id="menuCategoriesList"></ul>
-    <div>
-      <input type="text" id="catName" placeholder="Nombre categoría">
-      <input type="text" id="catDesc" placeholder="Descripción (opcional)">
-      <button id="catAddBtn">Agregar Categoría</button>
-    </div>
-    <div class="modal" id="editCategoryModal">
-      <div class="modal-content">
-        <span id="closeEditCategoryModal" class="close">&times;</span>
-        <h3>Editar Categoría</h3>
-        <input type="hidden" id="editCatId">
-        <label>Nombre:</label>
-        <input type="text" id="editCatName">
-        <label>Descripción:</label>
-        <input type="text" id="editCatDesc">
-        <button id="saveCatChangesBtn">Guardar Cambios</button>
+
+      <!-- Modal para editar plato -->
+      <dialog class="modal" id="editMenuModal">
+        <article class="modal-content">
+          <button id="closeEditMenuModal" class="close" aria-label="Cerrar">&times;</button>
+          <h3>Editar Plato</h3>
+          <input type="hidden" id="editMenuId">
+          <label>Nombre:</label>
+          <input type="text" id="editMenuName">
+          <label>Precio:</label>
+          <input type="number" id="editMenuPrice">
+          <label>Categoría:</label>
+          <select id="editMenuCategory"></select>
+          <button id="saveMenuChangesBtn">Guardar Cambios</button>
+        </article>
+      </dialog>
+
+      <h3>Categorías del Menú</h3>
+      <ul id="menuCategoriesList"></ul>
+      <div>
+        <input type="text" id="catName" placeholder="Nombre categoría">
+        <input type="text" id="catDesc" placeholder="Descripción (opcional)">
+        <button id="catAddBtn">Agregar Categoría</button>
       </div>
-    </div>
-  </section>
 
-  <!-- EMPLEADOS -->
-  <section id="employeesSection" class="section-hidden">
-    <h2>Empleados</h2>
-    <ul id="employeeList"></ul>
-    <div>
-      <input type="text" id="employeeName" placeholder="Nombre">
-      <input type="text" id="employeeRole" placeholder="Rol">
-      <button id="employeeAddBtn">Agregar Empleado</button>
-    </div>
-    <div class="modal" id="editEmployeeModal">
-      <div class="modal-content">
-        <span id="closeEditEmpModal" class="close">&times;</span>
-        <h3>Editar Empleado</h3>
-        <label>Nombre:</label>
-        <input type="text" id="editEmpFullName">
-        <label>Correo:</label>
-        <input type="email" id="editEmpEmail">
-        <label>Foto URL:</label>
-        <input type="text" id="editEmpPic">
-        <button id="saveEmpChanges">Guardar Cambios</button>
+      <!-- Modal para editar categoría -->
+      <dialog class="modal" id="editCategoryModal">
+        <article class="modal-content">
+          <button id="closeEditCategoryModal" class="close" aria-label="Cerrar">&times;</button>
+          <h3>Editar Categoría</h3>
+          <input type="hidden" id="editCatId">
+          <label>Nombre:</label>
+          <input type="text" id="editCatName">
+          <label>Descripción:</label>
+          <input type="text" id="editCatDesc">
+          <button id="saveCatChangesBtn">Guardar Cambios</button>
+        </article>
+      </dialog>
+    </section>
+
+    <!-- Sección de Empleados -->
+    <section id="employeesSection" class="section-hidden" aria-labelledby="employeesTitle">
+      <h2 id="employeesTitle">Empleados</h2>
+      <ul id="employeeList"></ul>
+      <div>
+        <input type="text" id="employeeName" placeholder="Nombre">
+        <input type="text" id="employeeRole" placeholder="Rol">
+        <button id="employeeAddBtn">Agregar Empleado</button>
       </div>
-    </div>
-  </section>
 
-  <!-- REGISTRAR USUARIOS -->
-  <section id="registerUsersSection" class="section-hidden">
-    <h2>Registrar Nuevo Usuario (Admin)</h2>
-    <form id="adminRegisterForm">
-      <input type="text" id="regUsername" placeholder="Usuario" required>
-      <input type="password" id="regPassword" placeholder="Contraseña" required>
-      <select id="regRole" required>
-        <option value="">Selecciona Rol</option>
-        <option value="admin">Admin</option>
-        <option value="chef">Chef</option>
-        <option value="mesero">Mesero</option>
-        <option value="gerente">Gerente</option>
-      </select>
-      <input type="text" id="regFullname" placeholder="Nombre completo">
-      <input type="email" id="regEmail" placeholder="Correo electrónico">
-      <input type="text" id="regProfilePic" placeholder="URL foto de perfil">
-      <button type="submit">Registrar</button>
-    </form>
-    <p id="regMsg"></p>
-  </section>
+      <!-- Modal para editar empleado -->
+      <dialog class="modal" id="editEmployeeModal">
+        <article class="modal-content">
+          <button id="closeEditEmpModal" class="close" aria-label="Cerrar">&times;</button>
+          <h3>Editar Empleado</h3>
+          <label>Nombre:</label>
+          <input type="text" id="editEmpFullName">
+          <label>Correo:</label>
+          <input type="email" id="editEmpEmail">
+          <label>Foto URL:</label>
+          <input type="text" id="editEmpPic">
+          <button id="saveEmpChanges">Guardar Cambios</button>
+        </article>
+      </dialog>
+    </section>
 
-  <!-- RESERVAS -->
-  <section id="reservationsSection" class="section-hidden">
-    <h2>Reservas</h2>
-    <ul id="reservationList"></ul>
-    <div>
-      <input type="text" id="resCustomer" placeholder="Nombre Cliente">
-      <input type="date" id="resDate">
-      <input type="time" id="resTime">
-      <input type="number" id="resGuests" placeholder="Nº comensales">
-      <button id="resAddBtn">Crear Reserva</button>
-    </div>
-  </section>
-
-  <!-- PEDIDOS -->
-  <section id="ordersSection" class="section-hidden">
-    <h2>Pedidos (POS/KDS)</h2>
-    <button id="openOrderModalBtn">Nuevo Pedido</button>
-    <ul id="ordersList"></ul>
-  </section>
-
-  <!-- REPORTES -->
-  <section id="reportsSection" class="section-hidden">
-    <h2>Reportes</h2>
-    <div id="reportData"></div>
-    <button id="reportBtn">Ver Reportes</button>
-    <h3>Generar Factura Demo</h3>
-    <p id="factureMsg"></p>
-    <button id="factureBtn">Generar Factura (Demo)</button>
-  </section>
-
-  <!-- PERFIL -->
-  <section id="profileSection" class="section-hidden">
-    <h2>Mi Perfil</h2>
-    <div class="profile-card">
-      <img id="profilePhoto" src="" alt="Foto de perfil" class="profile-photo">
-      <p><strong>Usuario:</strong> <span id="profileUsername"></span></p>
-      <p><strong>Nombre completo:</strong> <span id="profileFullname"></span></p>
-      <p><strong>Email:</strong> <span id="profileEmail"></span></p>
-    </div>
-    <hr>
-    <div style="margin:1rem 0;">
-      <h3>Cambiar Contraseña</h3>
-      <input type="password" id="oldPass" placeholder="Contraseña anterior">
-      <input type="password" id="newPass" placeholder="Nueva contraseña">
-      <button id="savePassBtn">Guardar</button>
-      <p id="passMsg"></p>
-    </div>
-    <hr>
-    <div style="margin:1rem 0;">
-      <h3>Actualizar Foto</h3>
-      <input type="text" id="newProfilePic" placeholder="URL nueva foto">
-      <button id="updateMyPhotoBtn">Actualizar</button>
-      <p id="picMsg"></p>
-    </div>
-  </section>
-
-  <!-- Soporte Técnico -->
-  <section id="supportSection" class="section-hidden">
-    <h2>Soporte Técnico</h2>
-    <div id="supportFormContainer">
-      <h3>Reporta una incidencia</h3>
-      <form id="supportForm">
-        <input type="text" id="ticketSubject" placeholder="Asunto" required>
-        <textarea id="ticketDescription" placeholder="Describe tu problema" required></textarea>
-        <button type="submit">Enviar Ticket</button>
+    <!-- Sección para Registrar Nuevos Usuarios -->
+    <section id="registerUsersSection" class="section-hidden" aria-labelledby="registerUsersTitle">
+      <h2 id="registerUsersTitle">Registrar Nuevo Usuario (Admin)</h2>
+      <form id="adminRegisterForm">
+        <input type="text" id="regUsername" placeholder="Usuario" required>
+        <input type="password" id="regPassword" placeholder="Contraseña" required>
+        <select id="regRole" required>
+          <option value="">Selecciona Rol</option>
+          <option value="admin">Admin</option>
+          <option value="chef">Chef</option>
+          <option value="mesero">Mesero</option>
+          <option value="gerente">Gerente</option>
+        </select>
+        <input type="text" id="regFullname" placeholder="Nombre completo">
+        <input type="email" id="regEmail" placeholder="Correo electrónico">
+        <input type="text" id="regProfilePic" placeholder="URL foto de perfil">
+        <button type="submit">Registrar</button>
       </form>
-      <p id="supportMsg"></p>
-    </div>
-    <div id="supportTicketsContainer" style="display:none;">
-      <h3>Tickets de Soporte</h3>
-      <div id="ticketsList"></div>
-    </div>
-  </section>
+      <p id="regMsg"></p>
+    </section>
 
-  <!-- MODAL CREAR PEDIDO -->
-  <div class="modal" id="orderModal">
-    <div class="modal-content">
-      <span id="closeOrderModal" class="close">&times;</span>
-      <h3>Crear Pedido</h3>
-      <label>Mesa:</label>
-      <input type="number" id="modalTable">
-      <label>Cliente:</label>
-      <input type="text" id="modalCustomer">
-      <label>Comentarios:</label>
-      <input type="text" id="modalComments">
-      <div id="orderItemsContainer"></div>
-      <button id="addItemBtn">Añadir Plato</button>
-      <button id="createOrderConfirmBtn">Crear Pedido</button>
-    </div>
-  </div>
+    <!-- Sección de Reservas -->
+    <section id="reservationsSection" class="section-hidden" aria-labelledby="reservationsTitle">
+      <h2 id="reservationsTitle">Reservas</h2>
+      <ul id="reservationList"></ul>
+      <div>
+        <input type="text" id="resCustomer" placeholder="Nombre Cliente">
+        <input type="date" id="resDate">
+        <input type="time" id="resTime">
+        <input type="number" id="resGuests" placeholder="Nº comensales">
+        <button id="resAddBtn">Crear Reserva</button>
+      </div>
+    </section>
 
-  <!-- TEMPLATE ITEM -->
-  <template id="orderItemTemplate">
-    <div class="orderItemRow">
-      <select class="orderItemSelect"></select>
-      <input type="number" class="orderItemQty" min="1" value="1">
-      <button class="removeItemBtn">X</button>
-    </div>
-  </template>
+    <!-- Sección de Pedidos -->
+    <section id="ordersSection" class="section-hidden" aria-labelledby="ordersTitle">
+      <h2 id="ordersTitle">Pedidos (POS/KDS)</h2>
+      <button id="openOrderModalBtn">Nuevo Pedido</button>
+      <ul id="ordersList"></ul>
+    </section>
 
-  <!-- Incluir Socket.io desde el CDN -->
+    <!-- Sección de Reportes -->
+    <section id="reportsSection" class="section-hidden" aria-labelledby="reportsTitle">
+      <h2 id="reportsTitle">Reportes</h2>
+      <div id="reportData"></div>
+      <button id="reportBtn">Ver Reportes</button>
+
+      <h3>Generar Factura Demo</h3>
+      <p id="factureMsg"></p>
+      <button id="factureBtn">Generar Factura (Demo)</button>
+    </section>
+
+    <!-- Sección de Perfil de Usuario -->
+    <section id="profileSection" class="section-hidden" aria-labelledby="profileTitle">
+      <h2 id="profileTitle">Mi Perfil</h2>
+      <article class="profile-card">
+        <img id="profilePhoto" src="" alt="Foto de perfil" class="profile-photo">
+        <p><strong>Usuario:</strong> <span id="profileUsername"></span></p>
+        <p><strong>Nombre completo:</strong> <span id="profileFullname"></span></p>
+        <p><strong>Email:</strong> <span id="profileEmail"></span></p>
+      </article>
+
+      <hr>
+      <div>
+        <h3>Cambiar Contraseña</h3>
+        <input type="password" id="oldPass" placeholder="Contraseña anterior">
+        <input type="password" id="newPass" placeholder="Nueva contraseña">
+        <button id="savePassBtn">Guardar</button>
+        <p id="passMsg"></p>
+      </div>
+
+      <hr>
+      <div>
+        <h3>Actualizar Foto</h3>
+        <input type="text" id="newProfilePic" placeholder="URL nueva foto">
+        <button id="updateMyPhotoBtn">Actualizar</button>
+        <p id="picMsg"></p>
+      </div>
+    </section>
+
+    <!-- Sección de Soporte Técnico -->
+    <section id="supportSection" class="section-hidden" aria-labelledby="supportTitle">
+      <h2 id="supportTitle">Soporte Técnico</h2>
+      <div id="supportFormContainer">
+        <h3>Reporta una incidencia</h3>
+        <form id="supportForm">
+          <input type="text" id="ticketSubject" placeholder="Asunto" required>
+          <textarea id="ticketDescription" placeholder="Describe tu problema" required></textarea>
+          <button type="submit">Enviar Ticket</button>
+        </form>
+        <p id="supportMsg"></p>
+      </div>
+      <div id="supportTicketsContainer" style="display:none;">
+        <h3>Tickets de Soporte</h3>
+        <div id="ticketsList"></div>
+      </div>
+    </section>
+
+    <!-- Modal para crear un nuevo pedido -->
+    <dialog class="modal" id="orderModal">
+      <article class="modal-content">
+        <button id="closeOrderModal" class="close" aria-label="Cerrar">&times;</button>
+        <h3>Crear Pedido</h3>
+        <label>Mesa:</label>
+        <input type="number" id="modalTable">
+        <label>Cliente:</label>
+        <input type="text" id="modalCustomer">
+        <label>Comentarios:</label>
+        <input type="text" id="modalComments">
+        <div id="orderItemsContainer"></div>
+        <button id="addItemBtn">Añadir Plato</button>
+        <button id="createOrderConfirmBtn">Crear Pedido</button>
+      </article>
+    </dialog>
+
+    <!-- Plantilla para cada ítem de un pedido -->
+    <template id="orderItemTemplate">
+      <div class="orderItemRow">
+        <select class="orderItemSelect"></select>
+        <input type="number" class="orderItemQty" min="1" value="1">
+        <button class="removeItemBtn" aria-label="Eliminar ítem">X</button>
+      </div>
+    </template>
+
+  </main>
+
+  <!-- Scripts al final del body para un rendimiento óptimo -->
   <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
   <script type="module" src="js/main.js"></script>
+
 </body>
 </html>

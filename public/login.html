@@ -6,15 +6,43 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="login-container">
-    <h1>Voltereta - Iniciar Sesión</h1>
-    <form id="loginForm">
-      <input type="text" id="username" placeholder="Usuario" required>
-      <input type="password" id="password" placeholder="Contraseña" required>
-      <button type="submit">Entrar</button>
-    </form>
-    <p id="loginMsg"></p>
-  </div>
+
+  <main>
+    <!-- Sección principal de login -->
+    <section class="login-container" aria-labelledby="loginTitle">
+      
+      <!-- Encabezado de la sección de login -->
+      <header>
+        <h1 id="loginTitle">Voltereta - Iniciar Sesión</h1>
+      </header>
+
+      <!-- Formulario de autenticación -->
+      <form id="loginForm" aria-describedby="loginMsg">
+        <!-- Etiquetas 'label' ocultas para accesibilidad (puedes adaptarlas según tu diseño) -->
+        <label for="username" class="sr-only">Usuario</label>
+        <input 
+          type="text" 
+          id="username" 
+          placeholder="Usuario" 
+          required
+        >
+
+        <label for="password" class="sr-only">Contraseña</label>
+        <input 
+          type="password" 
+          id="password" 
+          placeholder="Contraseña" 
+          required
+        >
+
+        <button type="submit">Entrar</button>
+      </form>
+
+      <!-- Mensaje de error/estado, se anuncia con role="alert" en caso de error -->
+      <p id="loginMsg" role="alert"></p>
+
+    </section>
+  </main>
 
   <script>
     const loginForm = document.getElementById('loginForm');
@@ -44,5 +72,6 @@
       }
     });
   </script>
+
 </body>
 </html>
