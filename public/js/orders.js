@@ -1,102 +1,121 @@
 // public/js/orders.js
 import { socket } from './socket.js';
+import { showSpinner, hideSpinner } from './feedback.js';
 
 let internalToken = null;
-let currentUser   = null;
+let currentUser = null;
 
 export function initOrders(token, loggedUser) {
   internalToken = token;
-  currentUser   = loggedUser;
+  currentUser = loggedUser;
 
   loadOrders();
 
   const openModalBtn = document.getElementById('openOrderModalBtn');
   const closeModalBtn = document.getElementById('closeOrderModal');
-  const addItemBtn    = document.getElementById('addItemBtn');
-  const createOrderBtn= document.getElementById('createOrderConfirmBtn');
+  const addItemBtn = document.getElementById('addItemBtn');
+  const createOrderBtn = document.getElementById('createOrderConfirmBtn');
 
-  if (openModalBtn)  openModalBtn.addEventListener('click', openOrderModal);
+  if (openModalBtn) openModalBtn.addEventListener('click', openOrderModal);
   if (closeModalBtn) closeModalBtn.addEventListener('click', closeOrderModal);
-  if (addItemBtn)    addItemBtn.addEventListener('click', addNewOrderItem);
-  if (createOrderBtn)createOrderBtn.addEventListener('click', createOrder);
+  if (addItemBtn) addItemBtn.addEventListener('click', addNewOrderItem);
+  if (createOrderBtn) createOrderBtn.addEventListener('click', createOrder);
+
+  // Escuchar evento newOrder via socket
+  socket.on('newOrder', (data) => {
+    loadOrders();
+  });
 }
 
 export async function loadOrders() {
   try {
+    showSpinner();
     const resp = await fetch('/api/orders', {
       headers: { 'Authorization': 'Bearer ' + internalToken }
     });
     const data = await resp.json();
+    hideSpinner();
+
     if (data.success) {
-      const ordersList = document.getElementById('ordersList');
-      if (!ordersList) return;
+      const board = document.getElementById('ordersBoard');
+      if (!board) return;
+      board.innerHTML = ''; // limpiamos el contenedor
 
-      ordersList.innerHTML = '';
       data.data.forEach(order => {
-        const div = document.createElement('div');
-        div.className = `order-card ${order.status}`;
+        // Creamos la tarjeta
+        const card = document.createElement('article');
+        card.classList.add('order-card');
 
-        div.innerHTML = `
-          <h3>Pedido #${order.id}</h3>
-          <p><strong>Mesa:</strong> ${order.tableNumber || '-'}</p>
-          <p><strong>Cliente:</strong> ${order.customer || '-'}</p>
-          <p><strong>Estado:</strong> ${order.status}</p>
-          <p><strong>Fecha:</strong> ${new Date(order.createdAt).toLocaleString()}</p>
-          <div class="order-items"><strong>Items:</strong><br/> ${order.items.map(i => `${i.menuName} x${i.quantity}`).join('<br/>')}</div>
-          <div class="order-actions"></div>
+        // Añadimos la clase de estado:
+        // "pending", "in_process", "done", "delivered", etc.
+        if (order.status) {
+          card.classList.add(`status-${order.status}`);
+        }
+
+        // Ejemplo: calculamos un total sumando items (si no tienes un total en BD)
+        const totalAmount = (order.items || []).reduce((sum, it) => sum + (it.quantity * (it.price || 0)), 0);
+
+        // Estructura interior
+        card.innerHTML = `
+          <div class="order-card-header">
+            <p class="order-status">${mapStatusText(order.status)}</p>
+            <p class="order-id">#${order.id} ${order.deliveryType || ''}</p>
+          </div>
+          <div class="order-card-body">
+            <p class="order-customer">${order.customer || 'Sin cliente'}</p>
+            <p class="order-phone">${order.phone || ''}</p>
+          </div>
+          <div class="order-card-footer">
+            <p class="order-total">€${totalAmount.toFixed(2)}</p>
+            <p class="order-time">${calcElapsedTime(order.createdAt)}</p>
+          </div>
         `;
 
-        const actions = div.querySelector('.order-actions');
-
-        if (currentUser && ['chef', 'admin', 'gerente'].includes(currentUser.role)) {
-          if (order.status === 'pending') {
-            const btn = document.createElement('button');
-            btn.textContent = 'Marcar En Proceso';
-            btn.classList.add('to-process');
-            btn.onclick = () => updateOrderStatus(order.id, 'in_process');
-            actions.appendChild(btn);
-          }
-          if (order.status === 'in_process') {
-            const btn = document.createElement('button');
-            btn.textContent = 'Marcar Listo';
-            btn.classList.add('to-done');
-            btn.onclick = () => updateOrderStatus(order.id, 'done');
-            actions.appendChild(btn);
-          }
+        // Opcional: botones de acción para cambiar estado
+        // (Agregar un div con .order-card-actions, etc.)
+        const actionsDiv = document.createElement('div');
+        actionsDiv.classList.add('order-card-actions');
+        // Ejemplo: chef puede marcar 'done' si está 'in_process'
+        if (['chef', 'admin', 'gerente'].includes(currentUser.role) && order.status === 'in_process') {
+          const doneBtn = document.createElement('button');
+          doneBtn.textContent = 'Listo';
+          doneBtn.addEventListener('click', () => updateOrderStatus(order.id, 'done'));
+          actionsDiv.appendChild(doneBtn);
         }
-        if (currentUser && ['mesero', 'admin', 'gerente'].includes(currentUser.role) && order.status === 'done') {
-          const btn = document.createElement('button');
-          btn.textContent = 'Marcar Entregado';
-          btn.classList.add('to-delivered');
-          btn.onclick = () => updateOrderStatus(order.id, 'delivered');
-          actions.appendChild(btn);
+        // Mesero puede marcar 'delivered' si está 'done'
+        if (['mesero', 'admin', 'gerente'].includes(currentUser.role) && order.status === 'done') {
+          const delBtn = document.createElement('button');
+          delBtn.textContent = 'Entregado';
+          delBtn.addEventListener('click', () => updateOrderStatus(order.id, 'delivered'));
+          actionsDiv.appendChild(delBtn);
         }
+        card.appendChild(actionsDiv);
 
-        ordersList.appendChild(div);
+        board.appendChild(card);
       });
     }
   } catch (err) {
+    hideSpinner();
     console.error(err);
   }
 }
 
-export function openOrderModal() {
+function openOrderModal() {
   document.getElementById('modalTable').value = '';
   document.getElementById('modalCustomer').value = '';
   document.getElementById('modalComments').value = '';
   document.getElementById('orderItemsContainer').innerHTML = '';
   addNewOrderItem();
-  document.getElementById('orderModal').style.display = 'block';
+  document.getElementById('orderModal').showModal();
 }
 
-export function closeOrderModal() {
-  document.getElementById('orderModal').style.display = 'none';
+function closeOrderModal() {
+  document.getElementById('orderModal').close();
 }
 
-export async function addNewOrderItem() {
+async function addNewOrderItem() {
   const tpl = document.getElementById('orderItemTemplate');
   if (!tpl) return;
-
   const row = tpl.content.cloneNode(true);
   const select = row.querySelector('.orderItemSelect');
   const removeBtn = row.querySelector('.removeItemBtn');
@@ -121,10 +140,11 @@ export async function addNewOrderItem() {
   removeBtn.addEventListener('click', () => {
     row.querySelector('.orderItemRow').remove();
   });
+
   document.getElementById('orderItemsContainer').appendChild(row);
 }
 
-export async function createOrder() {
+async function createOrder() {
   const tableNumber = parseInt(document.getElementById('modalTable').value) || 0;
   const customer = document.getElementById('modalCustomer').value.trim();
   const comments = document.getElementById('modalComments').value.trim();
@@ -142,6 +162,7 @@ export async function createOrder() {
   });
 
   try {
+    showSpinner();
     const resp = await fetch('/api/orders', {
       method: 'POST',
       headers: {
@@ -151,6 +172,8 @@ export async function createOrder() {
       body: JSON.stringify({ tableNumber, customer, comments, items })
     });
     const data = await resp.json();
+    hideSpinner();
+
     if (data.success) {
       closeOrderModal();
       await loadOrders();
@@ -159,12 +182,14 @@ export async function createOrder() {
       alert(data.message);
     }
   } catch (err) {
+    hideSpinner();
     console.error(err);
   }
 }
 
-export async function updateOrderStatus(orderId, status) {
+async function updateOrderStatus(orderId, status) {
   try {
+    showSpinner();
     const resp = await fetch('/api/orders/' + orderId, {
       method: 'PUT',
       headers: {
@@ -174,12 +199,38 @@ export async function updateOrderStatus(orderId, status) {
       body: JSON.stringify({ status })
     });
     const data = await resp.json();
+    hideSpinner();
+
     if (data.success) {
       await loadOrders();
     } else {
       alert(data.message);
     }
   } catch (err) {
+    hideSpinner();
     console.error(err);
   }
+}
+
+// Helpers para formatear
+function mapStatusText(status) {
+  switch (status) {
+    case 'pending': return 'Pendiente';
+    case 'in_process': return 'En Proceso';
+    case 'done': return 'Listo';
+    case 'delivered': return 'Entregado';
+    default: return status || 'Desconocido';
+  }
+}
+
+function calcElapsedTime(createdAt) {
+  if (!createdAt) return '';
+  const start = new Date(createdAt);
+  const now = new Date();
+  const diffMs = now - start;
+  const diffMin = Math.floor(diffMs / 60000);
+  const diffSec = Math.floor((diffMs % 60000) / 1000);
+
+  // Ej: "00:13"
+  return `🕒 ${String(diffMin).padStart(2, '0')}:${String(diffSec).padStart(2, '0')}`;
 }

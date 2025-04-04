@@ -7,27 +7,29 @@ window.addEventListener('DOMContentLoaded', async () => {
   token = localStorage.getItem('token');
   const userData = localStorage.getItem('loggedUser');
 
-  // Si no hay token o usuario en localStorage, redirigimos a login
   if (!token || !userData) {
     window.location.href = 'login.html';
   } else {
     loggedUser = JSON.parse(userData);
 
-    // Cargar e inicializar UI (navegación y ajustes de rol)
     const { initUI, applyRoleUI } = await import('./ui.js');
     initUI();
     applyRoleUI(loggedUser.role);
 
-    // Inicializar autenticación (Auth) de forma temprana
     const { initAuth } = await import('./auth.js');
     initAuth(token, loggedUser);
 
-    // Establecer lazy loading para los módulos de cada sección
+    // Ponemos el nombre en la top-bar, si existe
+    const topBarUserName = document.getElementById('topBarUserName');
+    if (topBarUserName) {
+      topBarUserName.textContent = loggedUser.fullname || loggedUser.username;
+    }
+
+    // Lazy loading de secciones
     const sectionLinks = document.querySelectorAll('nav ul li a[data-section]');
     sectionLinks.forEach(link => {
       link.addEventListener('click', async () => {
         const section = link.getAttribute('data-section');
-        // Cargar el módulo solo cuando se hace clic en la sección
         if (section === 'chat') {
           const { initChat } = await import('./chat.js');
           initChat();
@@ -52,5 +54,14 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
       });
     });
+
+    // Menú hamburguesa en móviles
+    const hamburgerBtn = document.querySelector('.hamburger');
+    const navElement = document.querySelector('nav');
+    if (hamburgerBtn && navElement) {
+      hamburgerBtn.addEventListener('click', () => {
+        navElement.classList.toggle('active');
+      });
+    }
   }
 });

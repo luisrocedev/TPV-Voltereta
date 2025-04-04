@@ -1,13 +1,16 @@
+<!-- public/dashboard.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <title>Voltereta - Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- Barra de navegación lateral (Navegación Principal) -->
+  <button class="hamburger" aria-label="Abrir/cerrar menú de navegación">&#9776;</button>
+
   <nav aria-label="Navegación Principal">
     <ul>
       <li data-roles="admin,gerente,chef,mesero">
@@ -43,24 +46,30 @@
     </ul>
   </nav>
 
-  <!-- Contenido principal de la aplicación -->
   <main>
 
-    <!-- Encabezado del dashboard -->
-    <header>
-      <h1>Voltereta - Dashboard</h1>
+    <!-- Barra Superior (opcional) -->
+    <header class="top-bar">
+      <div class="left-info">
+        <img src="uploads/profile_pics/default_user.jpg" alt="Usuario" class="avatar" />
+        <span class="user-name" id="topBarUserName">Usuario</span>
+      </div>
+      <h1 class="restaurant-name">Voltereta - Dashboard</h1>
+      <div class="right-info">
+        <!-- iconos o lo que gustes -->
+      </div>
     </header>
 
     <!-- Sección de Chat -->
-    <section id="chatSection" class="section-hidden" aria-labelledby="chatTitle">
+    <section id="chatSection" class="section-hidden card" aria-labelledby="chatTitle">
       <h2 id="chatTitle">Chat en tiempo real</h2>
       <div id="chatContainer" class="chat-box" aria-live="polite"></div>
-      <input type="text" id="chatInput" placeholder="Mensaje..." aria-label="Mensaje">
+      <input type="text" id="chatInput" placeholder="Mensaje..." aria-label="Escribe tu mensaje">
       <button id="chatSend">Enviar</button>
     </section>
 
     <!-- Sección de Menú -->
-    <section id="menuSection" class="section-hidden" aria-labelledby="menuTitle">
+    <section id="menuSection" class="section-hidden card" aria-labelledby="menuTitle">
       <h2 id="menuTitle">Menú</h2>
       <ul id="menuList"></ul>
 
@@ -114,7 +123,7 @@
     </section>
 
     <!-- Sección de Empleados -->
-    <section id="employeesSection" class="section-hidden" aria-labelledby="employeesTitle">
+    <section id="employeesSection" class="section-hidden card" aria-labelledby="employeesTitle">
       <h2 id="employeesTitle">Empleados</h2>
       <ul id="employeeList"></ul>
       <div>
@@ -140,7 +149,7 @@
     </section>
 
     <!-- Sección para Registrar Nuevos Usuarios -->
-    <section id="registerUsersSection" class="section-hidden" aria-labelledby="registerUsersTitle">
+    <section id="registerUsersSection" class="section-hidden card" aria-labelledby="registerUsersTitle">
       <h2 id="registerUsersTitle">Registrar Nuevo Usuario (Admin)</h2>
       <form id="adminRegisterForm">
         <input type="text" id="regUsername" placeholder="Usuario" required>
@@ -161,7 +170,7 @@
     </section>
 
     <!-- Sección de Reservas -->
-    <section id="reservationsSection" class="section-hidden" aria-labelledby="reservationsTitle">
+    <section id="reservationsSection" class="section-hidden card" aria-labelledby="reservationsTitle">
       <h2 id="reservationsTitle">Reservas</h2>
       <ul id="reservationList"></ul>
       <div>
@@ -173,15 +182,19 @@
       </div>
     </section>
 
-    <!-- Sección de Pedidos -->
-    <section id="ordersSection" class="section-hidden" aria-labelledby="ordersTitle">
-      <h2 id="ordersTitle">Pedidos (POS/KDS)</h2>
-      <button id="openOrderModalBtn">Nuevo Pedido</button>
-      <ul id="ordersList"></ul>
+    <!-- NUEVO: Sección de Pedidos estilo "board" -->
+    <section id="ordersSection" class="section-hidden card" aria-labelledby="ordersTitle">
+      <h2 id="ordersTitle">Panel de Pedidos (POS/KDS)</h2>
+      <p>
+        <!-- Si deseas un botón para crear pedido -->
+        <button id="openOrderModalBtn">Nuevo Pedido</button>
+      </p>
+      <!-- Contenedor donde se renderizan las "cards" de pedidos -->
+      <div class="orders-board" id="ordersBoard"></div>
     </section>
 
     <!-- Sección de Reportes -->
-    <section id="reportsSection" class="section-hidden" aria-labelledby="reportsTitle">
+    <section id="reportsSection" class="section-hidden card" aria-labelledby="reportsTitle">
       <h2 id="reportsTitle">Reportes</h2>
       <div id="reportData"></div>
       <button id="reportBtn">Ver Reportes</button>
@@ -192,7 +205,7 @@
     </section>
 
     <!-- Sección de Perfil de Usuario -->
-    <section id="profileSection" class="section-hidden" aria-labelledby="profileTitle">
+    <section id="profileSection" class="section-hidden card" aria-labelledby="profileTitle">
       <h2 id="profileTitle">Mi Perfil</h2>
       <article class="profile-card">
         <img id="profilePhoto" src="" alt="Foto de perfil" class="profile-photo">
@@ -219,9 +232,8 @@
       </div>
     </section>
 
-
     <!-- Sección de Soporte Técnico -->
-    <section id="supportSection" class="section-hidden" aria-labelledby="supportTitle">
+    <section id="supportSection" class="section-hidden card" aria-labelledby="supportTitle">
       <h2 id="supportTitle">Soporte Técnico</h2>
       <div id="supportFormContainer">
         <h3>Reporta una incidencia</h3>
@@ -239,7 +251,7 @@
     </section>
 
     <!-- Modal para crear un nuevo pedido -->
-    <dialog class="modal" id="orderModal">
+    <dialog class="modal" id="orderModal" aria-modal="true">
       <article class="modal-content">
         <button id="closeOrderModal" class="close" aria-label="Cerrar">&times;</button>
         <h3>Crear Pedido</h3>
@@ -265,7 +277,9 @@
     </template>
 
   </main>
-
+  <div id="globalSpinner" class="spinner-overlay" style="display: none;">
+    <div class="spinner"></div>
+  </div>
   <!-- Scripts al final del body para un rendimiento óptimo -->
   <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
   <script type="module" src="js/main.js"></script>

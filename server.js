@@ -1,13 +1,13 @@
+// server.js
 require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const socketIO = require('socket.io');
 
-// Importamos la conexión a la BD (db.js) – ahora usando un pool
 const { db } = require('./db');
 const { verifyToken, checkRole } = require('./middlewares/auth');
 
-// Importamos las rutas
+// Rutas
 const authRoutes = require('./routes/auth.routes');
 const menuRoutes = require('./routes/menu.routes');
 const employeesRoutes = require('./routes/employees.routes');
@@ -24,15 +24,14 @@ const io = socketIO(server);
 
 app.use(express.json());
 
-// SERVICIO DE ARCHIVOS ESTÁTICOS CON CACHE (uso de CDN y cache-control)
+// Estáticos en /public
 app.use(express.static('public', { maxAge: '1d' }));
 
-// Redirigir '/' a '/login.html'
 app.get('/', (req, res) => {
   res.redirect('/login.html');
 });
 
-// Montamos las rutas (prefijo /api)
+// Montamos rutas
 app.use('/api/auth', authRoutes);
 app.use('/api/menu', menuRoutes);
 app.use('/api/employees', employeesRoutes);
@@ -41,9 +40,9 @@ app.use('/api/orders', ordersRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/reservations', reservationRoutes);
 app.use('/api/cash', cashRoutes);
-app.use('/api/support', supportRoutes); // <-- Nueva ruta de soporte
+app.use('/api/support', supportRoutes);
 
-// ====================== BACKUP (placeholder) ======================
+// Backup placeholder
 app.post('/backup', verifyToken, checkRole('admin'), (req, res) => {
   res.json({ success: true, message: 'Backup placeholder' });
 });

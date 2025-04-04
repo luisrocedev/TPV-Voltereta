@@ -1,4 +1,4 @@
-// ====================== Config ======================
+// db.js
 const mysql = require('mysql2');
 require('dotenv').config();
 
@@ -9,7 +9,6 @@ const DB_NAME = process.env.DB_NAME || 'voltereta_db';
 const JWT_SECRET = process.env.JWT_SECRET || 'S3cr3tJWT';
 const PORT = process.env.PORT || 3000;
 
-// Usamos un pool de conexiones para optimizar recursos
 const db = mysql.createPool({
   host: DB_HOST,
   user: DB_USER,

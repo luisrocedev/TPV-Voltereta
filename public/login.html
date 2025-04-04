@@ -1,30 +1,28 @@
+<!-- public/login.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <title>Voltereta - Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
   <main>
-    <!-- Sección principal de login -->
     <section class="login-container" aria-labelledby="loginTitle">
-      
-      <!-- Encabezado de la sección de login -->
       <header>
         <h1 id="loginTitle">Voltereta - Iniciar Sesión</h1>
       </header>
 
-      <!-- Formulario de autenticación -->
       <form id="loginForm" aria-describedby="loginMsg">
-        <!-- Etiquetas 'label' ocultas para accesibilidad (puedes adaptarlas según tu diseño) -->
         <label for="username" class="sr-only">Usuario</label>
         <input 
           type="text" 
           id="username" 
           placeholder="Usuario" 
           required
+          aria-label="Campo para ingresar nombre de usuario"
         >
 
         <label for="password" class="sr-only">Contraseña</label>
@@ -33,18 +31,23 @@
           id="password" 
           placeholder="Contraseña" 
           required
+          aria-label="Campo para ingresar contraseña"
         >
 
-        <button type="submit">Entrar</button>
+        <button type="submit" aria-label="Botón para iniciar sesión">Entrar</button>
       </form>
 
-      <!-- Mensaje de error/estado, se anuncia con role="alert" en caso de error -->
       <p id="loginMsg" role="alert"></p>
-
     </section>
   </main>
 
-  <script>
+  <div id="globalSpinner" class="spinner-overlay" style="display: none;">
+    <div class="spinner"></div>
+  </div>
+
+  <script type="module">
+    import { showSpinner, hideSpinner, showErrorMessage } from './js/feedback.js';
+
     const loginForm = document.getElementById('loginForm');
     const loginMsg  = document.getElementById('loginMsg');
 
@@ -54,21 +57,25 @@
       const password = document.getElementById('password').value.trim();
 
       try {
+        showSpinner();
         const resp = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
         });
         const data = await resp.json();
+        hideSpinner();
+
         if (data.success) {
           localStorage.setItem('token', data.token);
           localStorage.setItem('loggedUser', JSON.stringify(data.user));
           window.location.href = 'dashboard.html';
         } else {
-          loginMsg.textContent = 'Error: ' + data.message;
+          showErrorMessage(loginMsg, 'Error: ' + data.message);
         }
       } catch (err) {
-        loginMsg.textContent = 'Error de conexión';
+        hideSpinner();
+        showErrorMessage(loginMsg, 'Error de conexión');
       }
     });
   </script>
