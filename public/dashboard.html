@@ -122,31 +122,43 @@
       </dialog>
     </section>
 
-    <!-- Sección de Empleados -->
-    <section id="employeesSection" class="section-hidden card" aria-labelledby="employeesTitle">
-      <h2 id="employeesTitle">Empleados</h2>
-      <ul id="employeeList"></ul>
-      <div>
-        <input type="text" id="employeeName" placeholder="Nombre">
-        <input type="text" id="employeeRole" placeholder="Rol">
-        <button id="employeeAddBtn">Agregar Empleado</button>
-      </div>
+<!-- Sección de Empleados -->
+<section id="employeesSection" class="section-hidden card" aria-labelledby="employeesTitle">
+  <h2 id="employeesTitle">Empleados</h2>
+  <ul id="employeeList"></ul>
+  <div>
+    <input type="text" id="employeeName" placeholder="Nombre">
+    <select id="employeeRole">
+      <option value="">Selecciona rol</option>
+      <option value="admin">Admin</option>
+      <option value="gerente">Gerente</option>
+      <option value="chef">Chef</option>
+      <option value="mesero">Mesero</option>
+    </select>
+    <button id="employeeAddBtn">Agregar Empleado</button>
+  </div>
 
-      <!-- Modal para editar empleado -->
-      <dialog class="modal" id="editEmployeeModal">
-        <article class="modal-content">
-          <button id="closeEditEmpModal" class="close" aria-label="Cerrar">&times;</button>
-          <h3>Editar Empleado</h3>
-          <label>Nombre:</label>
-          <input type="text" id="editEmpFullName">
-          <label>Correo:</label>
-          <input type="email" id="editEmpEmail">
-          <label>Foto URL:</label>
-          <input type="text" id="editEmpPic">
-          <button id="saveEmpChanges">Guardar Cambios</button>
-        </article>
-      </dialog>
-    </section>
+  <!-- Modal para editar empleado -->
+  <dialog class="modal" id="editEmployeeModal">
+    <article class="modal-content">
+      <button id="closeEditEmpModal" class="close" aria-label="Cerrar">&times;</button>
+      <h3>Editar Empleado</h3>
+      <input type="hidden" id="editEmpId">
+      <label>Nombre:</label>
+      <input type="text" id="editEmpName">
+      <label>Rol:</label>
+      <select id="editEmpRole">
+        <option value="">Selecciona rol</option>
+        <option value="admin">Admin</option>
+        <option value="gerente">Gerente</option>
+        <option value="chef">Chef</option>
+        <option value="mesero">Mesero</option>
+      </select>
+      <button id="saveEmpChanges">Guardar Cambios</button>
+    </article>
+  </dialog>
+</section>
+
 
     <!-- Sección para Registrar Nuevos Usuarios -->
     <section id="registerUsersSection" class="section-hidden card" aria-labelledby="registerUsersTitle">
