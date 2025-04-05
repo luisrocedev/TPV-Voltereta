@@ -1,0 +1,25 @@
+<section id="profileSection" class="card">
+    <h2 id="profileTitle">Mi Perfil</h2>
+    <article class="profile-card">
+      <img id="profilePhoto" src="" alt="Foto de perfil" class="profile-photo">
+      <p><strong>Usuario:</strong> <span id="profileUsername"></span></p>
+      <p><strong>Nombre completo:</strong> <span id="profileFullname"></span></p>
+      <p><strong>Email:</strong> <span id="profileEmail"></span></p>
+    </article>
+    <hr>
+    <div>
+      <h3>Cambiar Contraseña</h3>
+      <input type="password" id="oldPass" placeholder="Contraseña anterior">
+      <input type="password" id="newPass" placeholder="Nueva contraseña">
+      <button id="savePassBtn">Guardar</button>
+      <p id="passMsg"></p>
+    </div>
+    <hr>
+    <div>
+      <h3>Actualizar Foto (desde archivo JPG o PNG)</h3>
+      <input type="file" id="photoFile" accept="image/jpeg,image/png">
+      <button id="updateMyPhotoBtn">Subir Foto</button>
+      <p id="picMsg"></p>
+    </div>
+  </section>
+  

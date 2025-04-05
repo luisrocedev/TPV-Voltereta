@@ -7,34 +7,35 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
+  <!-- Botón hamburger para móviles -->
   <button class="hamburger" aria-label="Abrir/cerrar menú de navegación">&#9776;</button>
 
+  <!-- Menú de navegación -->
   <nav aria-label="Navegación Principal">
     <ul>
       <li data-roles="admin,gerente,chef,mesero">
-        <a href="#" data-section="chat">Chat</a>
+        <a href="#" data-partial="partials/chat.html">Chat</a>
       </li>
       <li data-roles="admin,gerente,chef">
-        <a href="#" data-section="menu">Menú</a>
+        <a href="#" data-partial="partials/menu.html">Menú</a>
       </li>
       <li data-roles="admin,gerente">
-        <a href="#" data-section="employees">Empleados</a>
+        <a href="#" data-partial="partials/employees.html">Empleados</a>
       </li>
       <li data-roles="admin,gerente,mesero">
-        <a href="#" data-section="reservations">Reservas</a>
+        <a href="#" data-partial="partials/reservations.html">Reservas</a>
       </li>
       <li data-roles="admin,gerente,mesero,chef">
-        <a href="#" data-section="orders">Pedidos</a>
+        <a href="#" data-partial="partials/orders.html">Pedidos</a>
       </li>
       <li data-roles="admin,gerente">
-        <a href="#" data-section="reports">Reportes</a>
+        <a href="#" data-partial="partials/reports.html">Reportes</a>
       </li>
       <li data-roles="admin,gerente,chef,mesero">
-        <a href="#" data-section="profile">Mi Perfil</a>
+        <a href="#" data-partial="partials/profile.html">Mi Perfil</a>
       </li>
       <li data-roles="admin,gerente,chef,mesero">
-        <a href="#" data-section="support">Soporte Técnico</a>
+        <a href="#" data-partial="partials/support.html">Soporte Técnico</a>
       </li>
       <li>
         <button id="logoutBtn">Salir</button>
@@ -42,236 +43,67 @@
     </ul>
   </nav>
 
+  <!-- Contenedor para cargar los partials -->
   <main>
-
-    <!-- Barra Superior -->
-    <header class="top-bar">
-      <div class="left-info">
-        <img src="uploads/profile_pics/default_user.jpg" alt="Usuario" class="avatar" />
-        <span class="user-name" id="topBarUserName">Usuario</span>
-      </div>
-      <h1 class="restaurant-name">Voltereta - Dashboard</h1>
-      <div class="right-info">
-        <!-- iconos o lo que gustes -->
-      </div>
-    </header>
-
-    <!-- Sección de Chat -->
-    <section id="chatSection" class="section-hidden card" aria-labelledby="chatTitle">
-      <h2 id="chatTitle">Chat en tiempo real</h2>
-      <div id="chatContainer" class="chat-box" aria-live="polite"></div>
-      <input type="text" id="chatInput" placeholder="Mensaje..." aria-label="Escribe tu mensaje">
-      <button id="chatSend">Enviar</button>
-    </section>
-
-    <!-- Sección de Menú -->
-    <section id="menuSection" class="section-hidden card" aria-labelledby="menuTitle">
-      <h2 id="menuTitle">Menú</h2>
-      <ul id="menuList"></ul>
-
-      <h3>Agregar nuevo plato</h3>
-      <div>
-        <input type="text" id="menuName" placeholder="Nombre del plato">
-        <input type="number" id="menuPrice" placeholder="Precio">
-        <select id="menuCategory">
-          <option value="">Sin categoría</option>
-        </select>
-        <button id="menuAddBtn">Agregar Plato</button>
-      </div>
-
-      <!-- Modal para editar plato -->
-      <dialog class="modal" id="editMenuModal">
-        <article class="modal-content">
-          <button id="closeEditMenuModal" class="close" aria-label="Cerrar">&times;</button>
-          <h3>Editar Plato</h3>
-          <input type="hidden" id="editMenuId">
-          <label>Nombre:</label>
-          <input type="text" id="editMenuName">
-          <label>Precio:</label>
-          <input type="number" id="editMenuPrice">
-          <label>Categoría:</label>
-          <select id="editMenuCategory"></select>
-          <button id="saveMenuChangesBtn">Guardar Cambios</button>
-        </article>
-      </dialog>
-
-      <h3>Categorías del Menú</h3>
-      <ul id="menuCategoriesList"></ul>
-      <div>
-        <input type="text" id="catName" placeholder="Nombre categoría">
-        <input type="text" id="catDesc" placeholder="Descripción (opcional)">
-        <button id="catAddBtn">Agregar Categoría</button>
-      </div>
-
-      <!-- Modal para editar categoría -->
-      <dialog class="modal" id="editCategoryModal">
-        <article class="modal-content">
-          <button id="closeEditCategoryModal" class="close" aria-label="Cerrar">&times;</button>
-          <h3>Editar Categoría</h3>
-          <input type="hidden" id="editCatId">
-          <label>Nombre:</label>
-          <input type="text" id="editCatName">
-          <label>Descripción:</label>
-          <input type="text" id="editCatDesc">
-          <button id="saveCatChangesBtn">Guardar Cambios</button>
-        </article>
-      </dialog>
-    </section>
-
-    <!-- Sección de Gestión de Empleados (Consolidada) -->
-    <section id="employeesSection" class="section-hidden card" aria-labelledby="employeesTitle">
-      <h2 id="employeesTitle">Gestión de Empleados</h2>
-      <!-- Listado de empleados -->
-      <ul id="employeeList"></ul>
-      
-      <!-- Formulario para registrar nuevo empleado -->
-      <div>
-        <h3>Agregar Nuevo Empleado</h3>
-        <input type="text" id="employeeUsername" placeholder="Usuario">
-        <input type="password" id="employeePassword" placeholder="Contraseña">
-        <select id="employeeRole">
-          <option value="">Selecciona rol</option>
-          <option value="admin">Admin</option>
-          <option value="gerente">Gerente</option>
-          <option value="chef">Chef</option>
-          <option value="mesero">Mesero</option>
-        </select>
-        <input type="text" id="employeeFullname" placeholder="Nombre Completo">
-        <input type="email" id="employeeEmail" placeholder="Correo Electrónico">
-        <input type="text" id="employeeProfilePic" placeholder="URL Foto de Perfil (opcional)">
-        <button id="employeeAddBtn">Registrar Empleado</button>
-      </div>
-
-      <!-- Modal para editar empleado -->
-      <dialog class="modal" id="editEmployeeModal">
-        <article class="modal-content">
-          <button id="closeEditEmpModal" class="close" aria-label="Cerrar">&times;</button>
-          <h3>Editar Empleado</h3>
-          <input type="hidden" id="editEmpId">
-          <input type="text" id="editEmpUsername" placeholder="Usuario">
-          <select id="editEmpRole">
-            <option value="">Selecciona rol</option>
-            <option value="admin">Admin</option>
-            <option value="gerente">Gerente</option>
-            <option value="chef">Chef</option>
-            <option value="mesero">Mesero</option>
-          </select>
-          <input type="text" id="editEmpFullname" placeholder="Nombre Completo">
-          <input type="email" id="editEmpEmail" placeholder="Correo Electrónico">
-          <input type="text" id="editEmpProfilePic" placeholder="URL Foto de Perfil (opcional)">
-          <button id="saveEmpChanges">Guardar Cambios</button>
-        </article>
-      </dialog>
-    </section>
-
-    <!-- Sección de Reservas -->
-    <section id="reservationsSection" class="section-hidden card" aria-labelledby="reservationsTitle">
-      <h2 id="reservationsTitle">Reservas</h2>
-      <ul id="reservationList"></ul>
-      <div>
-        <input type="text" id="resCustomer" placeholder="Nombre Cliente">
-        <input type="date" id="resDate">
-        <input type="time" id="resTime">
-        <input type="number" id="resGuests" placeholder="Nº comensales">
-        <button id="resAddBtn">Crear Reserva</button>
-      </div>
-    </section>
-
-    <!-- Sección de Pedidos estilo "board" -->
-    <section id="ordersSection" class="section-hidden card" aria-labelledby="ordersTitle">
-      <h2 id="ordersTitle">Panel de Pedidos (POS/KDS)</h2>
-      <p>
-        <button id="openOrderModalBtn">Nuevo Pedido</button>
-      </p>
-      <div class="orders-board" id="ordersBoard"></div>
-    </section>
-
-
-    <!-- Sección de Reportes -->
-    <section id="reportsSection" class="section-hidden card" aria-labelledby="reportsTitle">
-      <h2 id="reportsTitle">Reportes</h2>
-      <div id="reportData"></div>
-      <button id="reportBtn">Ver Reportes</button>
-      <h3>Generar Factura Demo</h3>
-      <p id="factureMsg"></p>
-      <button id="factureBtn">Generar Factura (Demo)</button>
-    </section>
-
-    <!-- Sección de Perfil de Usuario -->
-    <section id="profileSection" class="section-hidden card" aria-labelledby="profileTitle">
-      <h2 id="profileTitle">Mi Perfil</h2>
-      <article class="profile-card">
-        <img id="profilePhoto" src="" alt="Foto de perfil" class="profile-photo">
-        <p><strong>Usuario:</strong> <span id="profileUsername"></span></p>
-        <p><strong>Nombre completo:</strong> <span id="profileFullname"></span></p>
-        <p><strong>Email:</strong> <span id="profileEmail"></span></p>
-      </article>
-      <hr>
-      <div>
-        <h3>Cambiar Contraseña</h3>
-        <input type="password" id="oldPass" placeholder="Contraseña anterior">
-        <input type="password" id="newPass" placeholder="Nueva contraseña">
-        <button id="savePassBtn">Guardar</button>
-        <p id="passMsg"></p>
-      </div>
-      <hr>
-      <div>
-        <h3>Actualizar Foto (desde archivo JPG o PNG)</h3>
-        <input type="file" id="photoFile" accept="image/jpeg,image/png">
-        <button id="updateMyPhotoBtn">Subir Foto</button>
-        <p id="picMsg"></p>
-      </div>
-    </section>
-
-    <!-- Sección de Soporte Técnico -->
-    <section id="supportSection" class="section-hidden card" aria-labelledby="supportTitle">
-      <h2 id="supportTitle">Soporte Técnico</h2>
-      <div id="supportFormContainer">
-        <h3>Reporta una incidencia</h3>
-        <form id="supportForm">
-          <input type="text" id="ticketSubject" placeholder="Asunto" required>
-          <textarea id="ticketDescription" placeholder="Describe tu problema" required></textarea>
-          <button type="submit">Enviar Ticket</button>
-        </form>
-        <p id="supportMsg"></p>
-      </div>
-      <div id="supportTicketsContainer" style="display:none;">
-        <h3>Tickets de Soporte</h3>
-        <div id="ticketsList"></div>
-      </div>
-    </section>
-
-    <!-- Modal para crear un nuevo pedido -->
-    <dialog class="modal" id="orderModal" aria-modal="true">
-      <article class="modal-content">
-        <button id="closeOrderModal" class="close" aria-label="Cerrar">&times;</button>
-        <h3>Crear Pedido</h3>
-        <label>Mesa:</label>
-        <input type="number" id="modalTable">
-        <label>Cliente:</label>
-        <input type="text" id="modalCustomer">
-        <label>Comentarios:</label>
-        <input type="text" id="modalComments">
-        <div id="orderItemsContainer"></div>
-        <button id="addItemBtn">Añadir Plato</button>
-        <button id="createOrderConfirmBtn">Crear Pedido</button>
-      </article>
-    </dialog>
-
-    <!-- Plantilla para cada ítem de un pedido -->
-    <template id="orderItemTemplate">
-      <div class="orderItemRow">
-        <select class="orderItemSelect"></select>
-        <input type="number" class="orderItemQty" min="1" value="1">
-        <button class="removeItemBtn" aria-label="Eliminar ítem">X</button>
-      </div>
-    </template>
-
+    <div id="content"></div>
   </main>
-  <div id="globalSpinner" class="spinner-overlay" style="display: none;">
-    <div class="spinner"></div>
-  </div>
-  <!-- Scripts al final del body para un rendimiento óptimo -->
+
+  <!-- Script para cargar partials dinámicamente -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Suponiendo que ya tienes almacenados el token y el usuario (por ejemplo, en localStorage)
+      const token = localStorage.getItem('token');
+      const loggedUser = JSON.parse(localStorage.getItem('loggedUser'));
+
+      const links = document.querySelectorAll('nav ul li a[data-partial]');
+      const contentDiv = document.getElementById('content');
+
+      links.forEach(link => {
+        link.addEventListener('click', async (e) => {
+          e.preventDefault();
+          const partial = e.target.getAttribute('data-partial');
+          try {
+            const response = await fetch(partial);
+            if (response.ok) {
+              const html = await response.text();
+              contentDiv.innerHTML = html;
+              
+              // Llama a la inicialización del módulo correspondiente según el partial
+              if (partial.includes('chat.html')) {
+                import('./js/chat.js').then(module => module.initChat());
+              } else if (partial.includes('menu.html')) {
+                import('./js/menu.js').then(module => module.initMenu(token));
+              } else if (partial.includes('employees.html')) {
+                import('./js/employees.js').then(module => module.initEmployees(token));
+              } else if (partial.includes('reservations.html')) {
+                import('./js/reservations.js').then(module => module.initReservations(token));
+              } else if (partial.includes('orders.html')) {
+                import('./js/orders.js').then(module => module.initOrders(token, loggedUser));
+              } else if (partial.includes('reports.html')) {
+                import('./js/reports.js').then(module => module.initReports(token));
+              } else if (partial.includes('profile.html')) {
+                // Si es necesario, inicializa algún código específico para el perfil
+              } else if (partial.includes('support.html')) {
+                import('./js/support.js').then(module => module.initSupport(token, loggedUser));
+              }
+            } else {
+              contentDiv.innerHTML = '<p>Error al cargar la sección.</p>';
+            }
+          } catch (error) {
+            console.error('Error al cargar partial:', error);
+            contentDiv.innerHTML = '<p>Error al cargar la sección.</p>';
+          }
+        });
+      });
+
+      // Cargar por defecto la primera sección (por ejemplo, Chat)
+      if (links.length > 0) {
+        links[0].click();
+      }
+    });
+  </script>
+
+  <!-- Otros scripts (por ejemplo, socket.io y main.js) se mantienen si es necesario -->
   <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
   <script type="module" src="js/main.js"></script>
 </body>

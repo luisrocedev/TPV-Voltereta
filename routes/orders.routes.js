@@ -16,7 +16,7 @@ const validateFields = (req, res, next) => {
   next();
 };
 
-// Crear pedido
+// Crear pedido (solo mesero puede crear pedido)
 router.post(
   '/',
   verifyToken,
@@ -33,8 +33,8 @@ router.post(
   (req, res) => {
     const { tableNumber, customer, comments, items } = req.body;
     const sqlOrder = 'INSERT INTO orders (tableNumber, customer, comments, status) VALUES (?, ?, ?, ?)';
-    // Al crear, el estado inicial es "pendiente"
-    db.query(sqlOrder, [tableNumber, customer, comments, 'pendiente'], (err, orderResult) => {
+    // Al crear, el estado inicial es "pedido_realizado"
+    db.query(sqlOrder, [tableNumber, customer, comments, 'pedido_realizado'], (err, orderResult) => {
       if (err) return res.status(500).json({ success: false, message: 'Error al crear pedido' });
       const newOrderId = orderResult.insertId;
       const itemsData = (items || []).map(it => [newOrderId, it.menuItemId, it.quantity]);
@@ -92,21 +92,21 @@ router.put(
     const { status } = req.body;
     const role = req.user.role;
 
+    // Los meseros no pueden actualizar el estado
     if (role === 'mesero') {
       return res.status(403).json({ success: false, message: 'El mesero no está autorizado para actualizar el estado del pedido' });
     }
 
     if (role === 'chef') {
-      // Solo permite actualizar a "en_proceso" y "entregado"
-      const validChef = ['en_proceso', 'entregado'];
-      if (!validChef.includes(status)) {
-        return res.status(403).json({ success: false, message: 'El chef solo puede marcar el pedido como "en_proceso" o "entregado"' });
+      // El chef solo puede actualizar a "finalizado"
+      if (status !== 'finalizado') {
+        return res.status(403).json({ success: false, message: 'El chef solo puede marcar el pedido como "finalizado"' });
       }
     } else if (role === 'admin' || role === 'gerente') {
-      // Permiten todos los estados
-      const validMgrAdm = ['pendiente', 'en_proceso', 'entregado'];
-      if (!validMgrAdm.includes(status)) {
-        return res.status(400).json({ success: false, message: 'Estado inválido. Estados válidos: ' + validMgrAdm.join(', ') });
+      // Admin y Gerente pueden actualizar a "en_proceso" o "entregado"
+      const validStatuses = ['en_proceso', 'entregado'];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ success: false, message: 'Estado inválido. Estados válidos: ' + validStatuses.join(', ') });
       }
     }
 
@@ -119,14 +119,12 @@ router.put(
   }
 );
 
-// Eliminar pedido
+// Eliminar pedido (solo admin y gerente)
 router.delete(
   '/:id',
   verifyToken,
   checkRole('admin', 'gerente'),
-  [
-    param('id').isNumeric().withMessage('El ID debe ser numérico')
-  ],
+  [param('id').isNumeric().withMessage('El ID debe ser numérico')],
   validateFields,
   (req, res) => {
     const { id } = req.params;

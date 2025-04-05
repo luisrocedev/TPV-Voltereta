@@ -1,52 +1,54 @@
 // public/js/support.js
-
 export function initSupport(token, loggedUser) {
   const supportSection = document.getElementById('supportSection');
   const supportTicketsContainer = document.getElementById('supportTicketsContainer');
 
   // Mostrar la sección de tickets solo para admin o gerente
   if (loggedUser.role === 'admin' || loggedUser.role === 'gerente') {
-    supportTicketsContainer.style.display = 'block';
-    loadSupportTickets(token);
+    if (supportTicketsContainer) {
+      supportTicketsContainer.style.display = 'block';
+      loadSupportTickets(token);
+    }
   }
 
   const supportForm = document.getElementById('supportForm');
-  supportForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  if (supportForm) {
+    supportForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-    const subject = document.getElementById('ticketSubject').value.trim();
-    const description = document.getElementById('ticketDescription').value.trim();
+      const subject = document.getElementById('ticketSubject').value.trim();
+      const description = document.getElementById('ticketDescription').value.trim();
 
-    if (!subject || !description) return;
+      if (!subject || !description) return;
 
-    try {
-      const resp = await fetch('/api/support/ticket', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token
-        },
-        body: JSON.stringify({ subject, description })
-      });
+      try {
+        const resp = await fetch('/api/support/ticket', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ subject, description })
+        });
 
-      const data = await resp.json();
-      const supportMsg = document.getElementById('supportMsg');
-
-      if (data.success) {
-        supportMsg.textContent = 'Ticket enviado correctamente. ID: ' + data.ticket.id;
-        supportForm.reset();
-        // Recargar la lista de tickets si el usuario tiene permiso para verlos
-        if (loggedUser.role === 'admin' || loggedUser.role === 'gerente') {
-          loadSupportTickets(token);
+        const data = await resp.json();
+        const supportMsg = document.getElementById('supportMsg');
+        if (data.success) {
+          if (supportMsg) supportMsg.textContent = 'Ticket enviado correctamente. ID: ' + data.ticket.id;
+          supportForm.reset();
+          if (loggedUser.role === 'admin' || loggedUser.role === 'gerente') {
+            loadSupportTickets(token);
+          }
+        } else {
+          if (supportMsg) supportMsg.textContent = 'Error: ' + data.message;
         }
-      } else {
-        supportMsg.textContent = 'Error: ' + data.message;
+      } catch (err) {
+        console.error(err);
+        const supportMsg = document.getElementById('supportMsg');
+        if (supportMsg) supportMsg.textContent = 'Error de conexión';
       }
-    } catch (err) {
-      console.error(err);
-      document.getElementById('supportMsg').textContent = 'Error de conexión';
-    }
-  });
+    });
+  }
 }
 
 async function loadSupportTickets(token) {
@@ -55,12 +57,9 @@ async function loadSupportTickets(token) {
       headers: { 'Authorization': 'Bearer ' + token }
     });
     const data = await resp.json();
-    console.log("Respuesta de /api/support/tickets:", data);
     const ticketsList = document.getElementById('ticketsList');
-
     if (data.success) {
       ticketsList.innerHTML = data.tickets.map(ticket => {
-        // Si el ticket no está cerrado, se muestra un dropdown para cambiar el estado
         let dropdownHtml = '';
         if (ticket.status !== 'cerrado') {
           dropdownHtml = `
@@ -73,7 +72,6 @@ async function loadSupportTickets(token) {
         } else {
           dropdownHtml = `<span>${ticket.status}</span>`;
         }
-
         return `
           <div class="ticket">
             <strong>ID:</strong> ${ticket.id} | <strong>Asunto:</strong> ${ticket.subject} <br>
@@ -84,9 +82,7 @@ async function loadSupportTickets(token) {
         `;
       }).join('');
 
-      // Asignar listener a cada dropdown para actualizar el estado al cambiar la opción
-      const statusDropdowns = document.querySelectorAll('.ticket-status');
-      statusDropdowns.forEach(dropdown => {
+      document.querySelectorAll('.ticket-status').forEach(dropdown => {
         dropdown.addEventListener('change', (e) => {
           const newStatus = e.target.value;
           const ticketId = e.target.getAttribute('data-ticket-id');
@@ -122,4 +118,4 @@ window.updateTicketStatus = async function(ticketId, newStatus, token) {
     console.error(err);
     alert('Error de conexión al actualizar el ticket');
   }
-}
+};

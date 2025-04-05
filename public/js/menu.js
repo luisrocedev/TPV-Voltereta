@@ -1,8 +1,7 @@
 // public/js/menu.js
-
-let internalToken = null; // variable privada para este módulo
+let internalToken = null;
 let editingMenuId = null;
-let editingCatId  = null;
+let editingCatId = null;
 
 export async function initMenu(token) {
   internalToken = token;
@@ -10,18 +9,39 @@ export async function initMenu(token) {
   await loadMenu();
   await loadMenuCategories();
 
-  document.getElementById('menuAddBtn').addEventListener('click', createMenuItem);
-  document.getElementById('catAddBtn').addEventListener('click', createCategory);
+  const menuAddBtn = document.getElementById('menuAddBtn');
+  if (menuAddBtn) {
+    menuAddBtn.addEventListener('click', createMenuItem);
+  }
 
-  document.getElementById('closeEditMenuModal').addEventListener('click', () => {
-    document.getElementById('editMenuModal').style.display = 'none';
-  });
-  document.getElementById('saveMenuChangesBtn').addEventListener('click', saveMenuChanges);
+  const catAddBtn = document.getElementById('catAddBtn');
+  if (catAddBtn) {
+    catAddBtn.addEventListener('click', createCategory);
+  }
 
-  document.getElementById('closeEditCategoryModal').addEventListener('click', () => {
-    document.getElementById('editCategoryModal').style.display = 'none';
-  });
-  document.getElementById('saveCatChangesBtn').addEventListener('click', saveCatChanges);
+  const closeEditMenuModal = document.getElementById('closeEditMenuModal');
+  if (closeEditMenuModal) {
+    closeEditMenuModal.addEventListener('click', () => {
+      const modal = document.getElementById('editMenuModal');
+      if (modal) modal.style.display = 'none';
+    });
+  }
+  const saveMenuChangesBtn = document.getElementById('saveMenuChangesBtn');
+  if (saveMenuChangesBtn) {
+    saveMenuChangesBtn.addEventListener('click', saveMenuChanges);
+  }
+
+  const closeEditCategoryModal = document.getElementById('closeEditCategoryModal');
+  if (closeEditCategoryModal) {
+    closeEditCategoryModal.addEventListener('click', () => {
+      const modal = document.getElementById('editCategoryModal');
+      if (modal) modal.style.display = 'none';
+    });
+  }
+  const saveCatChangesBtn = document.getElementById('saveCatChangesBtn');
+  if (saveCatChangesBtn) {
+    saveCatChangesBtn.addEventListener('click', saveCatChanges);
+  }
 }
 
 async function loadMenu() {
@@ -32,28 +52,30 @@ async function loadMenu() {
     const data = await resp.json();
     if (data.success) {
       const menuList = document.getElementById('menuList');
-      menuList.innerHTML = '';
-      data.data.forEach(item => {
-        const li = document.createElement('li');
-        const catName = item.categoryName ? ` [${item.categoryName}]` : '';
-        li.innerHTML = `
-          <b>${item.name}</b> - $${item.price} ${catName}
-          <button class="menu-edit-btn" data-id="${item.id}">Editar</button>
-          <button class="menu-del-btn" data-id="${item.id}">Eliminar</button>
-        `;
-        menuList.appendChild(li);
-      });
+      if (menuList) {
+        menuList.innerHTML = '';
+        data.data.forEach(item => {
+          const li = document.createElement('li');
+          const catName = item.categoryName ? ` [${item.categoryName}]` : '';
+          li.innerHTML = `
+            <b>${item.name}</b> - $${item.price} ${catName}
+            <button class="menu-edit-btn" data-id="${item.id}">Editar</button>
+            <button class="menu-del-btn" data-id="${item.id}">Eliminar</button>
+          `;
+          menuList.appendChild(li);
+        });
 
-      document.querySelectorAll('.menu-edit-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          openEditMenuModal(btn.dataset.id);
+        document.querySelectorAll('.menu-edit-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            openEditMenuModal(btn.getAttribute('data-id'));
+          });
         });
-      });
-      document.querySelectorAll('.menu-del-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          deleteMenuItem(btn.dataset.id);
+        document.querySelectorAll('.menu-del-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            deleteMenuItem(btn.getAttribute('data-id'));
+          });
         });
-      });
+      }
     }
   } catch (err) {
     console.error('Error loadMenu:', err);
@@ -100,7 +122,8 @@ function openEditMenuModal(id) {
         document.getElementById('editMenuName').value = item.name;
         document.getElementById('editMenuPrice').value = item.price;
         loadMenuCategoriesForEdit(item.category_id);
-        document.getElementById('editMenuModal').style.display = 'block';
+        const modal = document.getElementById('editMenuModal');
+        if (modal) modal.style.display = 'block';
       }
     });
 }
@@ -110,14 +133,16 @@ async function loadMenuCategoriesForEdit(selectedCatId) {
   const data = await resp.json();
   if (!data.success) return;
   const sel = document.getElementById('editMenuCategory');
-  sel.innerHTML = '<option value="">Sin categoría</option>';
-  data.data.forEach(cat => {
-    const opt = document.createElement('option');
-    opt.value = cat.id;
-    opt.textContent = cat.name;
-    if (cat.id == selectedCatId) opt.selected = true;
-    sel.appendChild(opt);
-  });
+  if (sel) {
+    sel.innerHTML = '<option value="">Sin categoría</option>';
+    data.data.forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat.id;
+      opt.textContent = cat.name;
+      if (cat.id == selectedCatId) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
 }
 
 async function saveMenuChanges() {
@@ -138,7 +163,8 @@ async function saveMenuChanges() {
     });
     const data = await resp.json();
     if (data.success) {
-      document.getElementById('editMenuModal').style.display = 'none';
+      const modal = document.getElementById('editMenuModal');
+      if (modal) modal.style.display = 'none';
       await loadMenu();
     } else {
       alert('Error editando plato: ' + data.message);
@@ -175,29 +201,34 @@ export async function loadMenuCategories() {
     if (data.success) {
       const selectCat = document.getElementById('menuCategory');
       const list = document.getElementById('menuCategoriesList');
-      selectCat.innerHTML = '<option value="">Sin categoría</option>';
-      list.innerHTML = '';
-
+      if (selectCat) {
+        selectCat.innerHTML = '<option value="">Sin categoría</option>';
+      }
+      if (list) {
+        list.innerHTML = '';
+      }
       data.data.forEach(cat => {
         const opt = document.createElement('option');
         opt.value = cat.id;
         opt.textContent = cat.name;
-        selectCat.appendChild(opt);
+        if (selectCat) selectCat.appendChild(opt);
 
-        const li = document.createElement('li');
-        li.innerHTML = `
-          <b>${cat.name}</b> - ${cat.description || ''}
-          <button class="cat-edit-btn" data-id="${cat.id}">Editar</button>
-          <button class="cat-del-btn" data-id="${cat.id}">Eliminar</button>
-        `;
-        list.appendChild(li);
+        if (list) {
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <b>${cat.name}</b> - ${cat.description || ''}
+            <button class="cat-edit-btn" data-id="${cat.id}">Editar</button>
+            <button class="cat-del-btn" data-id="${cat.id}">Eliminar</button>
+          `;
+          list.appendChild(li);
+        }
       });
 
       document.querySelectorAll('.cat-edit-btn').forEach(btn => {
-        btn.addEventListener('click', () => openEditCategoryModal(btn.dataset.id));
+        btn.addEventListener('click', () => openEditCategoryModal(btn.getAttribute('data-id')));
       });
       document.querySelectorAll('.cat-del-btn').forEach(btn => {
-        btn.addEventListener('click', () => deleteCategory(btn.dataset.id));
+        btn.addEventListener('click', () => deleteCategory(btn.getAttribute('data-id')));
       });
     }
   } catch (err) {
@@ -243,7 +274,8 @@ function openEditCategoryModal(id) {
       document.getElementById('editCatId').value = cat.id;
       document.getElementById('editCatName').value = cat.name;
       document.getElementById('editCatDesc').value = cat.description || '';
-      document.getElementById('editCategoryModal').style.display = 'block';
+      const modal = document.getElementById('editCategoryModal');
+      if (modal) modal.style.display = 'block';
     });
 }
 
@@ -264,7 +296,8 @@ async function saveCatChanges() {
     });
     const data = await resp.json();
     if (data.success) {
-      document.getElementById('editCategoryModal').style.display = 'none';
+      const modal = document.getElementById('editCategoryModal');
+      if (modal) modal.style.display = 'none';
       await loadMenuCategories();
     } else {
       alert('Error al editar categoría: ' + data.message);

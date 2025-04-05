@@ -1,25 +1,25 @@
 // public/js/employees.js
-
 let internalToken = null;
 
 export async function initEmployees(token) {
   internalToken = token;
   await loadEmployees();
-  
+
   const addBtn = document.getElementById('employeeAddBtn');
   if (addBtn) {
     addBtn.addEventListener('click', createEmployee);
   }
-  
+
   const saveEmpChangesBtn = document.getElementById('saveEmpChanges');
   if (saveEmpChangesBtn) {
     saveEmpChangesBtn.addEventListener('click', updateEmployee);
   }
-  
+
   const closeEditEmpBtn = document.getElementById('closeEditEmpModal');
   if (closeEditEmpBtn) {
     closeEditEmpBtn.addEventListener('click', () => {
-      document.getElementById('editEmployeeModal').close();
+      const modal = document.getElementById('editEmployeeModal');
+      if (modal) modal.close();
     });
   }
 }
@@ -43,7 +43,7 @@ async function loadEmployees() {
           `;
           employeeList.appendChild(li);
         });
-        
+
         document.querySelectorAll('.edit-emp-btn').forEach(btn => {
           btn.addEventListener('click', () => {
             const id = btn.getAttribute('data-id');
@@ -53,7 +53,7 @@ async function loadEmployees() {
             }
           });
         });
-        
+
         document.querySelectorAll('.delete-emp-btn').forEach(btn => {
           btn.addEventListener('click', async () => {
             const id = btn.getAttribute('data-id');
@@ -77,9 +77,8 @@ async function createEmployee() {
   const emailElem = document.getElementById('employeeEmail');
   const profilePicElem = document.getElementById('employeeProfilePic');
 
-  // Verificar que los elementos obligatorios existen
   if (!usernameElem || !passwordElem || !roleElem) {
-    console.error('No se encontró algún elemento obligatorio del formulario.');
+    console.error('Elementos obligatorios no encontrados.');
     return;
   }
 
@@ -94,7 +93,7 @@ async function createEmployee() {
     alert("Faltan datos obligatorios: usuario, contraseña o rol.");
     return;
   }
-  
+
   try {
     const resp = await fetch('/api/employees', {
       method: 'POST',
@@ -106,7 +105,6 @@ async function createEmployee() {
     });
     const data = await resp.json();
     if (data.success) {
-      // Limpiar campos
       usernameElem.value = '';
       passwordElem.value = '';
       roleElem.value = '';
@@ -122,15 +120,23 @@ async function createEmployee() {
   }
 }
 
-
 function openEditEmployeeModal(employee) {
-  document.getElementById('editEmpId').value = employee.id;
-  document.getElementById('editEmpUsername').value = employee.username;
-  document.getElementById('editEmpRole').value = employee.role;
-  document.getElementById('editEmpFullname').value = employee.fullname || '';
-  document.getElementById('editEmpEmail').value = employee.email || '';
-  document.getElementById('editEmpProfilePic').value = employee.profile_pic || '';
-  document.getElementById('editEmployeeModal').showModal();
+  const editEmpId = document.getElementById('editEmpId');
+  const editEmpUsername = document.getElementById('editEmpUsername');
+  const editEmpRole = document.getElementById('editEmpRole');
+  const editEmpFullname = document.getElementById('editEmpFullname');
+  const editEmpEmail = document.getElementById('editEmpEmail');
+  const editEmpProfilePic = document.getElementById('editEmpProfilePic');
+  if (editEmpId && editEmpUsername && editEmpRole) {
+    editEmpId.value = employee.id;
+    editEmpUsername.value = employee.username;
+    editEmpRole.value = employee.role;
+    if (editEmpFullname) editEmpFullname.value = employee.fullname || '';
+    if (editEmpEmail) editEmpEmail.value = employee.email || '';
+    if (editEmpProfilePic) editEmpProfilePic.value = employee.profile_pic || '';
+    const modal = document.getElementById('editEmployeeModal');
+    if (modal) modal.showModal();
+  }
 }
 
 async function updateEmployee() {
@@ -140,12 +146,12 @@ async function updateEmployee() {
   const fullname = document.getElementById('editEmpFullname').value.trim();
   const email = document.getElementById('editEmpEmail').value.trim();
   const profilePic = document.getElementById('editEmpProfilePic').value.trim();
-  
+
   if (!username || !role) {
     alert("Faltan datos obligatorios en el formulario de edición.");
     return;
   }
-  
+
   try {
     const resp = await fetch('/api/employees/' + id, {
       method: 'PUT',
@@ -157,7 +163,8 @@ async function updateEmployee() {
     });
     const data = await resp.json();
     if (data.success) {
-      document.getElementById('editEmployeeModal').close();
+      const modal = document.getElementById('editEmployeeModal');
+      if (modal) modal.close();
       await loadEmployees();
     } else {
       alert(data.message);

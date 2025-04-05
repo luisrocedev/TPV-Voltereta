@@ -9,10 +9,10 @@ export function initOrders(token, loggedUser) {
   internalToken = token;
   currentUser = loggedUser;
 
-  // 1. Declara la variable fuera del condicional
-  const openModalBtn = document.getElementById('openOrderModalBtn'); // ✅
-  // 2. Ahora sí puedes usarla en condicionales
+  // Obtener el botón "Nuevo Pedido"
+  const openModalBtn = document.getElementById('openOrderModalBtn');
   if (openModalBtn) {
+    // Los chefs NO deben ver este botón (no pueden crear pedidos)
     if (currentUser.role === 'chef') {
       openModalBtn.style.display = 'none';
     } else {
@@ -32,7 +32,7 @@ export function initOrders(token, loggedUser) {
 
   loadOrders();
 
-  // Escuchar evento 'newOrder' vía socket para recargar los pedidos
+  // Actualizar pedidos en tiempo real mediante socket
   socket.on('newOrder', () => {
     loadOrders();
   });
@@ -50,7 +50,7 @@ async function loadOrders() {
     if (data.success) {
       const board = document.getElementById('ordersBoard');
       if (!board) return;
-      board.innerHTML = ''; // Limpiar el contenedor
+      board.innerHTML = ''; // Limpiar contenedor
 
       data.data.forEach(order => {
         // Crear tarjeta del pedido
@@ -81,22 +81,39 @@ async function loadOrders() {
           </div>
         `;
 
-        // Botones para actualizar el estado (solo para chef, admin o gerente)
+        // Botones de actualización de estado según rol
         const actionsDiv = document.createElement('div');
         actionsDiv.classList.add('order-card-actions');
 
         if (['chef', 'admin', 'gerente'].includes(currentUser.role)) {
-          if (order.status === 'pedido_realizado') {
-            const btnIniciar = document.createElement('button');
-            btnIniciar.textContent = 'Iniciar';
-            btnIniciar.addEventListener('click', () => updateOrderStatus(order.id, 'en_proceso'));
-            actionsDiv.appendChild(btnIniciar);
-          }
-          if (order.status === 'en_proceso') {
-            const btnEntregar = document.createElement('button');
-            btnEntregar.textContent = 'Entregar';
-            btnEntregar.addEventListener('click', () => updateOrderStatus(order.id, 'entregado'));
-            actionsDiv.appendChild(btnEntregar);
+          if (currentUser.role === 'chef') {
+            // El chef solo puede actualizar de "en_proceso" a "finalizado"
+            if (order.status === 'en_proceso') {
+              const btnFinalizar = document.createElement('button');
+              btnFinalizar.textContent = 'Finalizar';
+              btnFinalizar.addEventListener('click', () =>
+                updateOrderStatus(order.id, 'finalizado')
+              );
+              actionsDiv.appendChild(btnFinalizar);
+            }
+          } else {
+            // Para admin y gerente: permitir transiciones de "pedido_realizado" a "en_proceso" y de "en_proceso" a "entregado"
+            if (order.status === 'pedido_realizado') {
+              const btnIniciar = document.createElement('button');
+              btnIniciar.textContent = 'Iniciar';
+              btnIniciar.addEventListener('click', () =>
+                updateOrderStatus(order.id, 'en_proceso')
+              );
+              actionsDiv.appendChild(btnIniciar);
+            }
+            if (order.status === 'en_proceso') {
+              const btnEntregar = document.createElement('button');
+              btnEntregar.textContent = 'Entregar';
+              btnEntregar.addEventListener('click', () =>
+                updateOrderStatus(order.id, 'entregado')
+              );
+              actionsDiv.appendChild(btnEntregar);
+            }
           }
         }
         card.appendChild(actionsDiv);
@@ -120,7 +137,8 @@ function openOrderModal() {
 }
 
 function closeOrderModal() {
-  document.getElementById('orderModal').close();
+  const modal = document.getElementById('orderModal');
+  if (modal) modal.close();
 }
 
 async function addNewOrderItem() {
@@ -148,10 +166,12 @@ async function addNewOrderItem() {
   }
 
   removeBtn.addEventListener('click', () => {
-    row.querySelector('.orderItemRow').remove();
+    const rowEl = row.querySelector('.orderItemRow');
+    if (rowEl) rowEl.remove();
   });
 
-  document.getElementById('orderItemsContainer').appendChild(row);
+  const container = document.getElementById('orderItemsContainer');
+  if (container) container.appendChild(row);
 }
 
 async function createOrder() {
@@ -178,6 +198,7 @@ async function createOrder() {
 
   try {
     showSpinner();
+    // Se asume que el backend asigna el estado inicial "pedido_realizado" para pedidos creados por mesero
     const resp = await fetch('/api/orders', {
       method: 'POST',
       headers: {
@@ -231,6 +252,7 @@ function mapStatusText(status) {
   switch (status) {
     case 'pedido_realizado': return 'Pedido Realizado';
     case 'en_proceso': return 'En Proceso';
+    case 'finalizado': return 'Finalizado';
     case 'entregado': return 'Entregado';
     case 'pendiente': return 'Pendiente';
     default: return status || 'Desconocido';

@@ -7,7 +7,7 @@ export function initChat() {
   const chatSend = document.getElementById('chatSend');
 
   if (!chatContainer || !chatInput || !chatSend) {
-    // Si no existe la sección en esta página, salimos
+    // Si el partial no se ha cargado, salir.
     return;
   }
 

@@ -1,5 +1,4 @@
 // public/js/reservations.js
-
 let internalToken = null;
 
 export async function initReservations(token) {
@@ -53,12 +52,10 @@ async function createReservation() {
     });
     const data = await resp.json();
     if (data.success) {
-      // Limpiar campos
       document.getElementById('resCustomer').value = '';
       document.getElementById('resDate').value = '';
       document.getElementById('resTime').value = '';
       document.getElementById('resGuests').value = '';
-      // Recargamos
       await loadReservations();
     } else {
       alert(data.message);

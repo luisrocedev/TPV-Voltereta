@@ -1,0 +1,53 @@
+<section id="menuSection" class="card">
+    <h2 id="menuTitle">Menú</h2>
+    <ul id="menuList"></ul>
+  
+    <h3>Agregar nuevo plato</h3>
+    <div>
+      <input type="text" id="menuName" placeholder="Nombre del plato">
+      <input type="number" id="menuPrice" placeholder="Precio">
+      <select id="menuCategory">
+        <option value="">Sin categoría</option>
+      </select>
+      <button id="menuAddBtn">Agregar Plato</button>
+    </div>
+  
+    <!-- Modal para editar plato -->
+    <dialog class="modal" id="editMenuModal">
+      <article class="modal-content">
+        <button id="closeEditMenuModal" class="close" aria-label="Cerrar">&times;</button>
+        <h3>Editar Plato</h3>
+        <input type="hidden" id="editMenuId">
+        <label>Nombre:</label>
+        <input type="text" id="editMenuName">
+        <label>Precio:</label>
+        <input type="number" id="editMenuPrice">
+        <label>Categoría:</label>
+        <select id="editMenuCategory"></select>
+        <button id="saveMenuChangesBtn">Guardar Cambios</button>
+      </article>
+    </dialog>
+  
+    <h3>Categorías del Menú</h3>
+    <ul id="menuCategoriesList"></ul>
+    <div>
+      <input type="text" id="catName" placeholder="Nombre categoría">
+      <input type="text" id="catDesc" placeholder="Descripción (opcional)">
+      <button id="catAddBtn">Agregar Categoría</button>
+    </div>
+  
+    <!-- Modal para editar categoría -->
+    <dialog class="modal" id="editCategoryModal">
+      <article class="modal-content">
+        <button id="closeEditCategoryModal" class="close" aria-label="Cerrar">&times;</button>
+        <h3>Editar Categoría</h3>
+        <input type="hidden" id="editCatId">
+        <label>Nombre:</label>
+        <input type="text" id="editCatName">
+        <label>Descripción:</label>
+        <input type="text" id="editCatDesc">
+        <button id="saveCatChangesBtn">Guardar Cambios</button>
+      </article>
+    </dialog>
+  </section>
+  
