@@ -9,25 +9,36 @@ export function initOrders(token, loggedUser) {
   internalToken = token;
   currentUser = loggedUser;
 
-  loadOrders();
+  // 1. Declara la variable fuera del condicional
+  const openModalBtn = document.getElementById('openOrderModalBtn'); // ✅
+  // 2. Ahora sí puedes usarla en condicionales
+  if (openModalBtn) {
+    if (currentUser.role === 'chef') {
+      openModalBtn.style.display = 'none';
+    } else {
+      openModalBtn.style.display = 'inline-block';
+      openModalBtn.addEventListener('click', openOrderModal);
+    }
+  }
 
-  const openModalBtn = document.getElementById('openOrderModalBtn');
   const closeModalBtn = document.getElementById('closeOrderModal');
-  const addItemBtn = document.getElementById('addItemBtn');
-  const createOrderBtn = document.getElementById('createOrderConfirmBtn');
-
-  if (openModalBtn) openModalBtn.addEventListener('click', openOrderModal);
   if (closeModalBtn) closeModalBtn.addEventListener('click', closeOrderModal);
+
+  const addItemBtn = document.getElementById('addItemBtn');
   if (addItemBtn) addItemBtn.addEventListener('click', addNewOrderItem);
+
+  const createOrderBtn = document.getElementById('createOrderConfirmBtn');
   if (createOrderBtn) createOrderBtn.addEventListener('click', createOrder);
 
-  // Escuchar evento newOrder via socket
-  socket.on('newOrder', (data) => {
+  loadOrders();
+
+  // Escuchar evento 'newOrder' vía socket para recargar los pedidos
+  socket.on('newOrder', () => {
     loadOrders();
   });
 }
 
-export async function loadOrders() {
+async function loadOrders() {
   try {
     showSpinner();
     const resp = await fetch('/api/orders', {
@@ -39,31 +50,30 @@ export async function loadOrders() {
     if (data.success) {
       const board = document.getElementById('ordersBoard');
       if (!board) return;
-      board.innerHTML = ''; // limpiamos el contenedor
+      board.innerHTML = ''; // Limpiar el contenedor
 
       data.data.forEach(order => {
-        // Creamos la tarjeta
+        // Crear tarjeta del pedido
         const card = document.createElement('article');
         card.classList.add('order-card');
 
-        // Añadimos la clase de estado:
-        // "pending", "in_process", "done", "delivered", etc.
         if (order.status) {
           card.classList.add(`status-${order.status}`);
         }
 
-        // Ejemplo: calculamos un total sumando items (si no tienes un total en BD)
-        const totalAmount = (order.items || []).reduce((sum, it) => sum + (it.quantity * (it.price || 0)), 0);
+        // Calcular total
+        const totalAmount = (order.items || []).reduce(
+          (sum, it) => sum + (it.quantity * (it.price || 0)),
+          0
+        );
 
-        // Estructura interior
         card.innerHTML = `
           <div class="order-card-header">
             <p class="order-status">${mapStatusText(order.status)}</p>
-            <p class="order-id">#${order.id} ${order.deliveryType || ''}</p>
+            <p class="order-id">#${order.id}</p>
           </div>
           <div class="order-card-body">
             <p class="order-customer">${order.customer || 'Sin cliente'}</p>
-            <p class="order-phone">${order.phone || ''}</p>
           </div>
           <div class="order-card-footer">
             <p class="order-total">€${totalAmount.toFixed(2)}</p>
@@ -71,26 +81,25 @@ export async function loadOrders() {
           </div>
         `;
 
-        // Opcional: botones de acción para cambiar estado
-        // (Agregar un div con .order-card-actions, etc.)
+        // Botones para actualizar el estado (solo para chef, admin o gerente)
         const actionsDiv = document.createElement('div');
         actionsDiv.classList.add('order-card-actions');
-        // Ejemplo: chef puede marcar 'done' si está 'in_process'
-        if (['chef', 'admin', 'gerente'].includes(currentUser.role) && order.status === 'in_process') {
-          const doneBtn = document.createElement('button');
-          doneBtn.textContent = 'Listo';
-          doneBtn.addEventListener('click', () => updateOrderStatus(order.id, 'done'));
-          actionsDiv.appendChild(doneBtn);
-        }
-        // Mesero puede marcar 'delivered' si está 'done'
-        if (['mesero', 'admin', 'gerente'].includes(currentUser.role) && order.status === 'done') {
-          const delBtn = document.createElement('button');
-          delBtn.textContent = 'Entregado';
-          delBtn.addEventListener('click', () => updateOrderStatus(order.id, 'delivered'));
-          actionsDiv.appendChild(delBtn);
+
+        if (['chef', 'admin', 'gerente'].includes(currentUser.role)) {
+          if (order.status === 'pedido_realizado') {
+            const btnIniciar = document.createElement('button');
+            btnIniciar.textContent = 'Iniciar';
+            btnIniciar.addEventListener('click', () => updateOrderStatus(order.id, 'en_proceso'));
+            actionsDiv.appendChild(btnIniciar);
+          }
+          if (order.status === 'en_proceso') {
+            const btnEntregar = document.createElement('button');
+            btnEntregar.textContent = 'Entregar';
+            btnEntregar.addEventListener('click', () => updateOrderStatus(order.id, 'entregado'));
+            actionsDiv.appendChild(btnEntregar);
+          }
         }
         card.appendChild(actionsDiv);
-
         board.appendChild(card);
       });
     }
@@ -101,6 +110,7 @@ export async function loadOrders() {
 }
 
 function openOrderModal() {
+  // Reiniciar campos del modal
   document.getElementById('modalTable').value = '';
   document.getElementById('modalCustomer').value = '';
   document.getElementById('modalComments').value = '';
@@ -145,6 +155,11 @@ async function addNewOrderItem() {
 }
 
 async function createOrder() {
+  if (currentUser.role === 'chef') {
+    alert("El chef no está autorizado para crear pedidos.");
+    return;
+  }
+
   const tableNumber = parseInt(document.getElementById('modalTable').value) || 0;
   const customer = document.getElementById('modalCustomer').value.trim();
   const comments = document.getElementById('modalComments').value.trim();
@@ -212,13 +227,12 @@ async function updateOrderStatus(orderId, status) {
   }
 }
 
-// Helpers para formatear
 function mapStatusText(status) {
   switch (status) {
-    case 'pending': return 'Pendiente';
-    case 'in_process': return 'En Proceso';
-    case 'done': return 'Listo';
-    case 'delivered': return 'Entregado';
+    case 'pedido_realizado': return 'Pedido Realizado';
+    case 'en_proceso': return 'En Proceso';
+    case 'entregado': return 'Entregado';
+    case 'pendiente': return 'Pendiente';
     default: return status || 'Desconocido';
   }
 }
@@ -230,7 +244,7 @@ function calcElapsedTime(createdAt) {
   const diffMs = now - start;
   const diffMin = Math.floor(diffMs / 60000);
   const diffSec = Math.floor((diffMs % 60000) / 1000);
-
-  // Ej: "00:13"
   return `🕒 ${String(diffMin).padStart(2, '0')}:${String(diffSec).padStart(2, '0')}`;
 }
+
+export { updateOrderStatus };

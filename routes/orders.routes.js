@@ -1,4 +1,3 @@
-// routes/orders.routes.js
 const express = require('express');
 const router = express.Router();
 const { body, param, validationResult } = require('express-validator');
@@ -21,31 +20,21 @@ const validateFields = (req, res, next) => {
 router.post(
   '/',
   verifyToken,
+  checkRole('mesero'),
   [
-    body('tableNumber')
-      .isNumeric()
-      .withMessage('El número de mesa debe ser numérico'),
-    body('customer')
-      .notEmpty()
-      .withMessage('El nombre del cliente es obligatorio'),
-    body('comments')
-      .optional()
-      .isString(),
-    body('items')
-      .isArray()
-      .withMessage('Los items deben ser un arreglo'),
-    body('items.*.menuItemId')
-      .isNumeric()
-      .withMessage('El ID del plato debe ser numérico'),
-    body('items.*.quantity')
-      .isNumeric()
-      .withMessage('La cantidad debe ser numérica')
+    body('tableNumber').isNumeric().withMessage('El número de mesa debe ser numérico'),
+    body('customer').notEmpty().withMessage('El nombre del cliente es obligatorio'),
+    body('comments').optional().isString(),
+    body('items').isArray().withMessage('Los items deben ser un arreglo'),
+    body('items.*.menuItemId').isNumeric().withMessage('El ID del plato debe ser numérico'),
+    body('items.*.quantity').isNumeric().withMessage('La cantidad debe ser numérica')
   ],
   validateFields,
   (req, res) => {
     const { tableNumber, customer, comments, items } = req.body;
-    const sqlOrder = 'INSERT INTO orders (tableNumber, customer, comments) VALUES (?, ?, ?)';
-    db.query(sqlOrder, [tableNumber, customer, comments], (err, orderResult) => {
+    const sqlOrder = 'INSERT INTO orders (tableNumber, customer, comments, status) VALUES (?, ?, ?, ?)';
+    // Al crear, el estado inicial es "pendiente"
+    db.query(sqlOrder, [tableNumber, customer, comments, 'pendiente'], (err, orderResult) => {
       if (err) return res.status(500).json({ success: false, message: 'Error al crear pedido' });
       const newOrderId = orderResult.insertId;
       const itemsData = (items || []).map(it => [newOrderId, it.menuItemId, it.quantity]);
@@ -94,12 +83,8 @@ router.put(
   '/:id',
   verifyToken,
   [
-    param('id')
-      .isNumeric()
-      .withMessage('El ID debe ser numérico'),
-    body('status')
-      .notEmpty()
-      .withMessage('El estado es obligatorio')
+    param('id').isNumeric().withMessage('El ID debe ser numérico'),
+    body('status').notEmpty().withMessage('El estado es obligatorio')
   ],
   validateFields,
   (req, res) => {
@@ -107,18 +92,22 @@ router.put(
     const { status } = req.body;
     const role = req.user.role;
 
-    const validChef = ['in_process', 'done'];
-    const validMesero = ['delivered'];
-    const validMgrAdm = ['pending', 'in_process', 'done', 'delivered'];
+    if (role === 'mesero') {
+      return res.status(403).json({ success: false, message: 'El mesero no está autorizado para actualizar el estado del pedido' });
+    }
 
-    if (role === 'chef' && !validChef.includes(status)) {
-      return res.status(403).json({ success: false, message: 'Chef no puede marcar ' + status });
-    }
-    if (role === 'mesero' && !validMesero.includes(status)) {
-      return res.status(403).json({ success: false, message: 'Mesero no puede marcar ' + status });
-    }
-    if ((role === 'admin' || role === 'gerente') && !validMgrAdm.includes(status)) {
-      return res.status(400).json({ success: false, message: 'Estado inválido' });
+    if (role === 'chef') {
+      // Solo permite actualizar a "en_proceso" y "entregado"
+      const validChef = ['en_proceso', 'entregado'];
+      if (!validChef.includes(status)) {
+        return res.status(403).json({ success: false, message: 'El chef solo puede marcar el pedido como "en_proceso" o "entregado"' });
+      }
+    } else if (role === 'admin' || role === 'gerente') {
+      // Permiten todos los estados
+      const validMgrAdm = ['pendiente', 'en_proceso', 'entregado'];
+      if (!validMgrAdm.includes(status)) {
+        return res.status(400).json({ success: false, message: 'Estado inválido. Estados válidos: ' + validMgrAdm.join(', ') });
+      }
     }
 
     const sql = 'UPDATE orders SET status = ? WHERE id = ?';
@@ -136,9 +125,7 @@ router.delete(
   verifyToken,
   checkRole('admin', 'gerente'),
   [
-    param('id')
-      .isNumeric()
-      .withMessage('El ID debe ser numérico')
+    param('id').isNumeric().withMessage('El ID debe ser numérico')
   ],
   validateFields,
   (req, res) => {
