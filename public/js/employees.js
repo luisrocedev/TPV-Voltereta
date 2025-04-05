@@ -6,19 +6,16 @@ export async function initEmployees(token) {
   internalToken = token;
   await loadEmployees();
   
-  // Botón para crear empleado
   const addBtn = document.getElementById('employeeAddBtn');
   if (addBtn) {
     addBtn.addEventListener('click', createEmployee);
   }
   
-  // Botón para guardar cambios en el modal de edición
   const saveEmpChangesBtn = document.getElementById('saveEmpChanges');
   if (saveEmpChangesBtn) {
     saveEmpChangesBtn.addEventListener('click', updateEmployee);
   }
   
-  // Botón para cerrar el modal de edición
   const closeEditEmpBtn = document.getElementById('closeEditEmpModal');
   if (closeEditEmpBtn) {
     closeEditEmpBtn.addEventListener('click', () => {
@@ -40,14 +37,13 @@ async function loadEmployees() {
         data.data.forEach(emp => {
           const li = document.createElement('li');
           li.innerHTML = `
-            ${emp.name} - ${emp.role}
+            ${emp.username} - ${emp.role} - ${emp.fullname || ''} (${emp.email || ''})
             <button class="edit-emp-btn" data-id="${emp.id}">Editar</button>
             <button class="delete-emp-btn" data-id="${emp.id}">Eliminar</button>
           `;
           employeeList.appendChild(li);
         });
         
-        // Asignar eventos a los botones de editar
         document.querySelectorAll('.edit-emp-btn').forEach(btn => {
           btn.addEventListener('click', () => {
             const id = btn.getAttribute('data-id');
@@ -58,7 +54,6 @@ async function loadEmployees() {
           });
         });
         
-        // Asignar eventos a los botones de eliminar
         document.querySelectorAll('.delete-emp-btn').forEach(btn => {
           btn.addEventListener('click', async () => {
             const id = btn.getAttribute('data-id');
@@ -75,10 +70,28 @@ async function loadEmployees() {
 }
 
 async function createEmployee() {
-  const name = document.getElementById('employeeName').value.trim();
-  const role = document.getElementById('employeeRole').value; // Valor del <select>
-  if (!name || !role) {
-    alert("Falta ingresar el nombre o seleccionar el rol.");
+  const usernameElem = document.getElementById('employeeUsername');
+  const passwordElem = document.getElementById('employeePassword');
+  const roleElem = document.getElementById('employeeRole');
+  const fullnameElem = document.getElementById('employeeFullname');
+  const emailElem = document.getElementById('employeeEmail');
+  const profilePicElem = document.getElementById('employeeProfilePic');
+
+  // Verificar que los elementos obligatorios existen
+  if (!usernameElem || !passwordElem || !roleElem) {
+    console.error('No se encontró algún elemento obligatorio del formulario.');
+    return;
+  }
+
+  const username = usernameElem.value.trim();
+  const password = passwordElem.value.trim();
+  const role = roleElem.value;
+  const fullname = fullnameElem ? fullnameElem.value.trim() : '';
+  const email = emailElem ? emailElem.value.trim() : '';
+  const profilePic = profilePicElem ? profilePicElem.value.trim() : '';
+
+  if (!username || !password || !role) {
+    alert("Faltan datos obligatorios: usuario, contraseña o rol.");
     return;
   }
   
@@ -89,13 +102,17 @@ async function createEmployee() {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + internalToken
       },
-      body: JSON.stringify({ name, role })
+      body: JSON.stringify({ username, password, role, fullname, email, profile_pic: profilePic })
     });
     const data = await resp.json();
     if (data.success) {
       // Limpiar campos
-      document.getElementById('employeeName').value = '';
-      document.getElementById('employeeRole').value = '';
+      usernameElem.value = '';
+      passwordElem.value = '';
+      roleElem.value = '';
+      if (fullnameElem) fullnameElem.value = '';
+      if (emailElem) emailElem.value = '';
+      if (profilePicElem) profilePicElem.value = '';
       await loadEmployees();
     } else {
       alert(data.message);
@@ -105,20 +122,27 @@ async function createEmployee() {
   }
 }
 
+
 function openEditEmployeeModal(employee) {
-  // Rellenar el modal con los datos del empleado a editar
   document.getElementById('editEmpId').value = employee.id;
-  document.getElementById('editEmpName').value = employee.name;
+  document.getElementById('editEmpUsername').value = employee.username;
   document.getElementById('editEmpRole').value = employee.role;
+  document.getElementById('editEmpFullname').value = employee.fullname || '';
+  document.getElementById('editEmpEmail').value = employee.email || '';
+  document.getElementById('editEmpProfilePic').value = employee.profile_pic || '';
   document.getElementById('editEmployeeModal').showModal();
 }
 
 async function updateEmployee() {
   const id = document.getElementById('editEmpId').value;
-  const name = document.getElementById('editEmpName').value.trim();
+  const username = document.getElementById('editEmpUsername').value.trim();
   const role = document.getElementById('editEmpRole').value;
-  if (!name || !role) {
-    alert("Faltan datos en el formulario de edición.");
+  const fullname = document.getElementById('editEmpFullname').value.trim();
+  const email = document.getElementById('editEmpEmail').value.trim();
+  const profilePic = document.getElementById('editEmpProfilePic').value.trim();
+  
+  if (!username || !role) {
+    alert("Faltan datos obligatorios en el formulario de edición.");
     return;
   }
   
@@ -129,7 +153,7 @@ async function updateEmployee() {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + internalToken
       },
-      body: JSON.stringify({ name, role })
+      body: JSON.stringify({ username, role, fullname, email, profile_pic: profilePic })
     });
     const data = await resp.json();
     if (data.success) {

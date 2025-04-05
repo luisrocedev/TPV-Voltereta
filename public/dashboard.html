@@ -1,4 +1,3 @@
-<!-- public/dashboard.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -31,9 +30,6 @@
       <li data-roles="admin,gerente">
         <a href="#" data-section="reports">Reportes</a>
       </li>
-      <li data-roles="admin">
-        <a href="#" data-section="registerUsers">Registrar Usuarios</a>
-      </li>
       <li data-roles="admin,gerente,chef,mesero">
         <a href="#" data-section="profile">Mi Perfil</a>
       </li>
@@ -48,7 +44,7 @@
 
   <main>
 
-    <!-- Barra Superior (opcional) -->
+    <!-- Barra Superior -->
     <header class="top-bar">
       <div class="left-info">
         <img src="uploads/profile_pics/default_user.jpg" alt="Usuario" class="avatar" />
@@ -122,63 +118,50 @@
       </dialog>
     </section>
 
-<!-- Sección de Empleados -->
-<section id="employeesSection" class="section-hidden card" aria-labelledby="employeesTitle">
-  <h2 id="employeesTitle">Empleados</h2>
-  <ul id="employeeList"></ul>
-  <div>
-    <input type="text" id="employeeName" placeholder="Nombre">
-    <select id="employeeRole">
-      <option value="">Selecciona rol</option>
-      <option value="admin">Admin</option>
-      <option value="gerente">Gerente</option>
-      <option value="chef">Chef</option>
-      <option value="mesero">Mesero</option>
-    </select>
-    <button id="employeeAddBtn">Agregar Empleado</button>
-  </div>
-
-  <!-- Modal para editar empleado -->
-  <dialog class="modal" id="editEmployeeModal">
-    <article class="modal-content">
-      <button id="closeEditEmpModal" class="close" aria-label="Cerrar">&times;</button>
-      <h3>Editar Empleado</h3>
-      <input type="hidden" id="editEmpId">
-      <label>Nombre:</label>
-      <input type="text" id="editEmpName">
-      <label>Rol:</label>
-      <select id="editEmpRole">
-        <option value="">Selecciona rol</option>
-        <option value="admin">Admin</option>
-        <option value="gerente">Gerente</option>
-        <option value="chef">Chef</option>
-        <option value="mesero">Mesero</option>
-      </select>
-      <button id="saveEmpChanges">Guardar Cambios</button>
-    </article>
-  </dialog>
-</section>
-
-
-    <!-- Sección para Registrar Nuevos Usuarios -->
-    <section id="registerUsersSection" class="section-hidden card" aria-labelledby="registerUsersTitle">
-      <h2 id="registerUsersTitle">Registrar Nuevo Usuario (Admin)</h2>
-      <form id="adminRegisterForm">
-        <input type="text" id="regUsername" placeholder="Usuario" required>
-        <input type="password" id="regPassword" placeholder="Contraseña" required>
-        <select id="regRole" required>
-          <option value="">Selecciona Rol</option>
+    <!-- Sección de Gestión de Empleados (Consolidada) -->
+    <section id="employeesSection" class="section-hidden card" aria-labelledby="employeesTitle">
+      <h2 id="employeesTitle">Gestión de Empleados</h2>
+      <!-- Listado de empleados -->
+      <ul id="employeeList"></ul>
+      
+      <!-- Formulario para registrar nuevo empleado -->
+      <div>
+        <h3>Agregar Nuevo Empleado</h3>
+        <input type="text" id="employeeUsername" placeholder="Usuario">
+        <input type="password" id="employeePassword" placeholder="Contraseña">
+        <select id="employeeRole">
+          <option value="">Selecciona rol</option>
           <option value="admin">Admin</option>
+          <option value="gerente">Gerente</option>
           <option value="chef">Chef</option>
           <option value="mesero">Mesero</option>
-          <option value="gerente">Gerente</option>
         </select>
-        <input type="text" id="regFullname" placeholder="Nombre completo">
-        <input type="email" id="regEmail" placeholder="Correo electrónico">
-        <input type="text" id="regProfilePic" placeholder="URL foto de perfil">
-        <button type="submit">Registrar</button>
-      </form>
-      <p id="regMsg"></p>
+        <input type="text" id="employeeFullname" placeholder="Nombre Completo">
+        <input type="email" id="employeeEmail" placeholder="Correo Electrónico">
+        <input type="text" id="employeeProfilePic" placeholder="URL Foto de Perfil (opcional)">
+        <button id="employeeAddBtn">Registrar Empleado</button>
+      </div>
+
+      <!-- Modal para editar empleado -->
+      <dialog class="modal" id="editEmployeeModal">
+        <article class="modal-content">
+          <button id="closeEditEmpModal" class="close" aria-label="Cerrar">&times;</button>
+          <h3>Editar Empleado</h3>
+          <input type="hidden" id="editEmpId">
+          <input type="text" id="editEmpUsername" placeholder="Usuario">
+          <select id="editEmpRole">
+            <option value="">Selecciona rol</option>
+            <option value="admin">Admin</option>
+            <option value="gerente">Gerente</option>
+            <option value="chef">Chef</option>
+            <option value="mesero">Mesero</option>
+          </select>
+          <input type="text" id="editEmpFullname" placeholder="Nombre Completo">
+          <input type="email" id="editEmpEmail" placeholder="Correo Electrónico">
+          <input type="text" id="editEmpProfilePic" placeholder="URL Foto de Perfil (opcional)">
+          <button id="saveEmpChanges">Guardar Cambios</button>
+        </article>
+      </dialog>
     </section>
 
     <!-- Sección de Reservas -->
@@ -194,14 +177,12 @@
       </div>
     </section>
 
-    <!-- NUEVO: Sección de Pedidos estilo "board" -->
+    <!-- Sección de Pedidos estilo "board" -->
     <section id="ordersSection" class="section-hidden card" aria-labelledby="ordersTitle">
       <h2 id="ordersTitle">Panel de Pedidos (POS/KDS)</h2>
       <p>
-        <!-- Si deseas un botón para crear pedido -->
         <button id="openOrderModalBtn">Nuevo Pedido</button>
       </p>
-      <!-- Contenedor donde se renderizan las "cards" de pedidos -->
       <div class="orders-board" id="ordersBoard"></div>
     </section>
 
@@ -210,7 +191,6 @@
       <h2 id="reportsTitle">Reportes</h2>
       <div id="reportData"></div>
       <button id="reportBtn">Ver Reportes</button>
-
       <h3>Generar Factura Demo</h3>
       <p id="factureMsg"></p>
       <button id="factureBtn">Generar Factura (Demo)</button>
@@ -225,7 +205,6 @@
         <p><strong>Nombre completo:</strong> <span id="profileFullname"></span></p>
         <p><strong>Email:</strong> <span id="profileEmail"></span></p>
       </article>
-
       <hr>
       <div>
         <h3>Cambiar Contraseña</h3>
@@ -234,7 +213,6 @@
         <button id="savePassBtn">Guardar</button>
         <p id="passMsg"></p>
       </div>
-
       <hr>
       <div>
         <h3>Actualizar Foto (desde archivo JPG o PNG)</h3>
@@ -295,6 +273,5 @@
   <!-- Scripts al final del body para un rendimiento óptimo -->
   <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
   <script type="module" src="js/main.js"></script>
-
 </body>
 </html>

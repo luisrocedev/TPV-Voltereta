@@ -4,7 +4,7 @@ require('dotenv').config();
 
 const DB_HOST = process.env.DB_HOST || 'localhost';
 const DB_USER = process.env.DB_USER || 'root';
-const DB_PASS = process.env.DB_PASS || 'root';
+const DB_PASS = process.env.DB_PASS || '';
 const DB_NAME = process.env.DB_NAME || 'voltereta_db';
 const JWT_SECRET = process.env.JWT_SECRET || 'S3cr3tJWT';
 const PORT = process.env.PORT || 3000;
