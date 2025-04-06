@@ -1,32 +1,39 @@
+<!-- public/partials/orders.html -->
 <section id="ordersSection" class="card">
-    <h2 id="ordersTitle">Panel de Pedidos (POS/KDS)</h2>
-    <p>
-      <button id="openOrderModalBtn">Nuevo Pedido</button>
-    </p>
-    <div class="orders-board" id="ordersBoard"></div>
-    <!-- Modal para crear un nuevo pedido -->
-    <dialog class="modal" id="orderModal" aria-modal="true">
-      <article class="modal-content">
-        <button id="closeOrderModal" class="close" aria-label="Cerrar">&times;</button>
-        <h3>Crear Pedido</h3>
-        <label>Mesa:</label>
-        <input type="number" id="modalTable">
-        <label>Cliente:</label>
-        <input type="text" id="modalCustomer">
-        <label>Comentarios:</label>
-        <input type="text" id="modalComments">
-        <div id="orderItemsContainer"></div>
-        <button id="addItemBtn">Añadir Plato</button>
-        <button id="createOrderConfirmBtn">Crear Pedido</button>
-      </article>
-    </dialog>
-    <!-- Plantilla para cada ítem de un pedido -->
-    <template id="orderItemTemplate">
-      <div class="orderItemRow">
-        <select class="orderItemSelect"></select>
-        <input type="number" class="orderItemQty" min="1" value="1">
-        <button class="removeItemBtn" aria-label="Eliminar ítem">X</button>
-      </div>
-    </template>
-  </section>
-  
+  <h2 id="ordersTitle">Panel de Pedidos (POS/KDS)</h2>
+  <p>
+    <button id="openOrderModalBtn">Nuevo Pedido</button>
+  </p>
+
+  <div class="orders-board" id="ordersBoard"></div>
+
+  <!-- Modal para crear un nuevo pedido -->
+  <!-- Cambiamos id="orderModal" por id="newOrderModal" -->
+  <dialog class="modal" id="newOrderModal" aria-modal="true">
+    <article class="modal-content">
+      <!-- Cambiamos closeOrderModal por closeNewOrderModal -->
+      <button id="closeNewOrderModal" class="close" aria-label="Cerrar">&times;</button>
+      <h3>Nuevo Pedido</h3>
+
+      <label>Mesa:</label>
+      <input type="number" id="modalTable">
+      <label>Cliente:</label>
+      <input type="text" id="modalCustomer">
+      <label>Comentarios:</label>
+      <input type="text" id="modalComments">
+
+      <div id="orderItemsContainer"></div>
+      <button id="addItemBtn">Añadir Plato</button>
+      <button id="createOrderConfirmBtn">Crear Pedido</button>
+    </article>
+  </dialog>
+
+  <!-- Plantilla para cada ítem de un pedido -->
+  <template id="orderItemTemplate">
+    <div class="orderItemRow">
+      <select class="orderItemSelect"></select>
+      <input type="number" class="orderItemQty" min="1" value="1">
+      <button class="removeItemBtn" aria-label="Eliminar ítem">X</button>
+    </div>
+  </template>
+</section>

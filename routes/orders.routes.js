@@ -1,3 +1,4 @@
+// routes/orders.routes.js
 const express = require('express');
 const router = express.Router();
 const { body, param, validationResult } = require('express-validator');
@@ -14,11 +15,11 @@ const validateFields = (req, res, next) => {
   next();
 };
 
-// Crear pedido (solo mesero puede crear pedido)
+// Crear pedido (admin, gerente o mesero pueden crearlo)
 router.post(
   '/',
   verifyToken,
-  checkRole('mesero'),
+  checkRole('admin', 'gerente', 'mesero'),  // <--- Cambiado aquí
   [
     body('tableNumber').isNumeric().withMessage('El número de mesa debe ser numérico'),
     body('customer').notEmpty().withMessage('El nombre del cliente es obligatorio'),

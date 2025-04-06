@@ -8,10 +8,8 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Botón hamburger para móviles -->
   <button class="hamburger" aria-label="Abrir/cerrar menú de navegación">&#9776;</button>
 
-  <!-- Menú de navegación -->
   <nav aria-label="Navegación Principal">
     <ul>
       <li data-roles="admin,gerente,chef,mesero">
@@ -44,15 +42,12 @@
     </ul>
   </nav>
 
-  <!-- Contenedor para cargar los partials -->
   <main>
     <div id="content"></div>
   </main>
 
-  <!-- Script para cargar partials dinámicamente -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // Se supone que ya tienes almacenados el token y el usuario (por ejemplo, en localStorage)
       const token = localStorage.getItem('token');
       const loggedUser = JSON.parse(localStorage.getItem('loggedUser'));
       const contentDiv = document.getElementById('content');
@@ -61,11 +56,9 @@
       links.forEach(link => {
         link.addEventListener('click', async (e) => {
           e.preventDefault();
-          // Obtenemos el elemento li contenedor y sus roles permitidos
           const parentLi = e.target.closest('li');
           const allowedRoles = parentLi.getAttribute('data-roles').split(',').map(r => r.trim());
 
-          // Si el rol del usuario no está entre los permitidos, mostramos un mensaje de error
           if (!allowedRoles.includes(loggedUser.role)) {
             contentDiv.innerHTML = '<p>No tienes permisos para ver esta sección.</p>';
             return;
@@ -78,7 +71,7 @@
               const html = await response.text();
               contentDiv.innerHTML = html;
               
-              // Llama a la inicialización del módulo correspondiente según el partial
+              // Inicializamos según partial:
               if (partial.includes('chat.html')) {
                 import('./js/chat.js').then(module => module.initChat());
               } else if (partial.includes('menu.html')) {
@@ -92,7 +85,8 @@
               } else if (partial.includes('reports.html')) {
                 import('./js/reports.js').then(module => module.initReports(token));
               } else if (partial.includes('profile.html')) {
-                // Inicialización específica para perfil si es necesaria
+                // *** AQUÍ IMPORTANTE: inicializar auth para enlazar botones y mostrar datos
+                import('./js/auth.js').then(module => module.initAuth(token, loggedUser));
               } else if (partial.includes('support.html')) {
                 import('./js/support.js').then(module => module.initSupport(token, loggedUser));
               }
@@ -113,7 +107,6 @@
     });
   </script>
 
-  <!-- Otros scripts (por ejemplo, socket.io y main.js) se mantienen si es necesario -->
   <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
   <script type="module" src="js/main.js"></script>
 </body>

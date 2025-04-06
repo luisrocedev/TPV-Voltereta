@@ -1,3 +1,4 @@
+// routes/auth.routes.js
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
@@ -62,12 +63,14 @@ router.post(
       const match = await bcrypt.compare(password, user.password);
       if (!match) return res.status(401).json({ success: false, message: 'Contraseña incorrecta' });
 
+      // Asegurarte de que user.fullname es la columna correcta en la tabla
       const token = jwt.sign(
         {
           id: user.id,
           username: user.username,
           role: user.role,
-          fullname: user.full_name,
+          // Cambiar a user.fullname (no user.full_name)
+          fullname: user.fullname,
           email: user.email,
           photo: user.profile_pic
         },
@@ -83,7 +86,8 @@ router.post(
           id: user.id,
           username: user.username,
           role: user.role,
-          fullname: user.full_name,
+          // Idem aquí: user.fullname
+          fullname: user.fullname,
           email: user.email,
           photo: user.profile_pic
         }
