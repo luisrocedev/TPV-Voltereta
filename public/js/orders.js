@@ -2,17 +2,54 @@
 import { socket } from './socket.js';
 import { showSpinner, hideSpinner } from './feedback.js';
 
+// Variables globales de este módulo
 let internalToken = null;
 let currentUser = null;
+let refreshInterval = null;
 
+/**
+ * initOrders
+ * - Se llama al cargar la sección "Pedidos" (orders.html)
+ * - Configura listeners de sockets y eventos de la UI
+ */
 export function initOrders(token, loggedUser) {
   internalToken = token;
   currentUser = loggedUser;
 
-  // Obtener el botón "Nuevo Pedido"
+  // Escuchar cuando se crea un pedido (desde front o back):
+  socket.on('newOrder', (data) => {
+    // Solo aplica a chef/mesero
+    if (['chef', 'mesero'].includes(loggedUser.role)) {
+      showToast(`¡Nuevo pedido #${data.orderId} en la mesa ${data.tableNumber}!`);
+      // Si estoy en la sección orders, recargo la lista
+      const ordersSection = document.getElementById('ordersSection');
+      if (ordersSection) {
+        loadOrders();
+      }
+      // Parpadeo en el menú de "Pedidos"
+      highlightMenuItem('orders');
+    }
+  });
+
+  // Escuchar cambio de estado
+  socket.on('orderStatusChanged', (payload) => {
+    if (['chef', 'mesero'].includes(loggedUser.role)) {
+      // Muestra un "toast"
+      showToast(`El pedido #${payload.orderId} cambió a "${payload.newStatus}" (por ${payload.changedBy})`);
+      // Refrescamos si estamos en la sección
+      const ordersSection = document.getElementById('ordersSection');
+      if (ordersSection) {
+        loadOrders();
+      }
+      // Parpadeo en el menú
+      highlightMenuItem('orders');
+    }
+  });
+
+  // Botones del modal
   const openModalBtn = document.getElementById('openOrderModalBtn');
   if (openModalBtn) {
-    // Admin, Gerente y Mesero pueden crear pedidos
+    // Solo admin, gerente, mesero crean pedido
     if (['admin', 'gerente', 'mesero'].includes(currentUser.role)) {
       openModalBtn.style.display = 'inline-block';
       openModalBtn.addEventListener('click', openOrderModal);
@@ -21,7 +58,6 @@ export function initOrders(token, loggedUser) {
     }
   }
 
-  // Ajustar el botón de cerrar el modal
   const closeModalBtn = document.getElementById('closeNewOrderModal');
   if (closeModalBtn) {
     closeModalBtn.addEventListener('click', closeOrderModal);
@@ -37,36 +73,22 @@ export function initOrders(token, loggedUser) {
     createOrderBtn.addEventListener('click', createOrder);
   }
 
+  // Cargar pedidos inicialmente
   loadOrders();
 
-  // Notificación en tiempo real para chefs
-  socket.on('newOrder', (data) => {
-    if (currentUser.role === 'chef') {
-      notifyChef();
-    }
-    loadOrders();
-  });
+  // Intervalo para actualizar el "tiempo transcurrido" cada 30s
+  refreshInterval = setInterval(updateOrderTimes, 30_000);
 }
 
-function notifyChef() {
-  let notif = document.getElementById('chefNotification');
-  if (!notif) {
-    notif = document.createElement('div');
-    notif.id = 'chefNotification';
-    notif.style.position = 'fixed';
-    notif.style.top = '10px';
-    notif.style.right = '10px';
-    notif.style.backgroundColor = '#ffd629';
-    notif.style.color = '#000';
-    notif.style.padding = '10px';
-    notif.style.borderRadius = '4px';
-    notif.style.zIndex = '1000';
-    notif.textContent = 'Nuevo pedido recibido';
-    document.body.appendChild(notif);
-  }
-  setTimeout(() => {
-    if (notif) notif.remove();
-  }, 3000);
+/**
+ * Limpieza (opcional): si tu app quita el partial y quieres
+ *  dejar de escuchar eventos, llamas disposeOrders.
+ */
+export function disposeOrders() {
+  if (refreshInterval) clearInterval(refreshInterval);
+  // Quitamos listeners de socket
+  socket.off('newOrder');
+  socket.off('orderStatusChanged');
 }
 
 async function loadOrders() {
@@ -81,13 +103,12 @@ async function loadOrders() {
     if (data.success) {
       const board = document.getElementById('ordersBoard');
       if (!board) return;
-      board.innerHTML = ''; // Limpiar contenedor
+      board.innerHTML = '';
 
       data.data.forEach(order => {
-        // Crear tarjeta del pedido
         const card = document.createElement('article');
         card.classList.add('order-card');
-        // Añadimos clase según el estado
+        // status-<estado> para colorear en CSS
         card.classList.add(`status-${order.status}`);
 
         // Calcular total
@@ -95,6 +116,9 @@ async function loadOrders() {
           (sum, it) => sum + (it.quantity * (it.price || 0)),
           0
         );
+
+        // ID único para actualizar el tiempo en vivo
+        const elapsedTimeId = `elapsed-${order.id}`;
 
         card.innerHTML = `
           <div class="order-card-header">
@@ -106,11 +130,13 @@ async function loadOrders() {
           </div>
           <div class="order-card-footer">
             <p class="order-total">€${totalAmount.toFixed(2)}</p>
-            <p class="order-time">${calcElapsedTime(order.createdAt)}</p>
+            <p class="order-time" id="${elapsedTimeId}" data-createdat="${order.createdAt}">
+              ${calcElapsedTime(order.createdAt)}
+            </p>
           </div>
         `;
 
-        // Contenedor de acciones según el rol
+        // Acciones según rol y estado
         const actionsDiv = document.createElement('div');
         actionsDiv.classList.add('order-card-actions');
 
@@ -141,7 +167,6 @@ async function loadOrders() {
             btnIniciar.addEventListener('click', () => updateOrderStatus(order.id, 'en_proceso'));
             actionsDiv.appendChild(btnIniciar);
 
-            // También podrían cancelar
             const btnCancelar = document.createElement('button');
             btnCancelar.textContent = 'Cancelar';
             btnCancelar.addEventListener('click', () => updateOrderStatus(order.id, 'cancelado'));
@@ -158,6 +183,9 @@ async function loadOrders() {
         card.appendChild(actionsDiv);
         board.appendChild(card);
       });
+
+      // Actualizar tiempos (por si tardó en cargar)
+      updateOrderTimes();
     }
   } catch (err) {
     hideSpinner();
@@ -165,8 +193,23 @@ async function loadOrders() {
   }
 }
 
+/**
+ * Recalcula el tiempo transcurrido en cada pedido
+ * según el createdAt guardado en el elemento
+ */
+function updateOrderTimes() {
+  const timeEls = document.querySelectorAll('.order-time');
+  timeEls.forEach(el => {
+    const createdAt = el.getAttribute('data-createdat');
+    el.textContent = calcElapsedTime(createdAt);
+  });
+}
+
 function openOrderModal() {
-  // Reiniciar campos del modal
+  const modal = document.getElementById('newOrderModal');
+  if (!modal) return;
+
+  // Reiniciar campos
   const tableInput = document.getElementById('modalTable');
   const customerInput = document.getElementById('modalCustomer');
   const commentsInput = document.getElementById('modalComments');
@@ -176,10 +219,9 @@ function openOrderModal() {
 
   const itemsContainer = document.getElementById('orderItemsContainer');
   if (itemsContainer) itemsContainer.innerHTML = '';
-  addNewOrderItem();
 
-  const modal = document.getElementById('newOrderModal');
-  if (modal) modal.showModal();
+  addNewOrderItem(); // Agregamos un primer item por defecto
+  modal.showModal();
 }
 
 function closeOrderModal() {
@@ -190,10 +232,12 @@ function closeOrderModal() {
 async function addNewOrderItem() {
   const tpl = document.getElementById('orderItemTemplate');
   if (!tpl) return;
+
   const row = tpl.content.cloneNode(true);
   const select = row.querySelector('.orderItemSelect');
   const removeBtn = row.querySelector('.removeItemBtn');
 
+  // Cargar menú
   try {
     const resp = await fetch('/api/menu', {
       headers: { 'Authorization': 'Bearer ' + internalToken }
@@ -221,9 +265,8 @@ async function addNewOrderItem() {
 }
 
 async function createOrder() {
-  // Valida roles (chef no puede crear)
   if (currentUser.role === 'chef') {
-    alert("El chef no está autorizado para crear pedidos.");
+    alert('El chef no está autorizado para crear pedidos.');
     return;
   }
 
@@ -231,6 +274,7 @@ async function createOrder() {
   const customer = document.getElementById('modalCustomer').value.trim();
   const comments = document.getElementById('modalComments').value.trim();
 
+  // Items
   const container = document.getElementById('orderItemsContainer');
   const rows = container.querySelectorAll('.orderItemRow');
   const items = [];
@@ -245,7 +289,6 @@ async function createOrder() {
 
   try {
     showSpinner();
-    // El status inicial se define en el backend como 'pedido_realizado'
     const resp = await fetch('/api/orders', {
       method: 'POST',
       headers: {
@@ -259,9 +302,17 @@ async function createOrder() {
 
     if (data.success) {
       closeOrderModal();
-      loadOrders();
-      // Notificamos a los chefs vía socket
-      socket.emit('newOrder', { orderId: data.orderId, tableNumber, items });
+
+      // Podrías emitir 'newOrder' desde el front,
+      // o hacerlo en el backend y emitir a "chefRoom", "meseroRoom".
+      // Este es un ejemplo desde el front:
+      socket.emit('newOrder', {
+        orderId: data.orderId,
+        tableNumber,
+        items
+      });
+
+      loadOrders(); // Recargar lista local
     } else {
       alert(data.message);
     }
@@ -285,17 +336,42 @@ async function updateOrderStatus(orderId, status) {
     const data = await resp.json();
     hideSpinner();
 
-    if (data.success) {
-      loadOrders();
-    } else {
+    if (!data.success) {
       alert(data.message);
     }
+    // No recargamos aquí manualmente,
+    // porque el socket "orderStatusChanged" emitido en backend recargará la vista
   } catch (err) {
     hideSpinner();
     console.error(err);
   }
 }
 
+// Simple toast
+function showToast(message) {
+  const toast = document.createElement('div');
+  toast.classList.add('toast-notif');
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+// Parpadeo en el menú "Pedidos"
+function highlightMenuItem(section) {
+  // Buscamos en nav ul li a[data-partial] = partials/orders.html
+  const links = document.querySelectorAll('nav ul li a[data-partial]');
+  links.forEach(link => {
+    const partial = link.getAttribute('data-partial');
+    if (partial && partial.includes('orders.html')) {
+      link.classList.add('blink');
+      setTimeout(() => {
+        link.classList.remove('blink');
+      }, 4000);
+    }
+  });
+}
+
+// Mapeo de estado para mostrar en español
 function mapStatusText(status) {
   switch (status) {
     case 'pedido_realizado': return 'Pedido Realizado';
@@ -307,14 +383,13 @@ function mapStatusText(status) {
   }
 }
 
+// Cálculo del tiempo transcurrido
 function calcElapsedTime(createdAt) {
   if (!createdAt) return '';
   const start = new Date(createdAt);
   const now = new Date();
-  const diffMs = now - start;
+  const diffMs = now - start; // milisegundos
   const diffMin = Math.floor(diffMs / 60000);
   const diffSec = Math.floor((diffMs % 60000) / 1000);
   return `🕒 ${String(diffMin).padStart(2, '0')}:${String(diffSec).padStart(2, '0')}`;
 }
-
-export { updateOrderStatus };

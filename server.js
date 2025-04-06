@@ -3,7 +3,6 @@ require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const socketIO = require('socket.io');
-
 const { db } = require('./db');
 const { verifyToken, checkRole } = require('./middlewares/auth');
 
@@ -22,9 +21,12 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
+// 1) Guardar la instancia de Socket.IO para usarla en las rutas
+app.set('io', io);
+
 app.use(express.json());
 
-// Estáticos en /public
+// Archivos estáticos
 app.use(express.static('public', { maxAge: '1d' }));
 
 app.get('/', (req, res) => {
@@ -42,13 +44,13 @@ app.use('/api/reservations', reservationRoutes);
 app.use('/api/cash', cashRoutes);
 app.use('/api/support', supportRoutes);
 
-// Backup placeholder
+// Ejemplo backup
 app.post('/backup', verifyToken, checkRole('admin'), (req, res) => {
   res.json({ success: true, message: 'Backup placeholder' });
 });
 
-// Socket.io
-const { initSocket } = require('./socket');
+// Inicializar socket
+const { initSocket } = require('./socket'); // socket.js en la raíz
 initSocket(io);
 
 const PORT = process.env.PORT || 3000;
