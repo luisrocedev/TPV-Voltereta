@@ -22,12 +22,29 @@ router.post(
   verifyToken,
   checkRole('admin'),
   [
-    body('username').notEmpty().withMessage('El usuario es obligatorio'),
-    body('password').notEmpty().withMessage('La contraseña es obligatoria'),
-    body('role').notEmpty().withMessage('El rol es obligatorio'),
-    body('email').optional().isEmail(),
-    body('fullname').optional().trim(),
-    body('profile_pic').optional().isURL()
+    body('username')
+      .notEmpty().withMessage('El usuario es obligatorio')
+      .trim()
+      .escape(),
+    body('password')
+      .notEmpty().withMessage('La contraseña es obligatoria')
+      .trim(), // Evitamos escapar la contraseña para no alterar caracteres
+    body('role')
+      .notEmpty().withMessage('El rol es obligatorio')
+      .trim()
+      .escape(),
+    body('email')
+      .optional()
+      .isEmail().withMessage('El email debe ser válido')
+      .normalizeEmail(),
+    body('fullname')
+      .optional()
+      .trim()
+      .escape(),
+    body('profile_pic')
+      .optional()
+      .isURL().withMessage('La URL de la foto debe ser válida')
+      .trim()
   ],
   validateFields,
   async (req, res) => {
@@ -36,7 +53,12 @@ router.post(
       const hashed = await bcrypt.hash(password, 10);
       const sql = `INSERT INTO users (username, password, role, fullname, email, profile_pic) VALUES (?, ?, ?, ?, ?, ?)`;
       db.query(sql, [username, hashed, role, fullname || null, email || null, profile_pic || null], (err, result) => {
-        if (err) return res.status(500).json({ success: false, message: 'Error en la base de datos', error: err.sqlMessage });
+        if (err)
+          return res.status(500).json({
+            success: false,
+            message: 'Error en la base de datos',
+            error: err.sqlMessage
+          });
         res.json({ success: true, userId: result.insertId });
       });
     } catch (error) {
@@ -45,12 +67,18 @@ router.post(
   }
 );
 
+
 // ====================== Login ======================
 router.post(
   '/login',
   [
-    body('username').notEmpty(),
-    body('password').notEmpty()
+    body('username')
+      .notEmpty().withMessage('El usuario es obligatorio')
+      .trim()
+      .escape(),
+    body('password')
+      .notEmpty().withMessage('La contraseña es obligatoria')
+      .trim()
   ],
   validateFields,
   (req, res) => {
@@ -62,14 +90,12 @@ router.post(
       const user = results[0];
       const match = await bcrypt.compare(password, user.password);
       if (!match) return res.status(401).json({ success: false, message: 'Contraseña incorrecta' });
-
-      // Asegurarte de que user.fullname es la columna correcta en la tabla
+      
       const token = jwt.sign(
         {
           id: user.id,
           username: user.username,
           role: user.role,
-          // Cambiar a user.fullname (no user.full_name)
           fullname: user.fullname,
           email: user.email,
           photo: user.profile_pic
@@ -86,7 +112,6 @@ router.post(
           id: user.id,
           username: user.username,
           role: user.role,
-          // Idem aquí: user.fullname
           fullname: user.fullname,
           email: user.email,
           photo: user.profile_pic
@@ -96,13 +121,18 @@ router.post(
   }
 );
 
+
 // ====================== Cambiar contraseña ======================
 router.put(
   '/update-password',
   verifyToken,
   [
-    body('oldPassword').notEmpty(),
-    body('newPassword').notEmpty()
+    body('oldPassword')
+      .notEmpty().withMessage('La contraseña antigua es obligatoria')
+      .trim(),
+    body('newPassword')
+      .notEmpty().withMessage('La nueva contraseña es obligatoria')
+      .trim()
   ],
   validateFields,
   async (req, res) => {
@@ -126,6 +156,7 @@ router.put(
     }
   }
 );
+
 
 // ====================== Subida de foto de perfil (archivo local) ======================
 router.post('/upload-photo', verifyToken, upload.single('photo'), (req, res) => {

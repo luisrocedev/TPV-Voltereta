@@ -22,22 +22,21 @@ router.post(
   verifyToken,
   [
     body('orderId')
-      .isNumeric()
-      .withMessage('El ID del pedido debe ser numérico'),
+      .isNumeric().withMessage('El ID del pedido debe ser numérico'),
     body('total')
-      .isNumeric()
-      .withMessage('El total debe ser numérico')
+      .isNumeric().withMessage('El total debe ser numérico')
   ],
   validateFields,
   (req, res) => {
     const { orderId, total } = req.body;
     const sql = 'INSERT INTO invoices (orderId, total) VALUES (?, ?)';
     db.query(sql, [orderId, total], (err, result) => {
-      if (err) return res.status(500).json({ success: false, message: 'Error generar factura' });
+      if (err) return res.status(500).json({ success: false, message: 'Error al generar factura' });
       res.json({ success: true, invoiceId: result.insertId });
     });
   }
 );
+
 
 // Obtener facturas
 router.get('/', verifyToken, (req, res) => {

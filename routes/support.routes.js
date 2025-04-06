@@ -24,19 +24,20 @@ router.post('/ticket', verifyToken, (req, res) => {
   if (!subject || !description) {
     return res.status(400).json({ success: false, message: "Se requieren 'subject' y 'description'" });
   }
-  
+  // Sanitización manual (o bien podrías usar express-validator aquí también)
+  const safeSubject = subject.toString().trim(); // También podrías aplicar .escape() si se va a renderizar en HTML
+  const safeDescription = description.toString().trim();
+
   const sql = `
     INSERT INTO support_tickets (user_id, subject, description)
     VALUES (?, ?, ?)
   `;
-  const values = [req.user.id, subject, description];
-  
+  const values = [req.user.id, safeSubject, safeDescription];
   db.query(sql, values, (err, result) => {
     if (err) {
       console.error('Error al insertar ticket:', err);
       return res.status(500).json({ success: false, message: 'Error al crear ticket' });
     }
-    // Recuperamos el ticket recién creado
     const ticketId = result.insertId;
     const selectSql = `SELECT * FROM support_tickets WHERE id = ?`;
     db.query(selectSql, [ticketId], (selectErr, rows) => {
@@ -47,6 +48,7 @@ router.post('/ticket', verifyToken, (req, res) => {
     });
   });
 });
+
 
 /**
  * GET /tickets
@@ -75,14 +77,13 @@ router.get('/tickets', verifyToken, (req, res) => {
 router.put('/ticket/:id', verifyToken, checkRole('admin', 'gerente'), (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
-
   const validStatuses = ['abierto', 'en_proceso', 'cerrado'];
   if (!status || !validStatuses.includes(status)) {
     return res.status(400).json({ success: false, message: 'Estado inválido. Estados válidos: ' + validStatuses.join(', ') });
   }
-
+  const safeStatus = status.toString().trim().escape();
   const sql = 'UPDATE support_tickets SET status = ? WHERE id = ?';
-  db.query(sql, [status, id], (err, result) => {
+  db.query(sql, [safeStatus, id], (err, result) => {
     if (err) {
       console.error('Error al actualizar el ticket:', err);
       return res.status(500).json({ success: false, message: 'Error al actualizar ticket' });
@@ -90,8 +91,9 @@ router.put('/ticket/:id', verifyToken, checkRole('admin', 'gerente'), (req, res)
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: 'Ticket no encontrado' });
     }
-    res.json({ success: true, message: `Ticket actualizado a ${status}` });
+    res.json({ success: true, message: `Ticket actualizado a ${safeStatus}` });
   });
 });
+
 
 module.exports = router;

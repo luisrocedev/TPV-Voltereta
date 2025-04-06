@@ -34,18 +34,17 @@ router.get('/', verifyToken, (req, res) => {
 router.post(
   '/',
   verifyToken,
-  checkRole('admin','gerente'),
+  checkRole('admin', 'gerente'),
   [
     body('name')
-      .notEmpty()
-      .withMessage('El nombre es obligatorio'),
+      .notEmpty().withMessage('El nombre es obligatorio')
+      .trim()
+      .escape(),
     body('price')
-      .isNumeric()
-      .withMessage('El precio debe ser numérico'),
+      .isNumeric().withMessage('El precio debe ser numérico'),
     body('category_id')
       .optional()
-      .isNumeric()
-      .withMessage('El ID de la categoría debe ser numérico')
+      .isNumeric().withMessage('El ID de la categoría debe ser numérico')
   ],
   validateFields,
   (req, res) => {
@@ -58,25 +57,24 @@ router.post(
   }
 );
 
+
 // Actualizar plato
 router.put(
   '/:id',
   verifyToken,
-  checkRole('admin','gerente'),
+  checkRole('admin', 'gerente'),
   [
     param('id')
-      .isNumeric()
-      .withMessage('El ID debe ser numérico'),
+      .isNumeric().withMessage('El ID debe ser numérico'),
     body('name')
-      .notEmpty()
-      .withMessage('El nombre es obligatorio'),
+      .notEmpty().withMessage('El nombre es obligatorio')
+      .trim()
+      .escape(),
     body('price')
-      .isNumeric()
-      .withMessage('El precio debe ser numérico'),
+      .isNumeric().withMessage('El precio debe ser numérico'),
     body('category_id')
       .optional()
-      .isNumeric()
-      .withMessage('El ID de la categoría debe ser numérico')
+      .isNumeric().withMessage('El ID de la categoría debe ser numérico')
   ],
   validateFields,
   (req, res) => {
@@ -92,6 +90,7 @@ router.put(
     });
   }
 );
+
 
 // Eliminar plato
 router.delete(
@@ -129,14 +128,16 @@ router.get('/menu-categories', verifyToken, (req, res) => {
 router.post(
   '/menu-categories',
   verifyToken,
-  checkRole('admin','gerente'),
+  checkRole('admin', 'gerente'),
   [
     body('name')
-      .notEmpty()
-      .withMessage('El nombre es obligatorio'),
+      .notEmpty().withMessage('El nombre es obligatorio')
+      .trim()
+      .escape(),
     body('description')
       .optional()
-      .isString()
+      .trim()
+      .escape()
   ],
   validateFields,
   (req, res) => {
@@ -149,20 +150,22 @@ router.post(
   }
 );
 
+
 router.put(
   '/menu-categories/:id',
   verifyToken,
-  checkRole('admin','gerente'),
+  checkRole('admin', 'gerente'),
   [
     param('id')
-      .isNumeric()
-      .withMessage('El ID debe ser numérico'),
+      .isNumeric().withMessage('El ID debe ser numérico'),
     body('name')
-      .notEmpty()
-      .withMessage('El nombre es obligatorio'),
+      .notEmpty().withMessage('El nombre es obligatorio')
+      .trim()
+      .escape(),
     body('description')
       .optional()
-      .isString()
+      .trim()
+      .escape()
   ],
   validateFields,
   (req, res) => {
@@ -178,6 +181,7 @@ router.put(
     });
   }
 );
+
 
 router.delete(
   '/menu-categories/:id',

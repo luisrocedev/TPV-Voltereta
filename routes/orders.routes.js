@@ -25,18 +25,26 @@ router.post(
   verifyToken,
   checkRole('admin', 'gerente', 'mesero'),
   [
-    body('tableNumber').isNumeric().withMessage('El número de mesa debe ser numérico'),
-    body('customer').notEmpty().withMessage('El nombre del cliente es obligatorio'),
-    body('comments').optional().isString(),
-    body('items').isArray().withMessage('Los items deben ser un arreglo'),
-    body('items.*.menuItemId').isNumeric().withMessage('El ID del plato debe ser numérico'),
-    body('items.*.quantity').isNumeric().withMessage('La cantidad debe ser numérica')
+    body('tableNumber')
+      .isNumeric().withMessage('El número de mesa debe ser numérico'),
+    body('customer')
+      .notEmpty().withMessage('El nombre del cliente es obligatorio')
+      .trim()
+      .escape(),
+    body('comments')
+      .optional()
+      .trim()
+      .escape(),
+    body('items')
+      .isArray().withMessage('Los items deben ser un arreglo'),
+    body('items.*.menuItemId')
+      .isNumeric().withMessage('El ID del plato debe ser numérico'),
+    body('items.*.quantity')
+      .isNumeric().withMessage('La cantidad debe ser numérica')
   ],
   validateFields,
   (req, res) => {
     const { tableNumber, customer, comments, items } = req.body;
-
-    // Insert principal del pedido
     const sqlOrder = `
       INSERT INTO orders (tableNumber, customer, comments, status)
       VALUES (?, ?, ?, ?)
@@ -46,8 +54,6 @@ router.post(
         return res.status(500).json({ success: false, message: 'Error al crear pedido', error: err });
       }
       const newOrderId = orderResult.insertId;
-
-      // Insert items del pedido
       const itemsData = (items || []).map(it => [newOrderId, it.menuItemId, it.quantity]);
       if (!itemsData.length) {
         return res.json({ success: true, orderId: newOrderId });
@@ -65,6 +71,7 @@ router.post(
     });
   }
 );
+
 
 /**
  * Obtener todos los pedidos (cualquier usuario autenticado)
@@ -122,8 +129,12 @@ router.put(
   '/:id',
   verifyToken,
   [
-    param('id').isNumeric().withMessage('El ID debe ser numérico'),
-    body('status').notEmpty().withMessage('El estado es obligatorio')
+    param('id')
+      .isNumeric().withMessage('El ID debe ser numérico'),
+    body('status')
+      .notEmpty().withMessage('El estado es obligatorio')
+      .trim()
+      .escape()
   ],
   validateFields,
   (req, res) => {
@@ -167,10 +178,8 @@ router.put(
       if (result.affectedRows === 0) {
         return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
       }
-
       // Emitir evento a mesero/chef
-      const io = req.app.get('io'); // Recuperar instancia de socket.io
-      // Notificar a la sala "chefRoom" y "meseroRoom"
+      const io = req.app.get('io');
       io.to('chefRoom').emit('orderStatusChanged', {
         orderId: parseInt(id),
         newStatus: status,
@@ -181,7 +190,6 @@ router.put(
         newStatus: status,
         changedBy: role
       });
-
       res.json({ success: true, message: 'Pedido actualizado a ' + status });
     });
   }

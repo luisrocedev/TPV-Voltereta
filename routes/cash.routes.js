@@ -32,14 +32,15 @@ router.post(
   checkRole('admin', 'gerente'),
   [
     body('type')
-      .notEmpty()
-      .withMessage('El tipo es obligatorio'),
+      .notEmpty().withMessage('El tipo es obligatorio')
+      .trim()
+      .escape(),
     body('amount')
-      .isNumeric()
-      .withMessage('El monto debe ser numérico'),
+      .isNumeric().withMessage('El monto debe ser numérico'),
     body('concept')
       .optional()
-      .isString()
+      .trim()
+      .escape()
   ],
   validateFields,
   (req, res) => {
@@ -51,5 +52,6 @@ router.post(
     });
   }
 );
+
 
 module.exports = router;

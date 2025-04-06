@@ -30,9 +30,29 @@ router.post(
   verifyToken,
   checkRole('admin', 'gerente'),
   [
-    body('username').notEmpty().withMessage('El usuario es obligatorio'),
-    body('password').notEmpty().withMessage('La contraseña es obligatoria'),
-    body('role').notEmpty().withMessage('El rol es obligatorio')
+    body('username')
+      .notEmpty().withMessage('El usuario es obligatorio')
+      .trim()
+      .escape(),
+    body('password')
+      .notEmpty().withMessage('La contraseña es obligatoria')
+      .trim(),
+    body('role')
+      .notEmpty().withMessage('El rol es obligatorio')
+      .trim()
+      .escape(),
+    body('fullname')
+      .optional()
+      .trim()
+      .escape(),
+    body('email')
+      .optional()
+      .isEmail().withMessage('El email debe ser válido')
+      .normalizeEmail(),
+    body('profile_pic')
+      .optional()
+      .isURL().withMessage('La URL debe ser válida')
+      .trim()
   ],
   validateFields,
   async (req, res) => {
@@ -51,15 +71,35 @@ router.post(
   }
 );
 
+
 // Actualizar empleado (usuario)
 router.put(
   '/:id',
   verifyToken,
   checkRole('admin', 'gerente'),
   [
-    param('id').isNumeric().withMessage('El ID debe ser numérico'),
-    body('username').notEmpty().withMessage('El usuario es obligatorio'),
-    body('role').notEmpty().withMessage('El rol es obligatorio')
+    param('id')
+      .isNumeric().withMessage('El ID debe ser numérico'),
+    body('username')
+      .notEmpty().withMessage('El usuario es obligatorio')
+      .trim()
+      .escape(),
+    body('role')
+      .notEmpty().withMessage('El rol es obligatorio')
+      .trim()
+      .escape(),
+    body('fullname')
+      .optional()
+      .trim()
+      .escape(),
+    body('email')
+      .optional()
+      .isEmail().withMessage('El email debe ser válido')
+      .normalizeEmail(),
+    body('profile_pic')
+      .optional()
+      .isURL().withMessage('La URL debe ser válida')
+      .trim()
   ],
   validateFields,
   (req, res) => {
@@ -75,6 +115,7 @@ router.put(
     });
   }
 );
+
 
 // Eliminar empleado (usuario)
 router.delete(

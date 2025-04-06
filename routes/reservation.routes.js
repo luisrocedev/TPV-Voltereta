@@ -31,17 +31,17 @@ router.post(
   verifyToken,
   [
     body('customerName')
-      .notEmpty()
-      .withMessage('El nombre del cliente es obligatorio'),
+      .notEmpty().withMessage('El nombre del cliente es obligatorio')
+      .trim()
+      .escape(),
     body('date')
-      .isISO8601()
-      .withMessage('La fecha debe ser válida'),
+      .isISO8601().withMessage('La fecha debe ser válida'),
     body('time')
-      .notEmpty()
-      .withMessage('La hora es obligatoria'),
+      .notEmpty().withMessage('La hora es obligatoria')
+      .trim()
+      .escape(),
     body('guests')
-      .isNumeric()
-      .withMessage('El número de comensales debe ser numérico')
+      .isNumeric().withMessage('El número de comensales debe ser numérico')
   ],
   validateFields,
   (req, res) => {
@@ -60,20 +60,19 @@ router.put(
   verifyToken,
   [
     param('id')
-      .isNumeric()
-      .withMessage('El ID debe ser numérico'),
+      .isNumeric().withMessage('El ID debe ser numérico'),
     body('customerName')
-      .notEmpty()
-      .withMessage('El nombre del cliente es obligatorio'),
+      .notEmpty().withMessage('El nombre del cliente es obligatorio')
+      .trim()
+      .escape(),
     body('date')
-      .isISO8601()
-      .withMessage('La fecha debe ser válida'),
+      .isISO8601().withMessage('La fecha debe ser válida'),
     body('time')
-      .notEmpty()
-      .withMessage('La hora es obligatoria'),
+      .notEmpty().withMessage('La hora es obligatoria')
+      .trim()
+      .escape(),
     body('guests')
-      .isNumeric()
-      .withMessage('El número de comensales debe ser numérico')
+      .isNumeric().withMessage('El número de comensales debe ser numérico')
   ],
   validateFields,
   (req, res) => {
@@ -87,6 +86,7 @@ router.put(
     });
   }
 );
+
 
 // Eliminar reserva
 router.delete(
