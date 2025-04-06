@@ -91,35 +91,36 @@ router.post(
       const match = await bcrypt.compare(password, user.password);
       if (!match) return res.status(401).json({ success: false, message: 'Contraseña incorrecta' });
       
-      const token = jwt.sign(
-        {
-          id: user.id,
-          username: user.username,
-          role: user.role,
-          fullname: user.fullname,
-          email: user.email,
-          photo: user.profile_pic
-        },
-        JWT_SECRET,
-        { expiresIn: '8h' }
+      // Payload para el token
+      const payload = {
+        id: user.id,
+        username: user.username,
+        role: user.role,
+        fullname: user.fullname,
+        email: user.email,
+        photo: user.profile_pic
+      };
+
+      // Generar access token (ejemplo: 8 horas de expiración)
+      const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '8h' });
+      // Generar refresh token (ejemplo: 7 días de expiración)
+      const refreshToken = jwt.sign(
+        payload,
+        process.env.REFRESH_TOKEN_SECRET || JWT_SECRET,
+        { expiresIn: '7d' }
       );
 
       res.json({
         success: true,
         message: 'Login exitoso',
         token,
-        user: {
-          id: user.id,
-          username: user.username,
-          role: user.role,
-          fullname: user.fullname,
-          email: user.email,
-          photo: user.profile_pic
-        }
+        refreshToken,
+        user: payload
       });
     });
   }
 );
+
 
 
 // ====================== Cambiar contraseña ======================
@@ -168,5 +169,32 @@ router.post('/upload-photo', verifyToken, upload.single('photo'), (req, res) => 
     res.json({ success: true, photoUrl });
   });
 });
+
+router.post('/refresh', (req, res) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken) {
+    return res.status(400).json({ success: false, message: 'Se requiere el refresh token' });
+  }
+
+  // Verificar el refresh token usando REFRESH_TOKEN_SECRET
+  jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET || JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ success: false, message: 'Refresh token inválido' });
+    }
+    // Preparar el payload para el nuevo access token
+    const payload = {
+      id: decoded.id,
+      username: decoded.username,
+      role: decoded.role,
+      fullname: decoded.fullname,
+      email: decoded.email,
+      photo: decoded.photo
+    };
+    // Generar un nuevo access token
+    const newToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '8h' });
+    res.json({ success: true, token: newToken });
+  });
+});
+
 
 module.exports = router;
