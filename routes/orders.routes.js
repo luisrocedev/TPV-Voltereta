@@ -5,13 +5,11 @@ const { body, param, validationResult } = require('express-validator');
 const { db } = require('../db');
 const { verifyToken, checkRole } = require('../middlewares/auth');
 
-// Middleware para validación
+// Middleware para validación de campos
 const validateFields = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res
-      .status(400)
-      .json({ success: false, errors: errors.array() });
+    return res.status(400).json({ success: false, errors: errors.array() });
   }
   next();
 };
@@ -50,7 +48,7 @@ router.post(
   }
 );
 
-// Obtener pedidos
+// Obtener pedidos (para cualquier usuario autenticado)
 router.get('/', verifyToken, (req, res) => {
   db.query('SELECT * FROM orders ORDER BY createdAt DESC', (err, orders) => {
     if (err) return res.status(500).json({ success: false, message: 'Error al obtener pedidos' });
@@ -92,21 +90,22 @@ router.put(
     const { status } = req.body;
     const role = req.user.role;
 
-    // Los meseros no pueden actualizar el estado
     if (role === 'mesero') {
-      return res.status(403).json({ success: false, message: 'El mesero no está autorizado para actualizar el estado del pedido' });
-    }
-
-    if (role === 'chef') {
-      // El chef solo puede actualizar a "finalizado"
-      if (status !== 'finalizado') {
-        return res.status(403).json({ success: false, message: 'El chef solo puede marcar el pedido como "finalizado"' });
+      // El mesero solo puede cancelar el pedido
+      if (status !== 'cancelado') {
+        return res.status(403).json({ success: false, message: 'El mesero solo puede cancelar el pedido (estado: cancelado)' });
+      }
+    } else if (role === 'chef') {
+      // El chef puede actualizar a "en_proceso" o "finalizado"
+      const validChef = ['en_proceso', 'finalizado'];
+      if (!validChef.includes(status)) {
+        return res.status(403).json({ success: false, message: 'El chef solo puede marcar el pedido como "en_proceso" o "finalizado"' });
       }
     } else if (role === 'admin' || role === 'gerente') {
       // Admin y Gerente pueden actualizar a "en_proceso" o "entregado"
-      const validStatuses = ['en_proceso', 'entregado'];
-      if (!validStatuses.includes(status)) {
-        return res.status(400).json({ success: false, message: 'Estado inválido. Estados válidos: ' + validStatuses.join(', ') });
+      const validMgrAdm = ['en_proceso', 'entregado'];
+      if (!validMgrAdm.includes(status)) {
+        return res.status(400).json({ success: false, message: 'Estado inválido. Estados válidos: ' + validMgrAdm.join(', ') });
       }
     }
 

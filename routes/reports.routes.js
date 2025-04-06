@@ -1,7 +1,8 @@
+// routes/reports.routes.js
 const express = require('express');
 const router = express.Router();
 const { db } = require('../db');
-const { verifyToken } = require('../middlewares/auth');
+const { verifyToken, checkRole } = require('../middlewares/auth');
 
 // Caché simple en memoria
 let reportCache = null;
@@ -9,7 +10,8 @@ let reportCacheTimestamp = 0;
 const CACHE_DURATION = 60 * 1000; // 60 segundos
 
 // Obtener reportes de reservas e ingresos
-router.get('/', verifyToken, (req, res) => {
+// Solo los roles admin y gerente podrán acceder a esta ruta.
+router.get('/', verifyToken, checkRole('admin', 'gerente'), (req, res) => {
   const now = Date.now();
   if (reportCache && (now - reportCacheTimestamp) < CACHE_DURATION) {
     return res.json(reportCache);

@@ -15,7 +15,8 @@ const validateFields = (req, res, next) => {
 };
 
 // Obtener todos los empleados (usuarios)
-router.get('/', verifyToken, (req, res) => {
+// Solo los roles admin y gerente podrán acceder a esta ruta.
+router.get('/', verifyToken, checkRole('admin', 'gerente'), (req, res) => {
   const sql = 'SELECT id, username, role, fullname, email, profile_pic FROM users';
   db.query(sql, (err, results) => {
     if (err) return res.status(500).json({ success: false, message: 'Error al obtener empleados' });

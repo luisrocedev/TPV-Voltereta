@@ -1,3 +1,4 @@
+<!-- public/dashboard.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -51,16 +52,25 @@
   <!-- Script para cargar partials dinámicamente -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // Suponiendo que ya tienes almacenados el token y el usuario (por ejemplo, en localStorage)
+      // Se supone que ya tienes almacenados el token y el usuario (por ejemplo, en localStorage)
       const token = localStorage.getItem('token');
       const loggedUser = JSON.parse(localStorage.getItem('loggedUser'));
-
-      const links = document.querySelectorAll('nav ul li a[data-partial]');
       const contentDiv = document.getElementById('content');
+      const links = document.querySelectorAll('nav ul li a[data-partial]');
 
       links.forEach(link => {
         link.addEventListener('click', async (e) => {
           e.preventDefault();
+          // Obtenemos el elemento li contenedor y sus roles permitidos
+          const parentLi = e.target.closest('li');
+          const allowedRoles = parentLi.getAttribute('data-roles').split(',').map(r => r.trim());
+
+          // Si el rol del usuario no está entre los permitidos, mostramos un mensaje de error
+          if (!allowedRoles.includes(loggedUser.role)) {
+            contentDiv.innerHTML = '<p>No tienes permisos para ver esta sección.</p>';
+            return;
+          }
+
           const partial = e.target.getAttribute('data-partial');
           try {
             const response = await fetch(partial);
@@ -82,7 +92,7 @@
               } else if (partial.includes('reports.html')) {
                 import('./js/reports.js').then(module => module.initReports(token));
               } else if (partial.includes('profile.html')) {
-                // Si es necesario, inicializa algún código específico para el perfil
+                // Inicialización específica para perfil si es necesaria
               } else if (partial.includes('support.html')) {
                 import('./js/support.js').then(module => module.initSupport(token, loggedUser));
               }
