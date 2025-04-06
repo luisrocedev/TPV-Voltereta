@@ -6,6 +6,7 @@ const socketIO = require('socket.io');
 const { db } = require('./db');
 const { verifyToken, checkRole } = require('./middlewares/auth');
 
+
 // Rutas
 const authRoutes = require('./routes/auth.routes');
 const menuRoutes = require('./routes/menu.routes');
@@ -16,6 +17,7 @@ const reportsRoutes = require('./routes/reports.routes');
 const reservationRoutes = require('./routes/reservation.routes');
 const cashRoutes = require('./routes/cash.routes');
 const supportRoutes = require('./routes/support.routes');
+const { errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
 const server = http.createServer(app);
@@ -44,10 +46,15 @@ app.use('/api/reservations', reservationRoutes);
 app.use('/api/cash', cashRoutes);
 app.use('/api/support', supportRoutes);
 
+
+
 // Ejemplo backup
 app.post('/backup', verifyToken, checkRole('admin'), (req, res) => {
   res.json({ success: true, message: 'Backup placeholder' });
 });
+
+// Middleware de manejo de errores (debe ir al final)
+app.use(errorHandler);
 
 // Inicializar socket
 const { initSocket } = require('./socket'); // socket.js en la raíz
