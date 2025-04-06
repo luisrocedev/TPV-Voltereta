@@ -17,7 +17,7 @@ const reportsRoutes = require('./routes/reports.routes');
 const reservationRoutes = require('./routes/reservation.routes');
 const cashRoutes = require('./routes/cash.routes');
 const supportRoutes = require('./routes/support.routes');
-const { errorHandler } = require('./middleware/errorHandler');
+const { errorHandler } = require('./middlewares/errorHandler');
 
 const app = express();
 const server = http.createServer(app);

@@ -1,6 +1,7 @@
 // public/js/main.js
 // Tareas globales
-import { socket, initClientSocket } from './socket.js';
+import { socket, initClientSocket } from './modules/socket.js';
+
 
 socket.on('orderStatusChanged', (payload) => {
   showOrderStatusNotification(payload);
@@ -30,7 +31,7 @@ if (!token || !userData) {
   }
 
   // Inicializar autenticación (global)
-  import('./auth.js').then(module => module.initAuth(token, loggedUser));
+  import('./modules/auth.js').then(module => module.initAuth(token, loggedUser));
 
   // Configurar cualquier otra tarea global (por ejemplo, configuración de socket o menú hamburguesa global)
   // NOTA: La carga de partials se realiza en el script de dashboard.html
