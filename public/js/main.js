@@ -1,7 +1,7 @@
 // public/js/main.js
 // Tareas globales
-import { socket, initClientSocket } from './modules/socket.js';
 
+import { socket, initClientSocket } from './modules/socket.js';
 
 socket.on('orderStatusChanged', (payload) => {
   showOrderStatusNotification(payload);
@@ -9,30 +9,35 @@ socket.on('orderStatusChanged', (payload) => {
 
 function showOrderStatusNotification({ orderId, newStatus, changedBy }) {
   const notif = document.createElement('div');
-  // ... estilo ...
+  // Aquí podrías aplicar estilos personalizados
   notif.textContent = `El pedido #${orderId} se actualizó a "${newStatus}" por ${changedBy}`;
   document.body.appendChild(notif);
   setTimeout(() => notif.remove(), 4000);
 }
+
 const token = localStorage.getItem('token');
 const userData = localStorage.getItem('loggedUser');
+
 if (!token || !userData) {
   window.location.href = 'login.html';
 } else {
   const loggedUser = JSON.parse(userData);
 
-    // 1) Registramos el rol en socket
-    initClientSocket(loggedUser);
+  // Registrar el rol en Socket.IO
+  initClientSocket(loggedUser);
 
-  // Establecer el nombre del usuario en la top-bar (este elemento se encuentra en dashboard.html)
+  // Establecer el nombre del usuario en la top-bar (si existe en dashboard.html)
   const topBarUserName = document.getElementById('topBarUserName');
   if (topBarUserName) {
     topBarUserName.textContent = loggedUser.fullname || loggedUser.username;
   }
 
-  // Inicializar autenticación (global)
+  // Inicializar autenticación (global) con la nueva ruta del módulo
   import('./modules/auth.js').then(module => module.initAuth(token, loggedUser));
 
-  // Configurar cualquier otra tarea global (por ejemplo, configuración de socket o menú hamburguesa global)
-  // NOTA: La carga de partials se realiza en el script de dashboard.html
+  // Aquí podrías inicializar otros módulos si es necesario, por ejemplo:
+  // import('./modules/menu.js').then(module => module.initMenu(token));
+  // import('./modules/orders.js').then(module => module.initOrders(token, loggedUser));
+  
+  // Nota: La carga de partials se sigue realizando en el script de dashboard.html
 }
