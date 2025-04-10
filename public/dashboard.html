@@ -47,64 +47,64 @@
   </main>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const token = localStorage.getItem('token');
-      const loggedUser = JSON.parse(localStorage.getItem('loggedUser'));
-      const contentDiv = document.getElementById('content');
-      const links = document.querySelectorAll('nav ul li a[data-partial]');
+document.addEventListener('DOMContentLoaded', () => {
+  const token = localStorage.getItem('token');
+  const loggedUser = JSON.parse(localStorage.getItem('loggedUser'));
+  const contentDiv = document.getElementById('content');
+  const links = document.querySelectorAll('nav ul li a[data-partial]');
 
-      links.forEach(link => {
-        link.addEventListener('click', async (e) => {
-          e.preventDefault();
-          const parentLi = e.target.closest('li');
-          const allowedRoles = parentLi.getAttribute('data-roles').split(',').map(r => r.trim());
+  links.forEach(link => {
+    link.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const parentLi = e.target.closest('li');
+      const allowedRoles = parentLi.getAttribute('data-roles').split(',').map(r => r.trim());
 
-          if (!allowedRoles.includes(loggedUser.role)) {
-            contentDiv.innerHTML = '<p>No tienes permisos para ver esta sección.</p>';
-            return;
+      if (!allowedRoles.includes(loggedUser.role)) {
+        contentDiv.innerHTML = '<p>No tienes permisos para ver esta sección.</p>';
+        return;
+      }
+
+      const partial = e.target.getAttribute('data-partial');
+      try {
+        const response = await fetch(partial);
+        if (response.ok) {
+          const html = await response.text();
+          contentDiv.innerHTML = html;
+          
+          // Inicializamos según partial usando la nueva estructura de módulos:
+          if (partial.includes('chat.html')) {
+            import('./js/modules/chat.js').then(module => module.initChat());
+          } else if (partial.includes('menu.html')) {
+            import('./js/modules/menu.js').then(module => module.initMenu(token));
+          } else if (partial.includes('employees.html')) {
+            import('./js/modules/employees.js').then(module => module.initEmployees(token));
+          } else if (partial.includes('reservations.html')) {
+            import('./js/modules/reservations.js').then(module => module.initReservations(token));
+          } else if (partial.includes('orders.html')) {
+            import('./js/modules/orders.js').then(module => module.initOrders(token, loggedUser));
+          } else if (partial.includes('reports.html')) {
+            import('./js/modules/reports.js').then(module => module.initReports(token));
+          } else if (partial.includes('profile.html')) {
+            import('./js/modules/auth.js').then(module => module.initAuth(token, loggedUser));
+          } else if (partial.includes('support.html')) {
+            import('./js/modules/support.js').then(module => module.initSupport(token, loggedUser));
           }
-
-          const partial = e.target.getAttribute('data-partial');
-          try {
-            const response = await fetch(partial);
-            if (response.ok) {
-              const html = await response.text();
-              contentDiv.innerHTML = html;
-              
-              // Inicializamos según partial:
-              if (partial.includes('chat.html')) {
-                import('./js/chat.js').then(module => module.initChat());
-              } else if (partial.includes('menu.html')) {
-                import('./js/menu.js').then(module => module.initMenu(token));
-              } else if (partial.includes('employees.html')) {
-                import('./js/employees.js').then(module => module.initEmployees(token));
-              } else if (partial.includes('reservations.html')) {
-                import('./js/reservations.js').then(module => module.initReservations(token));
-              } else if (partial.includes('orders.html')) {
-                import('./js/orders.js').then(module => module.initOrders(token, loggedUser));
-              } else if (partial.includes('reports.html')) {
-                import('./js/reports.js').then(module => module.initReports(token));
-              } else if (partial.includes('profile.html')) {
-                // *** AQUÍ IMPORTANTE: inicializar auth para enlazar botones y mostrar datos
-                import('./js/auth.js').then(module => module.initAuth(token, loggedUser));
-              } else if (partial.includes('support.html')) {
-                import('./js/support.js').then(module => module.initSupport(token, loggedUser));
-              }
-            } else {
-              contentDiv.innerHTML = '<p>Error al cargar la sección.</p>';
-            }
-          } catch (error) {
-            console.error('Error al cargar partial:', error);
-            contentDiv.innerHTML = '<p>Error al cargar la sección.</p>';
-          }
-        });
-      });
-
-      // Cargar por defecto la primera sección (por ejemplo, Chat)
-      if (links.length > 0) {
-        links[0].click();
+        } else {
+          contentDiv.innerHTML = '<p>Error al cargar la sección.</p>';
+        }
+      } catch (error) {
+        console.error('Error al cargar partial:', error);
+        contentDiv.innerHTML = '<p>Error al cargar la sección.</p>';
       }
     });
+  });
+
+  // Cargar por defecto la primera sección (por ejemplo, Chat)
+  if (links.length > 0) {
+    links[0].click();
+  }
+});
+
   </script>
 
   <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
