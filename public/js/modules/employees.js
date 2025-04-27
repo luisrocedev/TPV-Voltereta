@@ -1,5 +1,6 @@
 // public/js/employees.js
 let internalToken = null;
+const API_BASE = 'http://localhost:3000'; // Añadir base URL
 
 export async function initEmployees(token) {
   internalToken = token;
@@ -26,7 +27,7 @@ export async function initEmployees(token) {
 
 async function loadEmployees() {
   try {
-    const resp = await fetch('/api/employees', {
+    const resp = await fetch(`${API_BASE}/api/employees`, {
       headers: { 'Authorization': 'Bearer ' + internalToken }
     });
     const data = await resp.json();
@@ -95,7 +96,7 @@ async function createEmployee() {
   }
 
   try {
-    const resp = await fetch('/api/employees', {
+    const resp = await fetch(`${API_BASE}/api/employees`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -153,7 +154,7 @@ async function updateEmployee() {
   }
 
   try {
-    const resp = await fetch('/api/employees/' + id, {
+    const resp = await fetch(`${API_BASE}/api/employees/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -176,7 +177,7 @@ async function updateEmployee() {
 
 async function deleteEmployee(id) {
   try {
-    const resp = await fetch('/api/employees/' + id, {
+    const resp = await fetch(`${API_BASE}/api/employees/${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': 'Bearer ' + internalToken
