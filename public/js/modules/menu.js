@@ -77,13 +77,15 @@ async function loadMenu() {
         data.data.forEach(item => {
           const card = document.createElement('div');
           card.className = 'menu-item-card';
+          // Convertir price a número
+          const price = parseFloat(item.price) || 0;
           card.innerHTML = `
             <div class="menu-item-header">
               <div class="menu-item-info">
                 <div class="menu-item-name">${item.name}</div>
                 ${item.categoryName ? `<span class="menu-item-category">${item.categoryName}</span>` : ''}
               </div>
-              <div class="menu-item-price">€${item.price.toFixed(2)}</div>
+              <div class="menu-item-price">€${price.toFixed(2)}</div>
             </div>
             <div class="menu-item-actions">
               <button class="secondary-button menu-edit-btn" data-id="${item.id}">
