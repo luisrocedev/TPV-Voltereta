@@ -1,7 +1,8 @@
 // routes/support.routes.js
 const express = require('express');
 const router = express.Router();
-const { db } = require('../db'); // Conexión a la base de datos
+const { body, param, validationResult } = require('express-validator');
+const { db } = require('../db');
 const { verifyToken, checkRole } = require('../middlewares/auth');
 
 /**
@@ -70,30 +71,43 @@ router.get('/tickets', verifyToken, (req, res) => {
 
 /**
  * PUT /ticket/:id
- * Permite actualizar el estado de un ticket (por ejemplo, de "abierto" a "cerrado").
- * Se espera un campo "status" en el body con un valor válido.
+ * Permite actualizar el estado de un ticket.
  */
-// routes/support.routes.js
-router.put('/ticket/:id', verifyToken, checkRole('admin', 'gerente'), (req, res) => {
-  const { id } = req.params;
-  const { status } = req.body;
-  const validStatuses = ['abierto', 'en_proceso', 'cerrado'];
-  if (!status || !validStatuses.includes(status)) {
-    return res.status(400).json({ success: false, message: 'Estado inválido. Estados válidos: ' + validStatuses.join(', ') });
-  }
-  const safeStatus = status.toString().trim().escape();
-  const sql = 'UPDATE support_tickets SET status = ? WHERE id = ?';
-  db.query(sql, [safeStatus, id], (err, result) => {
-    if (err) {
-      console.error('Error al actualizar el ticket:', err);
-      return res.status(500).json({ success: false, message: 'Error al actualizar ticket' });
+router.put('/ticket/:id', 
+  verifyToken, 
+  checkRole('admin', 'gerente'),
+  [
+    param('id').isNumeric().withMessage('El ID debe ser numérico'),
+    body('status')
+      .notEmpty().withMessage('El estado es obligatorio')
+      .trim()
+      .isIn(['abierto', 'en_proceso', 'cerrado']).withMessage('Estado inválido')
+  ],
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Datos inválidos', 
+        errors: errors.array() 
+      });
     }
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ success: false, message: 'Ticket no encontrado' });
-    }
-    res.json({ success: true, message: `Ticket actualizado a ${safeStatus}` });
-  });
-});
 
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const sql = 'UPDATE support_tickets SET status = ? WHERE id = ?';
+    db.query(sql, [status, id], (err, result) => {
+      if (err) {
+        console.error('Error al actualizar el ticket:', err);
+        return res.status(500).json({ success: false, message: 'Error al actualizar ticket' });
+      }
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ success: false, message: 'Ticket no encontrado' });
+      }
+      res.json({ success: true, message: `Ticket actualizado a ${status}` });
+    });
+  }
+);
 
 module.exports = router;

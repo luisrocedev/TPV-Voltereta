@@ -1,5 +1,11 @@
 // public/js/support.js
+import { showSpinner, hideSpinner } from './feedback.js';
+
+const API_BASE_URL = 'http://localhost:3000';
+let internalToken = null;
+
 export function initSupport(token, loggedUser) {
+  internalToken = token;
   const supportSection = document.getElementById('supportSection');
   const supportTicketsContainer = document.getElementById('supportTicketsContainer');
 
@@ -7,7 +13,7 @@ export function initSupport(token, loggedUser) {
   if (loggedUser.role === 'admin' || loggedUser.role === 'gerente') {
     if (supportTicketsContainer) {
       supportTicketsContainer.style.display = 'block';
-      loadSupportTickets(token);
+      loadSupportTickets();
     }
   }
 
@@ -22,43 +28,69 @@ export function initSupport(token, loggedUser) {
       if (!subject || !description) return;
 
       try {
-        const resp = await fetch('/api/support/ticket', {
+        showSpinner();
+        const resp = await fetch(`${API_BASE_URL}/api/support/ticket`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token
+            'Authorization': 'Bearer ' + internalToken
           },
           body: JSON.stringify({ subject, description })
         });
 
+        if (!resp.ok) {
+          throw new Error(`Error HTTP: ${resp.status}`);
+        }
+
         const data = await resp.json();
+        hideSpinner();
         const supportMsg = document.getElementById('supportMsg');
+
         if (data.success) {
           if (supportMsg) supportMsg.textContent = 'Ticket enviado correctamente. ID: ' + data.ticket.id;
           supportForm.reset();
           if (loggedUser.role === 'admin' || loggedUser.role === 'gerente') {
-            loadSupportTickets(token);
+            loadSupportTickets();
           }
         } else {
           if (supportMsg) supportMsg.textContent = 'Error: ' + data.message;
         }
       } catch (err) {
-        console.error(err);
+        hideSpinner();
+        console.error('Error al enviar ticket:', err);
         const supportMsg = document.getElementById('supportMsg');
-        if (supportMsg) supportMsg.textContent = 'Error de conexión';
+        if (supportMsg) supportMsg.textContent = 'Error de conexión al enviar el ticket';
       }
     });
   }
 }
 
-async function loadSupportTickets(token) {
+async function loadSupportTickets() {
   try {
-    const resp = await fetch('/api/support/tickets', {
-      headers: { 'Authorization': 'Bearer ' + token }
+    showSpinner();
+    const resp = await fetch(`${API_BASE_URL}/api/support/tickets`, {
+      headers: { 
+        'Authorization': 'Bearer ' + internalToken,
+        'Accept': 'application/json'
+      }
     });
+
+    if (!resp.ok) {
+      throw new Error(`Error HTTP: ${resp.status}`);
+    }
+
+    const contentType = resp.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new Error('La respuesta no es JSON válido');
+    }
+
     const data = await resp.json();
+    hideSpinner();
     const ticketsList = document.getElementById('ticketsList');
-    if (data.success) {
+    
+    if (!ticketsList) return;
+
+    if (data.success && Array.isArray(data.tickets)) {
       ticketsList.innerHTML = data.tickets.map(ticket => {
         let dropdownHtml = '';
         if (ticket.status !== 'cerrado') {
@@ -86,36 +118,50 @@ async function loadSupportTickets(token) {
         dropdown.addEventListener('change', (e) => {
           const newStatus = e.target.value;
           const ticketId = e.target.getAttribute('data-ticket-id');
-          updateTicketStatus(ticketId, newStatus, token);
+          updateTicketStatus(ticketId, newStatus);
         });
       });
     } else {
-      ticketsList.textContent = 'No se pudieron cargar los tickets';
+      ticketsList.innerHTML = '<div class="error-card">No se pudieron cargar los tickets</div>';
     }
   } catch (err) {
-    console.error(err);
+    hideSpinner();
+    console.error('Error al cargar tickets:', err);
+    const ticketsList = document.getElementById('ticketsList');
+    if (ticketsList) {
+      ticketsList.innerHTML = '<div class="error-card">Error al cargar los tickets. Por favor, intente de nuevo.</div>';
+    }
   }
 }
 
-window.updateTicketStatus = async function(ticketId, newStatus, token) {
+async function updateTicketStatus(ticketId, newStatus) {
   try {
-    const resp = await fetch(`/api/support/ticket/${ticketId}`, {
+    showSpinner();
+    const resp = await fetch(`${API_BASE_URL}/api/support/ticket/${ticketId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token
+        'Authorization': 'Bearer ' + internalToken
       },
       body: JSON.stringify({ status: newStatus })
     });
+
+    if (!resp.ok) {
+      throw new Error(`Error HTTP: ${resp.status}`);
+    }
+
     const data = await resp.json();
+    hideSpinner();
+
     if (data.success) {
       alert(data.message);
-      loadSupportTickets(token);
+      loadSupportTickets();
     } else {
       alert('Error: ' + data.message);
     }
   } catch (err) {
-    console.error(err);
-    alert('Error de conexión al actualizar el ticket');
+    hideSpinner();
+    console.error('Error al actualizar ticket:', err);
+    alert('Error de conexión al actualizar el ticket. Por favor, intente de nuevo.');
   }
-};
+}

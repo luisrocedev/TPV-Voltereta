@@ -2,7 +2,7 @@
 import { socket } from './socket.js';
 import { showSpinner, hideSpinner } from './feedback.js';
 
-// Variables globales de este módulo
+const API_BASE_URL = 'http://localhost:3000';
 let internalToken = null;
 let currentUser = null;
 let refreshInterval = null;
@@ -94,9 +94,22 @@ export function disposeOrders() {
 async function loadOrders() {
   try {
     showSpinner();
-    const resp = await fetch('/api/orders', {
-      headers: { 'Authorization': 'Bearer ' + internalToken }
+    const resp = await fetch(`${API_BASE_URL}/api/orders`, {
+      headers: { 
+        'Authorization': 'Bearer ' + internalToken,
+        'Accept': 'application/json'
+      }
     });
+
+    if (!resp.ok) {
+      throw new Error(`Error HTTP: ${resp.status}`);
+    }
+
+    const contentType = resp.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new Error('La respuesta no es JSON válido');
+    }
+
     const data = await resp.json();
     hideSpinner();
 
@@ -186,10 +199,16 @@ async function loadOrders() {
 
       // Actualizar tiempos (por si tardó en cargar)
       updateOrderTimes();
+    } else {
+      console.error('Error en la respuesta:', data.message);
     }
   } catch (err) {
     hideSpinner();
-    console.error(err);
+    console.error('Error al cargar pedidos:', err);
+    const board = document.getElementById('ordersBoard');
+    if (board) {
+      board.innerHTML = '<div class="error-card">Error al cargar los pedidos. Por favor, intente de nuevo.</div>';
+    }
   }
 }
 
@@ -239,7 +258,7 @@ async function addNewOrderItem() {
 
   // Cargar menú
   try {
-    const resp = await fetch('/api/menu', {
+    const resp = await fetch(`${API_BASE_URL}/api/menu`, {
       headers: { 'Authorization': 'Bearer ' + internalToken }
     });
     const data = await resp.json();
@@ -289,7 +308,7 @@ async function createOrder() {
 
   try {
     showSpinner();
-    const resp = await fetch('/api/orders', {
+    const resp = await fetch(`${API_BASE_URL}/api/orders`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -297,35 +316,36 @@ async function createOrder() {
       },
       body: JSON.stringify({ tableNumber, customer, comments, items })
     });
+
+    if (!resp.ok) {
+      throw new Error(`Error HTTP: ${resp.status}`);
+    }
+
     const data = await resp.json();
     hideSpinner();
 
     if (data.success) {
       closeOrderModal();
-
-      // Podrías emitir 'newOrder' desde el front,
-      // o hacerlo en el backend y emitir a "chefRoom", "meseroRoom".
-      // Este es un ejemplo desde el front:
       socket.emit('newOrder', {
         orderId: data.orderId,
         tableNumber,
         items
       });
-
-      loadOrders(); // Recargar lista local
+      loadOrders();
     } else {
-      alert(data.message);
+      alert(data.message || 'Error al crear el pedido');
     }
   } catch (err) {
     hideSpinner();
-    console.error(err);
+    console.error('Error al crear pedido:', err);
+    alert('Error al crear el pedido. Por favor, intente de nuevo.');
   }
 }
 
 async function updateOrderStatus(orderId, status) {
   try {
     showSpinner();
-    const resp = await fetch('/api/orders/' + orderId, {
+    const resp = await fetch(`${API_BASE_URL}/api/orders/${orderId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -333,17 +353,21 @@ async function updateOrderStatus(orderId, status) {
       },
       body: JSON.stringify({ status })
     });
+
+    if (!resp.ok) {
+      throw new Error(`Error HTTP: ${resp.status}`);
+    }
+
     const data = await resp.json();
     hideSpinner();
 
     if (!data.success) {
-      alert(data.message);
+      alert(data.message || 'Error al actualizar el estado del pedido');
     }
-    // No recargamos aquí manualmente,
-    // porque el socket "orderStatusChanged" emitido en backend recargará la vista
   } catch (err) {
     hideSpinner();
-    console.error(err);
+    console.error('Error al actualizar estado:', err);
+    alert('Error al actualizar el estado del pedido. Por favor, intente de nuevo.');
   }
 }
 

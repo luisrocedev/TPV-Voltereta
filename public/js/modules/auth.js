@@ -1,7 +1,7 @@
 // public/js/auth.js
-
+const API_BASE_URL = 'http://localhost:3000';
 let internalToken = null;
-let currentUser   = null;
+let currentUser = null;
 
 /**
  * Inicializa la autenticación con el token y el usuario logueado.
@@ -10,7 +10,7 @@ let currentUser   = null;
 export function initAuth(token, user) {
   // Guardamos token y user en variables internas
   internalToken = token;
-  currentUser   = user;
+  currentUser = user;
 
   // Botón de logout
   const logoutBtn = document.getElementById('logoutBtn');
@@ -64,7 +64,7 @@ export async function updatePassword() {
   }
 
   try {
-    const resp = await fetch('/api/auth/update-password', {
+    const resp = await fetch(`${API_BASE_URL}/api/auth/update-password`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -73,14 +73,33 @@ export async function updatePassword() {
       body: JSON.stringify({ oldPassword: oldPass, newPassword: newPass })
     });
 
+    if (!resp.ok) {
+      throw new Error(`Error HTTP: ${resp.status}`);
+    }
+
     const data = await resp.json();
     if (data.success) {
-      if (passMsg) passMsg.textContent = 'Contraseña actualizada correctamente';
+      if (passMsg) {
+        passMsg.textContent = 'Contraseña actualizada correctamente';
+        passMsg.style.color = 'green';
+      }
+      // Limpiar campos
+      const oldPassInput = document.getElementById('oldPass');
+      const newPassInput = document.getElementById('newPass');
+      if (oldPassInput) oldPassInput.value = '';
+      if (newPassInput) newPassInput.value = '';
     } else {
-      if (passMsg) passMsg.textContent = 'Error: ' + data.message;
+      if (passMsg) {
+        passMsg.textContent = 'Error: ' + data.message;
+        passMsg.style.color = 'red';
+      }
     }
-  } catch (e) {
-    if (passMsg) passMsg.textContent = 'Error de conexión';
+  } catch (err) {
+    console.error('Error al actualizar contraseña:', err);
+    if (passMsg) {
+      passMsg.textContent = 'Error de conexión al actualizar la contraseña';
+      passMsg.style.color = 'red';
+    }
   }
 }
 
@@ -88,7 +107,7 @@ export async function updatePassword() {
  * Sube una nueva foto de perfil al servidor.
  */
 export async function updateMyPhoto() {
-  const picMsg   = document.getElementById('picMsg');
+  const picMsg = document.getElementById('picMsg');
   const fileInput = document.getElementById('photoFile');
   
   // Limpiamos mensaje anterior
@@ -114,13 +133,17 @@ export async function updateMyPhoto() {
 
   try {
     // Petición al endpoint de subida de foto
-    const resp = await fetch('/api/auth/upload-photo', {
+    const resp = await fetch(`${API_BASE_URL}/api/auth/upload-photo`, {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + internalToken },
       body: formData
     });
-    const data = await resp.json();
 
+    if (!resp.ok) {
+      throw new Error(`Error HTTP: ${resp.status}`);
+    }
+
+    const data = await resp.json();
     if (data.success) {
       // Actualizamos la foto del usuario en localStorage
       currentUser.photo = data.photoUrl;
@@ -132,13 +155,22 @@ export async function updateMyPhoto() {
         profilePhoto.src = data.photoUrl;
       }
 
-      if (picMsg) picMsg.textContent = 'Foto actualizada correctamente';
+      if (picMsg) {
+        picMsg.textContent = 'Foto actualizada correctamente';
+        picMsg.style.color = 'green';
+      }
     } else {
-      if (picMsg) picMsg.textContent = 'Error: ' + data.message;
+      if (picMsg) {
+        picMsg.textContent = 'Error: ' + data.message;
+        picMsg.style.color = 'red';
+      }
     }
   } catch (err) {
-    console.error(err);
-    if (picMsg) picMsg.textContent = 'Error de conexión al subir la foto';
+    console.error('Error al subir foto:', err);
+    if (picMsg) {
+      picMsg.textContent = 'Error de conexión al subir la foto';
+      picMsg.style.color = 'red';
+    }
   }
 }
 
@@ -151,11 +183,11 @@ async function registerNewUser(e) {
   const regMsg = document.getElementById('regMsg');
   if (regMsg) regMsg.textContent = '';
 
-  const username    = document.getElementById('regUsername')?.value.trim();
-  const password    = document.getElementById('regPassword')?.value.trim();
-  const role        = document.getElementById('regRole')?.value;
-  const fullname    = document.getElementById('regFullname')?.value.trim();
-  const email       = document.getElementById('regEmail')?.value.trim();
+  const username = document.getElementById('regUsername')?.value.trim();
+  const password = document.getElementById('regPassword')?.value.trim();
+  const role = document.getElementById('regRole')?.value;
+  const fullname = document.getElementById('regFullname')?.value.trim();
+  const email = document.getElementById('regEmail')?.value.trim();
   const profile_pic = document.getElementById('regProfilePic')?.value.trim();
 
   // Validamos campos necesarios
@@ -165,7 +197,7 @@ async function registerNewUser(e) {
   }
 
   try {
-    const resp = await fetch('/api/auth/register', {
+    const resp = await fetch(`${API_BASE_URL}/api/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -181,9 +213,16 @@ async function registerNewUser(e) {
       })
     });
 
+    if (!resp.ok) {
+      throw new Error(`Error HTTP: ${resp.status}`);
+    }
+
     const data = await resp.json();
     if (data.success) {
-      if (regMsg) regMsg.textContent = 'Usuario creado con ID ' + data.userId;
+      if (regMsg) {
+        regMsg.textContent = 'Usuario creado con ID ' + data.userId;
+        regMsg.style.color = 'green';
+      }
 
       // Limpiamos el formulario
       const fieldsToClear = [
@@ -195,10 +234,16 @@ async function registerNewUser(e) {
         if (field) field.value = '';
       });
     } else {
-      if (regMsg) regMsg.textContent = 'Error: ' + data.message;
+      if (regMsg) {
+        regMsg.textContent = 'Error: ' + data.message;
+        regMsg.style.color = 'red';
+      }
     }
   } catch (err) {
-    console.error(err);
-    if (regMsg) regMsg.textContent = 'Error de conexión o servidor.';
+    console.error('Error al registrar usuario:', err);
+    if (regMsg) {
+      regMsg.textContent = 'Error de conexión al registrar usuario';
+      regMsg.style.color = 'red';
+    }
   }
 }
