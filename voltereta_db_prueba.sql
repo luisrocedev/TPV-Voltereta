@@ -35,6 +35,19 @@ CREATE TABLE `cash_flow` (
   `createdAt` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `cash_flow`
+--
+
+INSERT INTO `cash_flow` (`id`, `type`, `amount`, `concept`, `createdAt`) VALUES
+(1, 'income', 125.50, 'Ventas del día - Comidas', '2025-04-25 22:15:00'),
+(2, 'income', 87.25, 'Ventas del día - Bebidas', '2025-04-25 22:20:00'),
+(3, 'expense', 350.00, 'Compra de ingredientes', '2025-04-26 09:30:00'),
+(4, 'expense', 120.00, 'Pago servicio electricidad', '2025-04-26 14:25:00'),
+(5, 'income', 210.75, 'Ventas del día - Comidas', '2025-04-26 22:00:00'),
+(6, 'income', 95.00, 'Ventas del día - Bebidas', '2025-04-26 22:05:00'),
+(7, 'expense', 80.00, 'Mantenimiento equipo cocina', '2025-04-27 10:15:00');
+
 -- --------------------------------------------------------
 
 --
@@ -52,7 +65,10 @@ CREATE TABLE `employees` (
 --
 
 INSERT INTO `employees` (`id`, `name`, `role`) VALUES
-(9, 'Aida', 'admin');
+(1, 'Carlos García', 'admin'),
+(2, 'María López', 'mesero'),
+(3, 'Juan Rodríguez', 'chef'),
+(4, 'Ana Martínez', 'gerente');
 
 -- --------------------------------------------------------
 
@@ -66,6 +82,15 @@ CREATE TABLE `invoices` (
   `total` decimal(10,2) NOT NULL,
   `createdAt` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `invoices`
+--
+
+INSERT INTO `invoices` (`id`, `orderId`, `total`, `createdAt`) VALUES
+(1, 3, 25.00, '2025-04-25 15:45:20'),
+(2, 4, 54.50, '2025-04-25 19:30:45'),
+(3, 6, 39.50, '2025-04-26 21:10:15');
 
 -- --------------------------------------------------------
 
@@ -86,8 +111,14 @@ CREATE TABLE `menu` (
 --
 
 INSERT INTO `menu` (`id`, `name`, `price`, `category_id`, `imageUrl`) VALUES
-(14, 'Pollo Fritoo', 54.00, NULL, NULL),
-(18, 'a', 2.00, NULL, NULL);
+(1, 'Paella Valenciana', 18.50, 1, '/uploads/menu/paella.jpg'),
+(2, 'Filete de Ternera', 22.00, 2, '/uploads/menu/filete.jpg'),
+(3, 'Ensalada César', 10.50, 3, '/uploads/menu/ensalada_cesar.jpg'),
+(4, 'Gazpacho', 8.00, 3, '/uploads/menu/gazpacho.jpg'),
+(5, 'Tortilla Española', 9.50, 1, '/uploads/menu/tortilla.jpg'),
+(6, 'Sushi Variado', 24.00, 4, '/uploads/menu/sushi.jpg'),
+(7, 'Pasta Carbonara', 12.50, 5, '/uploads/menu/carbonara.jpg'),
+(8, 'Tarta de Chocolate', 6.50, 6, '/uploads/menu/tarta_chocolate.jpg');
 
 -- --------------------------------------------------------
 
@@ -106,11 +137,12 @@ CREATE TABLE `menu_categories` (
 --
 
 INSERT INTO `menu_categories` (`id`, `name`, `description`) VALUES
-(6, 'chino', ''),
-(7, 'asiatico', ''),
-(9, 'japones', 'sushi'),
-(10, 'sushi', 'sushi'),
-(14, 'a', 'a');
+(1, 'Arroces', 'Platos principales a base de arroz'),
+(2, 'Carnes', 'Selección de carnes de primera calidad'),
+(3, 'Entrantes', 'Platos para iniciar la comida'),
+(4, 'Asiático', 'Especialidades de cocina asiática'),
+(5, 'Pasta', 'Platos de pasta italiana'),
+(6, 'Postres', 'Deliciosos postres caseros');
 
 -- --------------------------------------------------------
 
@@ -127,6 +159,14 @@ CREATE TABLE `newsletters` (
   `created_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `newsletters`
+--
+
+INSERT INTO `newsletters` (`id`, `subject`, `body_html`, `scheduled_at`, `sent_at`, `created_at`) VALUES
+(1, 'Nuevo menú de primavera', '<h1>¡Descubre nuestro nuevo menú de primavera!</h1><p>Hemos preparado deliciosas especialidades con productos de temporada.</p>', '2025-05-01 10:00:00', NULL, '2025-04-24 14:20:00'),
+(2, 'Promoción especial fin de semana', '<h1>25% de descuento en cenas</h1><p>Este fin de semana disfruta de un 25% de descuento en todas las cenas.</p>', '2025-05-05 08:00:00', NULL, '2025-04-25 11:30:00');
+
 -- --------------------------------------------------------
 
 --
@@ -140,6 +180,18 @@ CREATE TABLE `newsletter_recipients` (
   `status` enum('pending','sent','failed') DEFAULT 'pending',
   `sent_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `newsletter_recipients`
+--
+
+INSERT INTO `newsletter_recipients` (`id`, `newsletter_id`, `subscriber_id`, `status`, `sent_at`) VALUES
+(1, 1, 1, 'pending', NULL),
+(2, 1, 2, 'pending', NULL),
+(3, 1, 3, 'pending', NULL),
+(4, 2, 1, 'pending', NULL),
+(5, 2, 2, 'pending', NULL),
+(6, 2, 3, 'pending', NULL);
 
 -- --------------------------------------------------------
 
@@ -161,16 +213,14 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`id`, `tableNumber`, `customer`, `status`, `comments`, `createdAt`) VALUES
-(15, 1, 'Luis1', 'entregado', '1', '2025-04-06 17:50:11'),
-(16, 1, 'Jose', 'finalizado', 'Es alergico a la comida', '2025-04-06 17:51:47'),
-(17, 1, 'a', 'cancelado', 'a', '2025-04-06 18:04:28'),
-(18, 1, 'Luis', 'finalizado', 'Quiere la paella cruda', '2025-04-06 18:20:15'),
-(19, 4, 'paco', 'entregado', 'alergico al gluten', '2025-04-06 19:15:33'),
-(20, 3, 'aaaa', 'entregado', 'alergico al gluten', '2025-04-06 19:15:55'),
-(21, 1, 'Luis', 'entregado', '111', '2025-04-07 00:30:00'),
-(22, 2, 'Luis', 'cancelado', 'Sin gluten', '2025-04-07 23:10:32'),
-(23, 1, 'Jose', 'cancelado', '111', '2025-04-07 23:10:55'),
-(24, 1, '1', 'en_proceso', '1', '2025-04-07 23:11:07');
+(1, 3, 'Pedro Sánchez', 'pedido_realizado', 'Sin cebolla', '2025-04-25 12:30:00'),
+(2, 5, 'Laura Gómez', 'en_proceso', 'Extra de salsa', '2025-04-25 13:15:45'),
+(3, 2, 'Miguel Torres', 'finalizado', 'Sin gluten', '2025-04-25 14:20:10'),
+(4, 7, 'Carmen Ruiz', 'entregado', 'Alérgico a frutos secos', '2025-04-25 18:40:22'),
+(5, 4, 'Fernando López', 'cancelado', 'Cliente cambió de opinión', '2025-04-26 19:10:05'),
+(6, 1, 'Elena Martín', 'entregado', 'Preferencia de cocción: al punto', '2025-04-26 20:05:30'),
+(7, 6, 'Roberto Núñez', 'pedido_realizado', '', '2025-04-27 13:25:15'),
+(8, 3, 'Sofía Castro', 'en_proceso', 'Sin lácteos', '2025-04-27 14:10:40');
 
 -- --------------------------------------------------------
 
@@ -190,14 +240,21 @@ CREATE TABLE `order_items` (
 --
 
 INSERT INTO `order_items` (`id`, `orderId`, `menuItemId`, `quantity`) VALUES
-(31, 20, 14, 1),
-(32, 20, 14, 9),
-(34, 21, 14, 1),
-(35, 22, 18, 1),
-(36, 22, 18, 1),
-(37, 22, 18, 1),
-(38, 23, 18, 1),
-(39, 24, 14, 1);
+(1, 1, 1, 2),
+(2, 1, 3, 1),
+(3, 2, 2, 1),
+(4, 2, 8, 2),
+(5, 3, 4, 1),
+(6, 3, 5, 1),
+(7, 3, 8, 1),
+(8, 4, 6, 2),
+(9, 4, 7, 1),
+(10, 5, 2, 1),
+(11, 6, 1, 1),
+(12, 6, 3, 2),
+(13, 7, 5, 1),
+(14, 7, 7, 1),
+(15, 8, 6, 3);
 
 -- --------------------------------------------------------
 
@@ -218,12 +275,12 @@ CREATE TABLE `reservations` (
 --
 
 INSERT INTO `reservations` (`id`, `customerName`, `date`, `time`, `guests`) VALUES
-(1, 'Luis', '2025-09-10', '13:00:00', 4),
-(2, 'luis', '2025-09-10', '12:09:00', 4),
-(3, 'prueba2', '2025-06-25', '12:24:00', 8),
-(4, 'lusi', '2027-10-20', '17:42:00', 2),
-(5, 'jahir', '1999-10-10', '01:33:00', 4),
-(6, 'aida utrera', '2025-04-07', '12:29:00', 2);
+(1, 'Alberto Moreno', '2025-05-10', '14:00:00', 4),
+(2, 'Pilar Domínguez', '2025-05-11', '21:00:00', 2),
+(3, 'Mario Vázquez', '2025-05-15', '13:30:00', 6),
+(4, 'Cristina Herrera', '2025-05-17', '20:15:00', 3),
+(5, 'Javier Ortiz', '2025-05-18', '14:45:00', 5),
+(6, 'Silvia Mendoza', '2025-05-20', '19:30:00', 2);
 
 -- --------------------------------------------------------
 
@@ -239,6 +296,16 @@ CREATE TABLE `subscribers` (
   `active` tinyint(1) DEFAULT 1,
   `created_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `subscribers`
+--
+
+INSERT INTO `subscribers` (`id`, `email`, `first_name`, `last_name`, `active`, `created_at`) VALUES
+(1, 'cliente1@ejemplo.com', 'Antonio', 'Fernández', 1, '2025-03-15 10:20:00'),
+(2, 'cliente2@ejemplo.com', 'Lucía', 'González', 1, '2025-03-18 14:35:00'),
+(3, 'cliente3@ejemplo.com', 'Manuel', 'Pérez', 1, '2025-04-02 09:45:00'),
+(4, 'cliente4@ejemplo.com', 'Beatriz', 'Jiménez', 0, '2025-04-10 16:30:00');
 
 -- --------------------------------------------------------
 
@@ -261,8 +328,10 @@ CREATE TABLE `support_tickets` (
 --
 
 INSERT INTO `support_tickets` (`id`, `user_id`, `subject`, `description`, `status`, `created_at`, `updated_at`) VALUES
-(6, 26, 'a', 'a', 'cerrado', '2025-04-06 00:24:00', '2025-04-06 15:16:20'),
-(7, 8, 'Boton no funciona', 'aa', 'abierto', '2025-04-06 22:30:23', '2025-04-06 22:30:23');
+(1, 1, 'Error al generar factura', 'No puedo generar la factura para el pedido #4', 'abierto', '2025-04-20 10:24:00', '2025-04-20 10:24:00'),
+(2, 2, 'Problema con el módulo de reservas', 'El calendario no muestra correctamente las horas disponibles', 'en_proceso', '2025-04-21 14:35:15', '2025-04-22 09:10:20'),
+(3, 3, 'No puedo modificar menú', 'Al intentar editar un elemento del menú me da error', 'abierto', '2025-04-23 11:42:30', '2025-04-23 11:42:30'),
+(4, 1, 'Impresora de cocina no funciona', 'Los tickets no se imprimen en la impresora de cocina', 'cerrado', '2025-04-25 16:28:45', '2025-04-26 08:30:10');
 
 -- --------------------------------------------------------
 
@@ -285,10 +354,11 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `role`, `fullname`, `email`, `profile_pic`) VALUES
-(8, 'luis', '$2b$10$WkV.iY3K6DMQKZpvlgHFHusFjn/tfWkbH52AlYkyTuTaYvXUpXBrm', 'admin', NULL, NULL, '/uploads/profile_pics/user_8_1743954645874.jpg'),
-(24, 'aida', '$2b$10$VtLtTz7dNEIWEtJbo76/aeJw.HPVN6YJXMFtj7izLtMy/WRqBH1wu', 'gerente', 'aida utrera escortell', 'aida.escortell@gmail.com', NULL),
-(26, 'jahir', '$2b$10$ZdFOeEKv/.Ty5MyYdQoUHO4QCyrfoalX2IG5SUSOsCgJ/4IksVV2W', 'chef', 'jahir rodriguez', 'jahirguaperas2@gmail.com', '/uploads/profile_pics/user_26_1743954327164.jpg'),
-(30, 'aa', '$2b$10$6FTme/V2oDAxqjN4/NWo/.jSvI9ZoP9doZPCztrGbbqYFBDVQ83Rq', 'gerente', 'a', 'a@gmail.com', 'https://www.serpelflow.com/_next/image?url=https%3A%2F%2Fi.pinimg.com%2F736x%2F36%2Fb5%2F13%2F36b51341c3feaaf8eedfe648183d2347.jpg&w=1080&q=75');
+(1, 'admin', '$2b$10$WkV.iY3K6DMQKZpvlgHFHusFjn/tfWkbH52AlYkyTuTaYvXUpXBrm', 'admin', 'Administrador Sistema', 'admin@voltereta.com', '/uploads/profile_pics/default_admin.jpg'),
+(2, 'mesero1', '$2b$10$VtLtTz7dNEIWEtJbo76/aeJw.HPVN6YJXMFtj7izLtMy/WRqBH1wu', 'mesero', 'Pablo Sánchez', 'pablo@voltereta.com', '/uploads/profile_pics/default_waiter.jpg'),
+(3, 'chef1', '$2b$10$ZdFOeEKv/.Ty5MyYdQoUHO4QCyrfoalX2IG5SUSOsCgJ/4IksVV2W', 'chef', 'Isabel Martínez', 'isabel@voltereta.com', '/uploads/profile_pics/default_chef.jpg'),
+(4, 'gerente1', '$2b$10$6FTme/V2oDAxqjN4/NWo/.jSvI9ZoP9doZPCztrGbbqYFBDVQ83Rq', 'gerente', 'David Gutiérrez', 'david@voltereta.com', '/uploads/profile_pics/default_manager.jpg'),
+(5, 'prueba', '$2b$10$1234567890abcdefghijk.1234567890abcdefghijk1234567890ab', 'admin', 'Usuario de Prueba', 'prueba@voltereta.com', '/uploads/profile_pics/default_user.jpg');
 
 --
 -- Índices para tablas volcadas
@@ -388,55 +458,55 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT de la tabla `cash_flow`
 --
 ALTER TABLE `cash_flow`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT de la tabla `employees`
 --
 ALTER TABLE `employees`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `invoices`
 --
 ALTER TABLE `invoices`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `menu`
 --
 ALTER TABLE `menu`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT de la tabla `menu_categories`
 --
 ALTER TABLE `menu_categories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `newsletters`
 --
 ALTER TABLE `newsletters`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `newsletter_recipients`
 --
 ALTER TABLE `newsletter_recipients`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT de la tabla `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT de la tabla `reservations`
@@ -448,19 +518,19 @@ ALTER TABLE `reservations`
 -- AUTO_INCREMENT de la tabla `subscribers`
 --
 ALTER TABLE `subscribers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `support_tickets`
 --
 ALTER TABLE `support_tickets`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Restricciones para tablas volcadas
