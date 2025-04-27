@@ -1,5 +1,5 @@
 // public/js/socket.js
-const socket = io();
+const socket = io('http://localhost:3000');
 
 // 1) Registramos el rol del usuario tras conectarse
 //    Pero necesitamos saber el rol real: lo hacemos en initSocket(...) y le pasamos "loggedUser"

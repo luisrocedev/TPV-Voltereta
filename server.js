@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const socketIO = require('socket.io');
+const cors = require('cors');
 const { db } = require('./db');
 const { verifyToken, checkRole } = require('./middlewares/auth');
 
@@ -21,10 +22,23 @@ const { errorHandler } = require('./middlewares/errorHandler');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIO(server);
+const io = socketIO(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+  }
+});
 
 // 1) Guardar la instancia de Socket.IO para usarla en las rutas
 app.set('io', io);
+
+// Configuración de CORS para permitir solicitudes cross-origin
+app.use(cors({
+  origin: '*',  // En producción, restringe esto a dominios específicos
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 app.use(express.json());
 

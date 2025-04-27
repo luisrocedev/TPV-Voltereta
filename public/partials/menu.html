@@ -1,53 +1,85 @@
-<section id="menuSection" class="card">
-    <h2 id="menuTitle">Menú</h2>
-    <ul id="menuList"></ul>
-  
-    <h3>Agregar nuevo plato</h3>
-    <div>
-      <input type="text" id="menuName" placeholder="Nombre del plato">
-      <input type="number" id="menuPrice" placeholder="Precio">
-      <select id="menuCategory">
-        <option value="">Sin categoría</option>
-      </select>
-      <button id="menuAddBtn">Agregar Plato</button>
+<section id="menuSection" class="menu-dashboard">
+  <div class="menu-header">
+    <h2 id="menuTitle"><i class="fas fa-utensils"></i> Gestión del Menú</h2>
+    <button id="menuAddBtn" class="primary-button">
+      <i class="fas fa-plus"></i> Nuevo Plato
+    </button>
+  </div>
+
+  <div class="menu-container">
+    <div class="menu-categories-panel">
+      <h3><i class="fas fa-tags"></i> Categorías</h3>
+      <div class="categories-list" id="menuCategoriesList"></div>
+      <div class="category-form">
+        <input type="text" id="catName" placeholder="Nueva categoría" class="styled-input">
+        <input type="text" id="catDesc" placeholder="Descripción (opcional)" class="styled-input">
+        <button id="catAddBtn" class="secondary-button">
+          <i class="fas fa-plus"></i> Agregar Categoría
+        </button>
+      </div>
     </div>
-  
-    <!-- Modal para editar plato -->
-    <dialog class="modal" id="editMenuModal">
-      <article class="modal-content">
-        <button id="closeEditMenuModal" class="close" aria-label="Cerrar">&times;</button>
-        <h3>Editar Plato</h3>
-        <input type="hidden" id="editMenuId">
-        <label>Nombre:</label>
-        <input type="text" id="editMenuName">
+
+    <div class="menu-items-panel">
+      <div class="menu-filters">
+        <select id="categoryFilter" class="styled-select">
+          <option value="all">Todas las categorías</option>
+        </select>
+        <input type="text" id="searchMenu" class="styled-input" placeholder="Buscar platos...">
+      </div>
+      
+      <div class="menu-grid" id="menuList"></div>
+    </div>
+  </div>
+
+  <!-- Modal para editar plato -->
+  <dialog class="modal" id="editMenuModal">
+    <article class="modal-content">
+      <button id="closeEditMenuModal" class="close" aria-label="Cerrar">
+        <i class="fas fa-times"></i>
+      </button>
+      <h3><i class="fas fa-edit"></i> Editar Plato</h3>
+      <input type="hidden" id="editMenuId">
+      <div class="form-group">
+        <label>Nombre del plato:</label>
+        <input type="text" id="editMenuName" class="styled-input">
+      </div>
+      <div class="form-group">
         <label>Precio:</label>
-        <input type="number" id="editMenuPrice">
+        <input type="number" id="editMenuPrice" class="styled-input" step="0.01">
+      </div>
+      <div class="form-group">
         <label>Categoría:</label>
-        <select id="editMenuCategory"></select>
-        <button id="saveMenuChangesBtn">Guardar Cambios</button>
-      </article>
-    </dialog>
-  
-    <h3>Categorías del Menú</h3>
-    <ul id="menuCategoriesList"></ul>
-    <div>
-      <input type="text" id="catName" placeholder="Nombre categoría">
-      <input type="text" id="catDesc" placeholder="Descripción (opcional)">
-      <button id="catAddBtn">Agregar Categoría</button>
-    </div>
-  
-    <!-- Modal para editar categoría -->
-    <dialog class="modal" id="editCategoryModal">
-      <article class="modal-content">
-        <button id="closeEditCategoryModal" class="close" aria-label="Cerrar">&times;</button>
-        <h3>Editar Categoría</h3>
-        <input type="hidden" id="editCatId">
+        <select id="editMenuCategory" class="styled-select"></select>
+      </div>
+      <div class="modal-actions">
+        <button id="saveMenuChangesBtn" class="primary-button">
+          <i class="fas fa-save"></i> Guardar Cambios
+        </button>
+      </div>
+    </article>
+  </dialog>
+
+  <!-- Modal para editar categoría -->
+  <dialog class="modal" id="editCategoryModal">
+    <article class="modal-content">
+      <button id="closeEditCategoryModal" class="close" aria-label="Cerrar">
+        <i class="fas fa-times"></i>
+      </button>
+      <h3><i class="fas fa-tag"></i> Editar Categoría</h3>
+      <input type="hidden" id="editCatId">
+      <div class="form-group">
         <label>Nombre:</label>
-        <input type="text" id="editCatName">
+        <input type="text" id="editCatName" class="styled-input">
+      </div>
+      <div class="form-group">
         <label>Descripción:</label>
-        <input type="text" id="editCatDesc">
-        <button id="saveCatChangesBtn">Guardar Cambios</button>
-      </article>
-    </dialog>
-  </section>
-  
+        <input type="text" id="editCatDesc" class="styled-input">
+      </div>
+      <div class="modal-actions">
+        <button id="saveCatChangesBtn" class="primary-button">
+          <i class="fas fa-save"></i> Guardar Cambios
+        </button>
+      </div>
+    </article>
+  </dialog>
+</section>

@@ -12,32 +12,58 @@
   <main>
     <section class="login-container" aria-labelledby="loginTitle">
       <header>
-        <h1 id="loginTitle">Voltereta - Iniciar Sesión</h1>
+        <div class="login-logo">
+          <img src="https://via.placeholder.com/150x80?text=Voltereta" alt="Logo Voltereta" id="loginLogo">
+        </div>
+        <h1 id="loginTitle">Terminal Punto de Venta</h1>
       </header>
 
-      <form id="loginForm" aria-describedby="loginMsg">
-        <label for="username" class="sr-only">Usuario</label>
-        <input 
-          type="text" 
-          id="username" 
-          placeholder="Usuario" 
-          required
-          aria-label="Campo para ingresar nombre de usuario"
-        >
+      <form id="loginForm" aria-describedby="loginMsg" class="login-form">
+        <div class="form-group">
+          <label for="username">Usuario</label>
+          <div class="input-icon-wrapper">
+            <i class="icon-user">👤</i>
+            <input 
+              type="text" 
+              id="username" 
+              placeholder="Ingrese su usuario" 
+              required
+              aria-label="Campo para ingresar nombre de usuario"
+            >
+          </div>
+        </div>
 
-        <label for="password" class="sr-only">Contraseña</label>
-        <input 
-          type="password" 
-          id="password" 
-          placeholder="Contraseña" 
-          required
-          aria-label="Campo para ingresar contraseña"
-        >
+        <div class="form-group">
+          <label for="password">Contraseña</label>
+          <div class="input-icon-wrapper">
+            <i class="icon-lock">🔒</i>
+            <input 
+              type="password" 
+              id="password" 
+              placeholder="Ingrese su contraseña" 
+              required
+              aria-label="Campo para ingresar contraseña"
+            >
+            <button type="button" id="togglePassword" aria-label="Mostrar/ocultar contraseña" class="toggle-password">👁️</button>
+          </div>
+        </div>
 
-        <button type="submit" aria-label="Botón para iniciar sesión">Entrar</button>
+        <div class="form-group remember-group">
+          <input type="checkbox" id="rememberUser" aria-label="Recordar usuario">
+          <label for="rememberUser" class="checkbox-label">Recordar usuario</label>
+        </div>
+
+        <button type="submit" class="login-button" aria-label="Botón para iniciar sesión">
+          <span>Iniciar sesión</span>
+          <i class="icon-arrow">→</i>
+        </button>
       </form>
 
-      <p id="loginMsg" role="alert"></p>
+      <p id="loginMsg" role="alert" class="error-message"></p>
+      
+      <footer class="login-footer">
+        <p>Voltereta TPV &copy; 2025 | v1.0</p>
+      </footer>
     </section>
   </main>
 
@@ -49,33 +75,104 @@
     import { showSpinner, hideSpinner, showErrorMessage } from './js/modules/feedback.js';
 
     const loginForm = document.getElementById('loginForm');
-    const loginMsg  = document.getElementById('loginMsg');
+    const loginMsg = document.getElementById('loginMsg');
+    const togglePasswordBtn = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    const rememberUserCheckbox = document.getElementById('rememberUser');
+    const usernameInput = document.getElementById('username');
 
+    // Verificar si hay usuario guardado en localStorage
+    document.addEventListener('DOMContentLoaded', () => {
+      const rememberedUser = localStorage.getItem('rememberedUser');
+      if (rememberedUser) {
+        usernameInput.value = rememberedUser;
+        rememberUserCheckbox.checked = true;
+      }
+
+      // Animación suave en el logo
+      const loginLogo = document.getElementById('loginLogo');
+      if (loginLogo) {
+        loginLogo.style.opacity = '0';
+        setTimeout(() => {
+          loginLogo.style.transition = 'opacity 0.8s ease';
+          loginLogo.style.opacity = '1';
+        }, 300);
+      }
+    });
+
+    // Funcionalidad para mostrar/ocultar contraseña
+    togglePasswordBtn.addEventListener('click', () => {
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        togglePasswordBtn.textContent = '🔒';
+        togglePasswordBtn.setAttribute('aria-label', 'Ocultar contraseña');
+      } else {
+        passwordInput.type = 'password';
+        togglePasswordBtn.textContent = '👁️';
+        togglePasswordBtn.setAttribute('aria-label', 'Mostrar contraseña');
+      }
+    });
+
+    // Manejo del envío del formulario
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value.trim();
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value.trim();
+      
+      // Validar campos vacíos con mensaje más amigable
+      if (!username || !password) {
+        showErrorMessage(loginMsg, 'Por favor complete todos los campos');
+        return;
+      }
 
       try {
         showSpinner();
-        const resp = await fetch('/api/auth/login', {
+        const resp = await fetch('http://localhost:3000/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
         });
+        
+        // Verificar si la respuesta es correcta
+        if (!resp.ok) {
+          const errorData = await resp.json();
+          hideSpinner();
+          showErrorMessage(loginMsg, `Error: ${errorData.message || 'Credenciales inválidas'}`);
+          return;
+        }
+
         const data = await resp.json();
         hideSpinner();
 
         if (data.success) {
+          // Guardar usuario si está marcado "recordar"
+          if (rememberUserCheckbox.checked) {
+            localStorage.setItem('rememberedUser', username);
+          } else {
+            localStorage.removeItem('rememberedUser');
+          }
+          
+          // Guardar token y datos de usuario
           localStorage.setItem('token', data.token);
           localStorage.setItem('loggedUser', JSON.stringify(data.user));
-          window.location.href = 'dashboard.html';
+          
+          // Mostrar un mensaje de éxito antes de redirigir
+          loginMsg.textContent = '¡Inicio de sesión exitoso!';
+          loginMsg.style.color = 'var(--color-success)';
+          loginMsg.style.display = 'block';
+          loginMsg.style.backgroundColor = 'rgba(85, 211, 78, 0.1)';
+          
+          // Redirigir después de un breve momento
+          setTimeout(() => {
+            window.location.href = 'dashboard.html';
+          }, 800);
         } else {
           showErrorMessage(loginMsg, 'Error: ' + data.message);
         }
       } catch (err) {
         hideSpinner();
-        showErrorMessage(loginMsg, 'Error de conexión');
+        showErrorMessage(loginMsg, 'Error de conexión al servidor');
+        console.error('Error de conexión:', err);
       }
     });
   </script>

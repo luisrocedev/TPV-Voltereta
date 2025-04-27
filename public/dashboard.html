@@ -6,44 +6,118 @@
   <title>Voltereta - Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
-  <button class="hamburger" aria-label="Abrir/cerrar menú de navegación">&#9776;</button>
+<body class="dashboard-layout">
+  <!-- Botón hamburguesa para menú móvil -->
+  <button class="hamburger" aria-label="Abrir/cerrar menú de navegación"><i class="fas fa-bars"></i></button>
+  
+  <!-- Barra superior -->
+  <header class="top-bar">
+    <div class="left-info">
+      <span class="restaurant-name">Voltereta</span>
+      <span class="separator">|</span>
+      <span id="currentDate">--/--/----</span>
+      <span id="currentTime">--:--</span>
+    </div>
+    <div class="right-info">
+      <div class="notification-center">
+        <button class="notification-btn" id="notificationBtn" aria-label="Notificaciones">
+          <i class="fas fa-bell"></i>
+          <span class="badge" id="notificationBadge">0</span>
+        </button>
+        <div class="notification-dropdown" id="notificationDropdown">
+          <div class="notification-header">
+            <h3>Notificaciones</h3>
+            <button class="clear-all" id="clearNotifications">Limpiar</button>
+          </div>
+          <div class="notification-list" id="notificationList">
+            <!-- Las notificaciones se cargarán aquí dinámicamente -->
+            <p class="empty-notification">No hay notificaciones</p>
+          </div>
+        </div>
+      </div>
+      <div class="user-info">
+        <img src="./profile_pics/default.png" alt="Foto de perfil" id="topBarUserPic" class="avatar">
+        <span id="topBarUserName" class="user-name">Usuario</span>
+        <span class="user-role" id="topBarUserRole">Rol</span>
+      </div>
+      <button id="quickLogoutBtn" class="icon-button" aria-label="Cerrar sesión">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+    </div>
+  </header>
 
-  <nav aria-label="Navegación Principal">
+  <!-- Panel de navegación lateral -->
+  <nav aria-label="Navegación Principal" class="side-nav">
+    <div class="nav-header">
+      <img src="./profile_pics/logo.png" alt="Logo pequeño" class="nav-logo">
+      <span class="nav-title">Voltereta TPV</span>
+    </div>
     <ul>
       <li data-roles="admin,gerente,chef,mesero">
-        <a href="#" data-partial="partials/chat.html">Chat</a>
+        <a href="#" data-partial="partials/chat.html">
+          <i class="fas fa-comment"></i>
+          <span>Chat</span>
+        </a>
       </li>
       <li data-roles="admin,gerente,chef">
-        <a href="#" data-partial="partials/menu.html">Menú</a>
+        <a href="#" data-partial="partials/menu.html">
+          <i class="fas fa-utensils"></i>
+          <span>Menú</span>
+        </a>
       </li>
       <li data-roles="admin,gerente">
-        <a href="#" data-partial="partials/employees.html">Empleados</a>
+        <a href="#" data-partial="partials/employees.html">
+          <i class="fas fa-users"></i>
+          <span>Empleados</span>
+        </a>
       </li>
       <li data-roles="admin,gerente,mesero">
-        <a href="#" data-partial="partials/reservations.html">Reservas</a>
+        <a href="#" data-partial="partials/reservations.html">
+          <i class="fas fa-calendar-alt"></i>
+          <span>Reservas</span>
+        </a>
       </li>
       <li data-roles="admin,gerente,mesero,chef">
-        <a href="#" data-partial="partials/orders.html">Pedidos</a>
+        <a href="#" data-partial="partials/orders.html">
+          <i class="fas fa-receipt"></i>
+          <span>Pedidos</span>
+        </a>
       </li>
       <li data-roles="admin,gerente">
-        <a href="#" data-partial="partials/reports.html">Reportes</a>
+        <a href="#" data-partial="partials/reports.html">
+          <i class="fas fa-chart-bar"></i>
+          <span>Reportes</span>
+        </a>
       </li>
       <li data-roles="admin,gerente,chef,mesero">
-        <a href="#" data-partial="partials/profile.html">Mi Perfil</a>
+        <a href="#" data-partial="partials/profile.html">
+          <i class="fas fa-user"></i>
+          <span>Mi Perfil</span>
+        </a>
       </li>
       <li data-roles="admin,gerente,chef,mesero">
-        <a href="#" data-partial="partials/support.html">Soporte Técnico</a>
+        <a href="#" data-partial="partials/support.html">
+          <i class="fas fa-headset"></i>
+          <span>Soporte</span>
+        </a>
       </li>
       <li>
-        <button id="logoutBtn">Salir</button>
+        <button id="logoutBtn">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Salir</span>
+        </button>
       </li>
     </ul>
+    <div class="nav-footer">
+      <p>v1.0</p>
+    </div>
   </nav>
 
+  <!-- Contenido principal -->
   <main>
-    <div id="content"></div>
+    <div id="content" class="main-content"></div>
   </main>
 
   <script>
@@ -52,20 +126,108 @@ document.addEventListener('DOMContentLoaded', () => {
   const loggedUser = JSON.parse(localStorage.getItem('loggedUser'));
   const contentDiv = document.getElementById('content');
   const links = document.querySelectorAll('nav ul li a[data-partial]');
+  
+  // Configurar la información del usuario en la barra superior
+  const topBarUserName = document.getElementById('topBarUserName');
+  const topBarUserRole = document.getElementById('topBarUserRole');
+  const topBarUserPic = document.getElementById('topBarUserPic');
+  
+  if (topBarUserName && loggedUser) {
+    topBarUserName.textContent = loggedUser.fullname || loggedUser.username;
+  }
+  
+  if (topBarUserRole && loggedUser) {
+    const roles = {
+      admin: 'Administrador',
+      gerente: 'Gerente',
+      chef: 'Chef',
+      mesero: 'Mesero'
+    };
+    topBarUserRole.textContent = roles[loggedUser.role] || loggedUser.role;
+  }
+  
+  if (topBarUserPic && loggedUser && loggedUser.photo) {
+    topBarUserPic.src = loggedUser.photo;
+  }
+  
+  // Actualizar fecha y hora
+  function updateDateTime() {
+    const now = new Date();
+    const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+    document.getElementById('currentDate').textContent = now.toLocaleDateString('es-ES', options);
+    document.getElementById('currentTime').textContent = now.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+  
+  // Actualizar fecha/hora cada minuto
+  updateDateTime();
+  setInterval(updateDateTime, 60000);
+  
+  // Configurar el botón de notificaciones
+  const notificationBtn = document.getElementById('notificationBtn');
+  const notificationDropdown = document.getElementById('notificationDropdown');
+  
+  if (notificationBtn) {
+    notificationBtn.addEventListener('click', () => {
+      notificationDropdown.classList.toggle('active');
+    });
+    
+    // Cerrar dropdown al hacer clic fuera de él
+    document.addEventListener('click', (e) => {
+      if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
+        notificationDropdown.classList.remove('active');
+      }
+    });
+  }
+  
+  // Botón de cierre rápido
+  const quickLogoutBtn = document.getElementById('quickLogoutBtn');
+  if (quickLogoutBtn) {
+    quickLogoutBtn.addEventListener('click', () => {
+      if (confirm('¿Está seguro que desea cerrar sesión?')) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('loggedUser');
+        window.location.href = 'login.html';
+      }
+    });
+  }
 
+  // Configurar el menú hamburguesa para móvil
+  const hamburger = document.querySelector('.hamburger');
+  const navElement = document.querySelector('nav');
+  if (hamburger && navElement) {
+    hamburger.addEventListener('click', () => {
+      navElement.classList.toggle('active');
+    });
+  }
+
+  // Configurar la navegación entre secciones
   links.forEach(link => {
     link.addEventListener('click', async (e) => {
       e.preventDefault();
+      
+      // Marcar el enlace activo
+      links.forEach(l => l.classList.remove('active'));
+      e.target.closest('a').classList.add('active');
+      
+      // En móvil, cerrar el menú después de seleccionar una opción
+      if (window.innerWidth <= 768) {
+        navElement.classList.remove('active');
+      }
+      
       const parentLi = e.target.closest('li');
       const allowedRoles = parentLi.getAttribute('data-roles').split(',').map(r => r.trim());
 
       if (!allowedRoles.includes(loggedUser.role)) {
-        contentDiv.innerHTML = '<p>No tienes permisos para ver esta sección.</p>';
+        contentDiv.innerHTML = '<div class="error-card"><p>No tienes permisos para ver esta sección.</p></div>';
         return;
       }
 
-      const partial = e.target.getAttribute('data-partial');
+      const partial = e.target.closest('a').getAttribute('data-partial');
       try {
+        showLoading();
         const response = await fetch(partial);
         if (response.ok) {
           const html = await response.text();
@@ -89,22 +251,60 @@ document.addEventListener('DOMContentLoaded', () => {
           } else if (partial.includes('support.html')) {
             import('./js/modules/support.js').then(module => module.initSupport(token, loggedUser));
           }
+          hideLoading();
         } else {
-          contentDiv.innerHTML = '<p>Error al cargar la sección.</p>';
+          hideLoading();
+          contentDiv.innerHTML = '<div class="error-card"><p>Error al cargar la sección.</p></div>';
         }
       } catch (error) {
+        hideLoading();
         console.error('Error al cargar partial:', error);
-        contentDiv.innerHTML = '<p>Error al cargar la sección.</p>';
+        contentDiv.innerHTML = '<div class="error-card"><p>Error al cargar la sección.</p></div>';
       }
     });
   });
 
-  // Cargar por defecto la primera sección (por ejemplo, Chat)
-  if (links.length > 0) {
-    links[0].click();
+  function showLoading() {
+    // Crear y mostrar un indicador de carga en el contenido
+    const loadingDiv = document.createElement('div');
+    loadingDiv.id = 'contentLoading';
+    loadingDiv.className = 'content-loading';
+    loadingDiv.innerHTML = '<div class="spinner"></div><p>Cargando...</p>';
+    contentDiv.innerHTML = '';
+    contentDiv.appendChild(loadingDiv);
+  }
+  
+  function hideLoading() {
+    // Eliminar el indicador de carga
+    const loadingDiv = document.getElementById('contentLoading');
+    if (loadingDiv) {
+      loadingDiv.remove();
+    }
+  }
+
+  // Cargar por defecto la primera sección permitida para el rol del usuario
+  const firstAllowedLink = Array.from(links).find(link => {
+    const li = link.closest('li');
+    const roles = li.getAttribute('data-roles').split(',').map(r => r.trim());
+    return roles.includes(loggedUser.role);
+  });
+
+  if (firstAllowedLink) {
+    firstAllowedLink.click();
+  }
+
+  // Configurar botón de salir (logout completo)
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      if (confirm('¿Está seguro que desea cerrar sesión?')) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('loggedUser');
+        window.location.href = 'login.html';
+      }
+    });
   }
 });
-
   </script>
 
   <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>

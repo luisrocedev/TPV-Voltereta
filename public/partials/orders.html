@@ -1,39 +1,197 @@
 <!-- public/partials/orders.html -->
-<section id="ordersSection" class="card">
-  <h2 id="ordersTitle">Panel de Pedidos (POS/KDS)</h2>
-  <p>
-    <button id="openOrderModalBtn">Nuevo Pedido</button>
-  </p>
+<section id="ordersSection" class="pos-section">
+  <div class="pos-header">
+    <div class="pos-title">
+      <h2 id="ordersTitle">Panel de Pedidos (POS/KDS)</h2>
+      <span class="order-count" id="orderCount">0 pedidos activos</span>
+    </div>
+    <div class="pos-actions">
+      <button id="openOrderModalBtn" class="primary-button">
+        <i class="fas fa-plus"></i> Nuevo Pedido
+      </button>
+      <div class="view-toggle">
+        <button id="cardViewBtn" class="view-button active" title="Vista de tarjetas">
+          <i class="fas fa-th-large"></i>
+        </button>
+        <button id="listViewBtn" class="view-button" title="Vista de lista">
+          <i class="fas fa-list"></i>
+        </button>
+      </div>
+      <div class="filter-container">
+        <select id="statusFilter" class="filter-select">
+          <option value="all">Todos los estados</option>
+          <option value="pedido_realizado">Pendientes</option>
+          <option value="en_proceso">En proceso</option>
+          <option value="finalizado">Finalizados</option>
+          <option value="entregado">Entregados</option>
+        </select>
+        <input type="text" id="searchOrder" class="search-input" placeholder="Buscar pedido...">
+      </div>
+    </div>
+  </div>
 
-  <div class="orders-board" id="ordersBoard"></div>
+  <div class="orders-container">
+    <div class="orders-column" id="pendingColumn" data-status="pedido_realizado">
+      <div class="column-header">
+        <h3><i class="fas fa-clock"></i> Pendientes</h3>
+        <span class="column-count" id="pendingCount">0</span>
+      </div>
+      <div class="orders-list" id="pendingOrders"></div>
+    </div>
+    
+    <div class="orders-column" id="processingColumn" data-status="en_proceso">
+      <div class="column-header">
+        <h3><i class="fas fa-fire"></i> En Proceso</h3>
+        <span class="column-count" id="processingCount">0</span>
+      </div>
+      <div class="orders-list" id="processingOrders"></div>
+    </div>
+
+    <div class="orders-column" id="completedColumn" data-status="finalizado">
+      <div class="column-header">
+        <h3><i class="fas fa-check-circle"></i> Finalizados</h3>
+        <span class="column-count" id="completedCount">0</span>
+      </div>
+      <div class="orders-list" id="completedOrders"></div>
+    </div>
+
+    <div class="orders-column" id="deliveredColumn" data-status="entregado">
+      <div class="column-header">
+        <h3><i class="fas fa-concierge-bell"></i> Entregados</h3>
+        <span class="column-count" id="deliveredCount">0</span>
+      </div>
+      <div class="orders-list" id="deliveredOrders"></div>
+    </div>
+  </div>
+
+  <!-- Vista alternativa: tabla -->
+  <div class="orders-table-view" id="ordersTableView" style="display: none;">
+    <table class="orders-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Mesa</th>
+          <th>Cliente</th>
+          <th>Estado</th>
+          <th>Total</th>
+          <th>Tiempo</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="ordersTableBody"></tbody>
+    </table>
+  </div>
 
   <!-- Modal para crear un nuevo pedido -->
-  <!-- Cambiamos id="orderModal" por id="newOrderModal" -->
   <dialog class="modal" id="newOrderModal" aria-modal="true">
     <article class="modal-content">
-      <!-- Cambiamos closeOrderModal por closeNewOrderModal -->
-      <button id="closeNewOrderModal" class="close" aria-label="Cerrar">&times;</button>
-      <h3>Nuevo Pedido</h3>
+      <button id="closeNewOrderModal" class="close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+      <h3><i class="fas fa-utensils"></i> Nuevo Pedido</h3>
+      
+      <div class="modal-grid">
+        <div class="modal-left">
+          <div class="form-group">
+            <label for="modalTable"><i class="fas fa-chair"></i> Mesa:</label>
+            <input type="number" id="modalTable" min="1" class="large-input">
+          </div>
+          
+          <div class="form-group">
+            <label for="modalCustomer"><i class="fas fa-user"></i> Cliente:</label>
+            <input type="text" id="modalCustomer" class="large-input">
+          </div>
+          
+          <div class="form-group">
+            <label for="modalComments"><i class="fas fa-comment"></i> Comentarios:</label>
+            <textarea id="modalComments" rows="2" class="large-input"></textarea>
+          </div>
 
-      <label>Mesa:</label>
-      <input type="number" id="modalTable">
-      <label>Cliente:</label>
-      <input type="text" id="modalCustomer">
-      <label>Comentarios:</label>
-      <input type="text" id="modalComments">
+          <div class="menu-categories" id="menuCategoriesTab">
+            <!-- Las categorías se cargarán dinámicamente -->
+            <button class="category-tab active" data-category="all">Todos</button>
+          </div>
+          
+          <div class="menu-items-grid" id="menuItemsGrid">
+            <!-- Los platos del menú se cargarán aquí -->
+          </div>
+        </div>
 
-      <div id="orderItemsContainer"></div>
-      <button id="addItemBtn">Añadir Plato</button>
-      <button id="createOrderConfirmBtn">Crear Pedido</button>
+        <div class="modal-right">
+          <h4><i class="fas fa-shopping-cart"></i> Pedido actual</h4>
+          <div id="orderItemsContainer" class="order-items-container"></div>
+          
+          <div class="order-summary">
+            <div class="order-total">
+              <span>Total:</span>
+              <span id="orderTotal">€0.00</span>
+            </div>
+            <button id="createOrderConfirmBtn" class="primary-button full-width">
+              <i class="fas fa-check"></i> Crear Pedido
+            </button>
+          </div>
+        </div>
+      </div>
+    </article>
+  </dialog>
+
+  <!-- Modal para detalles del pedido -->
+  <dialog class="modal" id="orderDetailsModal" aria-modal="true">
+    <article class="modal-content">
+      <button id="closeOrderDetailsModal" class="close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+      <h3><i class="fas fa-receipt"></i> Detalles del Pedido #<span id="detailOrderId"></span></h3>
+      <div class="order-details-content">
+        <div class="order-meta">
+          <p><strong>Mesa:</strong> <span id="detailTable"></span></p>
+          <p><strong>Cliente:</strong> <span id="detailCustomer"></span></p>
+          <p><strong>Estado:</strong> <span id="detailStatus"></span></p>
+          <p><strong>Creado:</strong> <span id="detailCreated"></span></p>
+          <p><strong>Comentarios:</strong> <span id="detailComments"></span></p>
+        </div>
+        
+        <div class="order-items-list" id="detailItemsList">
+          <!-- Items del pedido -->
+        </div>
+        
+        <div class="order-actions" id="detailActions">
+          <!-- Botones de acciones según estado/rol -->
+        </div>
+        
+        <div class="order-totals">
+          <p class="order-total-line"><strong>Total:</strong> <span id="detailTotal"></span></p>
+        </div>
+      </div>
     </article>
   </dialog>
 
   <!-- Plantilla para cada ítem de un pedido -->
   <template id="orderItemTemplate">
-    <div class="orderItemRow">
+    <div class="order-item-row">
       <select class="orderItemSelect"></select>
-      <input type="number" class="orderItemQty" min="1" value="1">
-      <button class="removeItemBtn" aria-label="Eliminar ítem">X</button>
+      <div class="quantity-control">
+        <button class="qty-btn minus-btn"><i class="fas fa-minus"></i></button>
+        <input type="number" class="orderItemQty" min="1" value="1">
+        <button class="qty-btn plus-btn"><i class="fas fa-plus"></i></button>
+      </div>
+      <button class="removeItemBtn" aria-label="Eliminar ítem"><i class="fas fa-trash"></i></button>
+    </div>
+  </template>
+
+  <!-- Plantilla para tarjeta de pedido -->
+  <template id="orderCardTemplate">
+    <div class="order-card" data-id="">
+      <div class="order-header">
+        <div class="order-id"></div>
+        <div class="order-status"></div>
+      </div>
+      <div class="order-info">
+        <div class="order-table"></div>
+        <div class="order-customer"></div>
+      </div>
+      <div class="order-items-count"></div>
+      <div class="order-footer">
+        <div class="order-time"></div>
+        <div class="order-total"></div>
+      </div>
+      <div class="order-actions"></div>
     </div>
   </template>
 </section>
