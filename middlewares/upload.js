@@ -31,34 +31,11 @@ const fileFilter = (req, file, cb) => {
   cb(null, true);
 };
 
-const upload = multer({
+// Exportamos la configuración de multer directamente
+module.exports = multer({
   storage,
   limits: { 
     fileSize: 2 * 1024 * 1024 // 2MB
   },
   fileFilter
-}).single('photo');
-
-// Envolvemos multer en un middleware personalizado para manejar errores
-module.exports = function(req, res, next) {
-  upload(req, res, function(err) {
-    if (err instanceof multer.MulterError) {
-      if (err.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({
-          success: false,
-          message: 'La imagen es demasiado grande. Máximo 2MB'
-        });
-      }
-      return res.status(400).json({
-        success: false,
-        message: `Error al subir archivo: ${err.message}`
-      });
-    } else if (err) {
-      return res.status(400).json({
-        success: false,
-        message: err.message
-      });
-    }
-    next();
-  });
-};
+});

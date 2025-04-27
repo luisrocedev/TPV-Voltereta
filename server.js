@@ -4,9 +4,9 @@ const express = require('express');
 const http = require('http');
 const socketIO = require('socket.io');
 const cors = require('cors');
+const path = require('path');
 const { db } = require('./db');
 const { verifyToken, checkRole } = require('./middlewares/auth');
-
 
 // Rutas
 const authRoutes = require('./routes/auth.routes');
@@ -42,8 +42,22 @@ app.use(cors({
 
 app.use(express.json());
 
-// Archivos estáticos
-app.use(express.static('public', { maxAge: '1d' }));
+// Configuración de archivos estáticos
+const publicPath = path.join(__dirname, 'public');
+app.use(express.static(publicPath, { 
+  maxAge: '1d',
+  setHeaders: (res, path) => {
+    if (path.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache');
+    }
+  }
+}));
+
+// Ruta específica para uploads
+app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads'), {
+  maxAge: '1d',
+  etag: true
+}));
 
 app.get('/', (req, res) => {
   res.redirect('/login.html');
@@ -60,18 +74,11 @@ app.use('/api/reservations', reservationRoutes);
 app.use('/api/cash', cashRoutes);
 app.use('/api/support', supportRoutes);
 
-
-
-// Ejemplo backup
-app.post('/backup', verifyToken, checkRole('admin'), (req, res) => {
-  res.json({ success: true, message: 'Backup placeholder' });
-});
-
 // Middleware de manejo de errores (debe ir al final)
 app.use(errorHandler);
 
 // Inicializar socket
-const { initSocket } = require('./socket'); // socket.js en la raíz
+const { initSocket } = require('./socket');
 initSocket(io);
 
 const PORT = process.env.PORT || 3000;

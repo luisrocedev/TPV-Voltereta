@@ -121,193 +121,171 @@
   </main>
 
   <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const token = localStorage.getItem('token');
-  const loggedUser = JSON.parse(localStorage.getItem('loggedUser'));
-  const contentDiv = document.getElementById('content');
-  const links = document.querySelectorAll('nav ul li a[data-partial]');
+  const API_BASE_URL = 'http://localhost:3000';
   
-  // Configurar la información del usuario en la barra superior
-  const topBarUserName = document.getElementById('topBarUserName');
-  const topBarUserRole = document.getElementById('topBarUserRole');
-  const topBarUserPic = document.getElementById('topBarUserPic');
-  
-  if (topBarUserName && loggedUser) {
-    topBarUserName.textContent = loggedUser.fullname || loggedUser.username;
-  }
-  
-  if (topBarUserRole && loggedUser) {
-    const roles = {
-      admin: 'Administrador',
-      gerente: 'Gerente',
-      chef: 'Chef',
-      mesero: 'Mesero'
-    };
-    topBarUserRole.textContent = roles[loggedUser.role] || loggedUser.role;
-  }
-  
-  if (topBarUserPic && loggedUser && loggedUser.photo) {
-    topBarUserPic.src = loggedUser.photo;
-  }
-  
-  // Actualizar fecha y hora
-  function updateDateTime() {
-    const now = new Date();
-    const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-    document.getElementById('currentDate').textContent = now.toLocaleDateString('es-ES', options);
-    document.getElementById('currentTime').textContent = now.toLocaleTimeString('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
-  
-  // Actualizar fecha/hora cada minuto
-  updateDateTime();
-  setInterval(updateDateTime, 60000);
-  
-  // Configurar el botón de notificaciones
-  const notificationBtn = document.getElementById('notificationBtn');
-  const notificationDropdown = document.getElementById('notificationDropdown');
-  
-  if (notificationBtn) {
-    notificationBtn.addEventListener('click', () => {
-      notificationDropdown.classList.toggle('active');
-    });
+  document.addEventListener('DOMContentLoaded', () => {
+    const token = localStorage.getItem('token');
+    const loggedUser = JSON.parse(localStorage.getItem('loggedUser'));
+    const contentDiv = document.getElementById('content');
+    const links = document.querySelectorAll('nav ul li a[data-partial]');
     
-    // Cerrar dropdown al hacer clic fuera de él
-    document.addEventListener('click', (e) => {
-      if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
-        notificationDropdown.classList.remove('active');
-      }
-    });
-  }
-  
-  // Botón de cierre rápido
-  const quickLogoutBtn = document.getElementById('quickLogoutBtn');
-  if (quickLogoutBtn) {
-    quickLogoutBtn.addEventListener('click', () => {
-      if (confirm('¿Está seguro que desea cerrar sesión?')) {
+    if (!token || !loggedUser) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    // Configurar la información del usuario en la barra superior
+    const topBarUserName = document.getElementById('topBarUserName');
+    const topBarUserRole = document.getElementById('topBarUserRole');
+    const topBarUserPic = document.getElementById('topBarUserPic');
+    
+    if (topBarUserName && loggedUser) {
+      topBarUserName.textContent = loggedUser.fullname || loggedUser.username;
+    }
+    
+    if (topBarUserRole && loggedUser) {
+      const roles = {
+        admin: 'Administrador',
+        gerente: 'Gerente',
+        chef: 'Chef',
+        mesero: 'Mesero'
+      };
+      topBarUserRole.textContent = roles[loggedUser.role] || loggedUser.role;
+    }
+    
+    if (topBarUserPic && loggedUser && loggedUser.photo) {
+      topBarUserPic.src = `${API_BASE_URL}${loggedUser.photo}`;
+    }
+    
+    // Actualizar fecha y hora
+    function updateDateTime() {
+      const now = new Date();
+      const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+      document.getElementById('currentDate').textContent = now.toLocaleDateString('es-ES', options);
+      document.getElementById('currentTime').textContent = now.toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+    
+    // Actualizar fecha/hora cada minuto
+    updateDateTime();
+    setInterval(updateDateTime, 60000);
+    
+    // Configurar el botón de notificaciones
+    const notificationBtn = document.getElementById('notificationBtn');
+    const notificationDropdown = document.getElementById('notificationDropdown');
+    
+    if (notificationBtn) {
+      notificationBtn.addEventListener('click', () => {
+        notificationDropdown.classList.toggle('active');
+      });
+      
+      // Cerrar dropdown al hacer clic fuera de él
+      document.addEventListener('click', (e) => {
+        if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
+          notificationDropdown.classList.remove('active');
+        }
+      });
+    }
+    
+    // Botón de cierre rápido
+    const quickLogoutBtn = document.getElementById('quickLogoutBtn');
+    if (quickLogoutBtn) {
+      quickLogoutBtn.addEventListener('click', () => {
         localStorage.removeItem('token');
         localStorage.removeItem('loggedUser');
         window.location.href = 'login.html';
-      }
-    });
-  }
+      });
+    }
 
-  // Configurar el menú hamburguesa para móvil
-  const hamburger = document.querySelector('.hamburger');
-  const navElement = document.querySelector('nav');
-  if (hamburger && navElement) {
-    hamburger.addEventListener('click', () => {
-      navElement.classList.toggle('active');
-    });
-  }
+    // Añadir listener para los links de navegación
+    links.forEach(link => {
+      link.addEventListener('click', async (e) => {
+        e.preventDefault();
+        
+        // Limpiar clases active
+        links.forEach(l => l.classList.remove('active'));
+        e.target.closest('a').classList.add('active');
+        
+        // Verificar permisos
+        const parentLi = e.target.closest('li');
+        const allowedRoles = parentLi.getAttribute('data-roles').split(',').map(r => r.trim());
 
-  // Configurar la navegación entre secciones
-  links.forEach(link => {
-    link.addEventListener('click', async (e) => {
-      e.preventDefault();
-      
-      // Marcar el enlace activo
-      links.forEach(l => l.classList.remove('active'));
-      e.target.closest('a').classList.add('active');
-      
-      // En móvil, cerrar el menú después de seleccionar una opción
-      if (window.innerWidth <= 768) {
-        navElement.classList.remove('active');
-      }
-      
-      const parentLi = e.target.closest('li');
-      const allowedRoles = parentLi.getAttribute('data-roles').split(',').map(r => r.trim());
+        if (!allowedRoles.includes(loggedUser.role)) {
+          contentDiv.innerHTML = '<div class="error-card"><p>No tienes permisos para ver esta sección.</p></div>';
+          return;
+        }
 
-      if (!allowedRoles.includes(loggedUser.role)) {
-        contentDiv.innerHTML = '<div class="error-card"><p>No tienes permisos para ver esta sección.</p></div>';
-        return;
-      }
-
-      const partial = e.target.closest('a').getAttribute('data-partial');
-      try {
-        showLoading();
-        const response = await fetch(partial);
-        if (response.ok) {
-          const html = await response.text();
-          contentDiv.innerHTML = html;
-          
-          // Inicializamos según partial usando la nueva estructura de módulos:
-          if (partial.includes('chat.html')) {
-            import('./js/modules/chat.js').then(module => module.initChat());
-          } else if (partial.includes('menu.html')) {
-            import('./js/modules/menu.js').then(module => module.initMenu(token));
-          } else if (partial.includes('employees.html')) {
-            import('./js/modules/employees.js').then(module => module.initEmployees(token));
-          } else if (partial.includes('reservations.html')) {
-            import('./js/modules/reservations.js').then(module => module.initReservations(token));
-          } else if (partial.includes('orders.html')) {
-            import('./js/modules/orders.js').then(module => module.initOrders(token, loggedUser));
-          } else if (partial.includes('reports.html')) {
-            import('./js/modules/reports.js').then(module => module.initReports(token));
-          } else if (partial.includes('profile.html')) {
-            import('./js/modules/auth.js').then(module => module.initAuth(token, loggedUser));
-          } else if (partial.includes('support.html')) {
-            import('./js/modules/support.js').then(module => module.initSupport(token, loggedUser));
+        const partial = e.target.closest('a').getAttribute('data-partial');
+        try {
+          showLoading();
+          const response = await fetch(partial);
+          if (response.ok) {
+            const html = await response.text();
+            contentDiv.innerHTML = html;
+            
+            // Inicializamos según partial usando la nueva estructura de módulos:
+            if (partial.includes('chat.html')) {
+              import('./js/modules/chat.js').then(module => module.initChat());
+            } else if (partial.includes('menu.html')) {
+              import('./js/modules/menu.js').then(module => module.initMenu(token));
+            } else if (partial.includes('employees.html')) {
+              import('./js/modules/employees.js').then(module => module.initEmployees(token));
+            } else if (partial.includes('reservations.html')) {
+              import('./js/modules/reservations.js').then(module => module.initReservations(token));
+            } else if (partial.includes('orders.html')) {
+              import('./js/modules/orders.js').then(module => module.initOrders(token, loggedUser));
+            } else if (partial.includes('reports.html')) {
+              import('./js/modules/reports.js').then(module => module.initReports(token));
+            } else if (partial.includes('profile.html')) {
+              import('./js/modules/auth.js').then(module => module.initAuth(token, loggedUser));
+            } else if (partial.includes('support.html')) {
+              import('./js/modules/support.js').then(module => module.initSupport(token, loggedUser));
+            }
+            hideLoading();
+          } else {
+            hideLoading();
+            contentDiv.innerHTML = '<div class="error-card"><p>Error al cargar la sección.</p></div>';
           }
+        } catch (error) {
           hideLoading();
-        } else {
-          hideLoading();
+          console.error('Error al cargar partial:', error);
           contentDiv.innerHTML = '<div class="error-card"><p>Error al cargar la sección.</p></div>';
         }
-      } catch (error) {
-        hideLoading();
-        console.error('Error al cargar partial:', error);
-        contentDiv.innerHTML = '<div class="error-card"><p>Error al cargar la sección.</p></div>';
-      }
+      });
     });
-  });
 
-  function showLoading() {
-    // Crear y mostrar un indicador de carga en el contenido
-    const loadingDiv = document.createElement('div');
-    loadingDiv.id = 'contentLoading';
-    loadingDiv.className = 'content-loading';
-    loadingDiv.innerHTML = '<div class="spinner"></div><p>Cargando...</p>';
-    contentDiv.innerHTML = '';
-    contentDiv.appendChild(loadingDiv);
-  }
-  
-  function hideLoading() {
-    // Eliminar el indicador de carga
-    const loadingDiv = document.getElementById('contentLoading');
-    if (loadingDiv) {
-      loadingDiv.remove();
+    function showLoading() {
+      // Crear y mostrar un indicador de carga en el contenido
+      const loadingDiv = document.createElement('div');
+      loadingDiv.id = 'contentLoading';
+      loadingDiv.className = 'content-loading';
+      loadingDiv.innerHTML = '<div class="spinner"></div><p>Cargando...</p>';
+      contentDiv.innerHTML = '';
+      contentDiv.appendChild(loadingDiv);
     }
-  }
-
-  // Cargar por defecto la primera sección permitida para el rol del usuario
-  const firstAllowedLink = Array.from(links).find(link => {
-    const li = link.closest('li');
-    const roles = li.getAttribute('data-roles').split(',').map(r => r.trim());
-    return roles.includes(loggedUser.role);
-  });
-
-  if (firstAllowedLink) {
-    firstAllowedLink.click();
-  }
-
-  // Configurar botón de salir (logout completo)
-  const logoutBtn = document.getElementById('logoutBtn');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-      if (confirm('¿Está seguro que desea cerrar sesión?')) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('loggedUser');
-        window.location.href = 'login.html';
+    
+    function hideLoading() {
+      // Eliminar el indicador de carga
+      const loadingDiv = document.getElementById('contentLoading');
+      if (loadingDiv) {
+        loadingDiv.remove();
       }
-    });
-  }
-});
-  </script>
+    }
 
-  <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    // Cargar por defecto la primera sección permitida para el rol del usuario
+    const firstAllowedLink = Array.from(links).find(link => {
+      const li = link.closest('li');
+      const roles = li.getAttribute('data-roles').split(',').map(r => r.trim());
+      return roles.includes(loggedUser.role);
+    });
+
+    if (firstAllowedLink) {
+      firstAllowedLink.click();
+    }
+  });
+  </script>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>

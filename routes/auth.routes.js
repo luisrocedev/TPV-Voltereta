@@ -3,6 +3,9 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const { body, param, validationResult } = require('express-validator');
 const { db, JWT_SECRET } = require('../db');
 const { verifyToken, checkRole } = require('../middlewares/auth');
@@ -160,47 +163,67 @@ router.put(
 
 
 // ====================== Subida de foto de perfil (archivo local) ======================
-router.post('/upload-photo', verifyToken, upload.single('photo'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ 
-      success: false, 
-      message: 'No se subió ninguna imagen' 
-    });
-  }
-
-  const photoUrl = `/uploads/profile_pics/${req.file.filename}`;
-  
-  // Primero verificamos si hay una foto anterior para borrarla
-  db.query('SELECT profile_pic FROM users WHERE id = ?', [req.user.id], (err, results) => {
-    if (err) {
-      console.error('Error al obtener foto anterior:', err);
-    } else if (results.length > 0 && results[0].profile_pic) {
-      const oldPhoto = results[0].profile_pic;
-      // No borramos la foto default
-      if (oldPhoto !== '/profile_pics/default.png') {
-        const oldPhotoPath = path.join(__dirname, '../public', oldPhoto);
-        try {
-          fs.unlinkSync(oldPhotoPath);
-        } catch (e) {
-          console.error('Error al borrar foto anterior:', e);
-        }
-      }
-    }
-
-    // Actualizamos la base de datos con la nueva foto
-    db.query('UPDATE users SET profile_pic = ? WHERE id = ?', [photoUrl, req.user.id], (updateErr) => {
-      if (updateErr) {
-        console.error('Error al actualizar foto en DB:', updateErr);
-        return res.status(500).json({ 
-          success: false, 
-          message: 'Error al guardar la foto en la base de datos' 
+router.post('/upload-photo', verifyToken, (req, res, next) => {
+  upload.single('photo')(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({
+          success: false,
+          message: 'La imagen es demasiado grande. Máximo 2MB'
         });
       }
+      return res.status(400).json({
+        success: false,
+        message: `Error al subir archivo: ${err.message}`
+      });
+    } else if (err) {
+      return res.status(400).json({
+        success: false,
+        message: err.message
+      });
+    }
 
-      res.json({ 
-        success: true, 
-        message: 'Foto actualizada correctamente',
-        photoUrl: photoUrl
+    if (!req.file) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'No se subió ninguna imagen' 
+      });
+    }
+
+    const photoUrl = `/uploads/profile_pics/${req.file.filename}`;
+    
+    // Primero verificamos si hay una foto anterior para borrarla
+    db.query('SELECT profile_pic FROM users WHERE id = ?', [req.user.id], (err, results) => {
+      if (err) {
+        console.error('Error al obtener foto anterior:', err);
+      } else if (results.length > 0 && results[0].profile_pic) {
+        const oldPhoto = results[0].profile_pic;
+        // No borramos la foto default
+        if (oldPhoto !== '/profile_pics/default.png') {
+          const oldPhotoPath = path.join(__dirname, '../public', oldPhoto);
+          try {
+            fs.unlinkSync(oldPhotoPath);
+          } catch (e) {
+            console.error('Error al borrar foto anterior:', e);
+          }
+        }
+      }
+
+      // Actualizamos la base de datos con la nueva foto
+      db.query('UPDATE users SET profile_pic = ? WHERE id = ?', [photoUrl, req.user.id], (updateErr) => {
+        if (updateErr) {
+          console.error('Error al actualizar foto en DB:', updateErr);
+          return res.status(500).json({ 
+            success: false, 
+            message: 'Error al guardar la foto en la base de datos' 
+          });
+        }
+
+        res.json({ 
+          success: true, 
+          message: 'Foto actualizada correctamente',
+          photoUrl: photoUrl
+        });
       });
     });
   });

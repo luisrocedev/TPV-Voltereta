@@ -5,12 +5,23 @@ let currentUser = null;
 
 /**
  * Inicializa la autenticación con el token y el usuario logueado.
- * Además, configura los eventListeners de logout, registro y actualización de datos.
  */
 export function initAuth(token, user) {
   // Guardamos token y user en variables internas
   internalToken = token;
   currentUser = user;
+
+  // Actualizamos la foto de perfil si existe
+  const profilePhoto = document.getElementById('profilePhoto');
+  if (profilePhoto && currentUser.photo) {
+    profilePhoto.src = `${API_BASE_URL}${currentUser.photo}`;
+  }
+
+  // Actualizamos la foto en la barra superior si existe
+  const topBarUserPic = document.getElementById('topBarUserPic');
+  if (topBarUserPic && currentUser.photo) {
+    topBarUserPic.src = `${API_BASE_URL}${currentUser.photo}`;
+  }
 
   // Botón de logout
   const logoutBtn = document.getElementById('logoutBtn');
@@ -152,13 +163,22 @@ export async function updateMyPhoto() {
       // Actualizamos la foto del perfil en el DOM si está presente
       const profilePhoto = document.getElementById('profilePhoto');
       if (profilePhoto) {
-        profilePhoto.src = data.photoUrl;
+        profilePhoto.src = `${API_BASE_URL}${data.photoUrl}`;
+      }
+
+      // Actualizamos también la foto en la barra superior si existe
+      const topBarUserPic = document.getElementById('topBarUserPic');
+      if (topBarUserPic) {
+        topBarUserPic.src = `${API_BASE_URL}${data.photoUrl}`;
       }
 
       if (picMsg) {
         picMsg.textContent = 'Foto actualizada correctamente';
         picMsg.style.color = 'green';
       }
+
+      // Limpiar el input de archivo
+      fileInput.value = '';
     } else {
       if (picMsg) {
         picMsg.textContent = 'Error: ' + data.message;
