@@ -62,6 +62,15 @@ export async function initMenu(token) {
   if (saveCatChangesBtn) {
     saveCatChangesBtn.addEventListener('click', saveCatChanges);
   }
+
+  // Guardar cambios (evento submit del formulario de edición de plato)
+  const editMenuForm = document.getElementById('editMenuForm');
+  if (editMenuForm) {
+    editMenuForm.onsubmit = function(e) {
+      e.preventDefault();
+      saveMenuChanges();
+    };
+  }
 }
 
 async function loadMenu() {
