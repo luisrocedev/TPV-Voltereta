@@ -1,0 +1,25 @@
+/* BOTONES ESPECIALES */
+.to-process {
+    border: 1px solid #ffb629;
+    color: #ffb629;
+}
+.to-process:hover {
+    background-color: #ffb629;
+    color: var(--color-fondo);
+}
+.to-done {
+    border: 1px solid #13dbb2;
+    color: #13dbb2;
+}
+.to-done:hover {
+    background-color: #13dbb2;
+    color: var(--color-fondo);
+}
+.to-delivered {
+    border: 1px solid #55d34e;
+    color: #55d34e;
+}
+.to-delivered:hover {
+    background-color: #55d34e;
+    color: var(--color-fondo);
+}

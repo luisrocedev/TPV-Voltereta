@@ -1,0 +1,137 @@
+/* MODALES */
+dialog.modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 90%;
+    max-width: 500px;
+    transform: translate(-50%, -50%);
+    background-color: #2b3036;
+    border: 2px solid #444;
+    border-radius: 6px;
+    padding: 1.5rem;
+}
+dialog.modal[open] {
+    display: block;
+}
+.modal-content {
+    position: relative;
+    padding: 1rem;
+}
+.close {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: var(--color-secundario);
+    cursor: pointer;
+}
+.orderItemRow {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    align-items: center;
+}
+.orderItemSelect {
+    flex: 1;
+}
+.modern-modal {
+    padding: 0;
+    border: none;
+    border-radius: var(--border-radius);
+    background: var(--color-modal-bg);
+    max-width: 600px;
+    width: 90%;
+}
+.modern-modal::backdrop {
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+}
+.modern-modal .modal-content {
+    padding: 2rem;
+}
+.modern-modal h2,
+.modern-modal h3,
+#newOrderModal h2,
+#newOrderModal h3,
+#editOrderModal h2,
+#editOrderModal h3 {
+  color: var(--color-primario);
+  margin-bottom: 1.2rem;
+}
+.modern-modal .form-group {
+    margin-bottom: 1.5rem;
+}
+.modern-modal label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #e0e0e0;
+}
+.modern-modal .modern-input,
+.modern-modal .modern-select {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius);
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+}
+.order-items-container {
+    margin-bottom: 1rem;
+}
+.order-item-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+    align-items: center;
+}
+.quantity-input {
+    width: 80px !important;
+}
+.remove-item-btn {
+    background: rgba(255, 79, 79, 0.1);
+    color: var(--color-error);
+    border: none;
+    padding: 0.5rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.remove-item-btn:hover {
+    background: var(--color-error);
+    color: white;
+}
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+.cancel-button {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+.cancel-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+.confirm-button {
+    background: var(--color-primario);
+    color: white;
+}
+.confirm-button:hover {
+    background: #04e0d3;
+}
+#addItemBtn {
+    width: 100%;
+    margin-top: 0.5rem;
+    background: rgba(0, 194, 184, 0.1);
+    color: var(--color-primario);
+    border: 1px dashed var(--color-primario);
+}
+#addItemBtn:hover {
+    background: rgba(0, 194, 184, 0.2);
+}

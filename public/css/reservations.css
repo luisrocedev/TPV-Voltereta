@@ -1,0 +1,99 @@
+/* RESERVAS MODERNAS */
+.modern-reservations {
+  background: var(--color-card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 2rem 2.5rem;
+  margin-bottom: 2rem;
+}
+.reservation-form {
+  background: rgba(255,255,255,0.02);
+  border-radius: 10px;
+  padding: 1.5rem 1rem 1rem 1rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.reservation-form h3 {
+  margin-bottom: 1.2rem;
+  color: var(--color-primario);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+.reservation-list-container {
+  margin-top: 2rem;
+}
+.reservation-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0.5rem;
+  background: none;
+}
+.reservation-table th, .reservation-table td {
+  padding: 0.9em 1em;
+  text-align: left;
+}
+.reservation-table th {
+  background: rgba(0,194,184,0.08);
+  color: var(--color-primario);
+  font-weight: 600;
+  border-radius: 6px 6px 0 0;
+  font-size: 1rem;
+}
+.reservation-table tbody tr {
+  background: #23262b;
+  border-radius: 8px;
+  transition: box-shadow 0.2s, background 0.2s;
+}
+.reservation-table tbody tr:hover {
+  background: #2b2e34;
+  box-shadow: 0 2px 8px rgba(0,194,184,0.08);
+}
+.reservation-table td {
+  border-bottom: 1px solid #23262b;
+  font-size: 0.98rem;
+}
+.reservation-table td:last-child {
+  text-align: right;
+}
+.edit-res-btn, .delete-res-btn {
+  border: none;
+  border-radius: 6px;
+  padding: 0.4em 0.9em;
+  font-size: 0.95em;
+  margin-left: 0.3em;
+  transition: background 0.2s, color 0.2s;
+  cursor: pointer;
+}
+.edit-res-btn {
+  background: var(--color-info);
+  color: #fff;
+}
+.edit-res-btn:hover {
+  background: #00a6e0;
+}
+.delete-res-btn {
+  background: var(--color-error);
+  color: #fff;
+}
+.delete-res-btn:hover {
+  background: #d32f2f;
+}
+#editReservationModal .modal-content {
+  background: var(--color-modal-bg);
+  border-radius: var(--border-radius);
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  box-shadow: var(--box-shadow);
+}
+#editReservationModal h3 {
+  color: var(--color-primario);
+  margin-bottom: 1.2rem;
+}
+#editReservationModal .form-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+#editReservationModal input {
+  flex: 1;
+  min-width: 0;
+}
