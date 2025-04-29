@@ -1,32 +1,46 @@
-<section id="profileSection" class="card">
-    <h2 id="profileTitle">Mi Perfil</h2>
-    <article class="profile-card">
-      <div class="profile-photo-container">
-        <img id="profilePhoto" src="/profile_pics/default.png" alt="Foto de perfil" class="profile-photo">
+<section id="profileSection" class="card modern-profile glass-effect elevated">
+  <div class="profile-header">
+    <h2 id="profileTitle"><i class="fas fa-user-circle"></i> Mi Perfil</h2>
+  </div>
+  <div class="profile-main">
+    <div class="profile-photo-block">
+      <div class="profile-photo-container modern-photo">
+        <img id="profilePhoto" src="/profile_pics/default.png" alt="Foto de perfil" class="profile-photo large-avatar">
         <div class="photo-overlay" style="display: none;">
           <div class="spinner"></div>
         </div>
       </div>
-      <p><strong>Usuario:</strong> <span id="profileUsername"></span></p>
-      <p><strong>Nombre completo:</strong> <span id="profileFullname"></span></p>
-      <p><strong>Email:</strong> <span id="profileEmail"></span></p>
-    </article>
-    <hr>
-    <div>
-      <h3>Cambiar Contraseña</h3>
-      <input type="password" id="oldPass" placeholder="Contraseña anterior">
-      <input type="password" id="newPass" placeholder="Nueva contraseña">
-      <button id="savePassBtn">Guardar</button>
-      <p id="passMsg"></p>
-    </div>
-    <hr>
-    <div>
-      <h3>Actualizar Foto de Perfil</h3>
-      <p class="help-text">Formatos permitidos: JPG, PNG. Tamaño máximo: 2MB</p>
-      <div class="file-input-container">
-        <input type="file" id="photoFile" accept="image/jpeg,image/png">
-        <button id="updateMyPhotoBtn" class="primary-button">Subir Foto</button>
+      <div class="profile-photo-actions">
+        <label for="photoFile" class="primary-button small"><i class="fas fa-upload"></i> Seleccionar Foto</label>
+        <input type="file" id="photoFile" accept="image/jpeg,image/png" style="display:none;">
+        <button id="updateMyPhotoBtn" class="primary-button"><i class="fas fa-cloud-upload-alt"></i> Subir Foto</button>
+        <p class="help-text">Formatos permitidos: JPG, PNG. Tamaño máximo: 2MB</p>
+        <p id="picMsg"></p>
       </div>
-      <p id="picMsg"></p>
     </div>
-  </section>
+    <div class="profile-info-block glass-effect">
+      <div class="profile-info-row">
+        <span class="profile-label"><i class="fas fa-user"></i> Usuario:</span>
+        <span id="profileUsername" class="profile-value"></span>
+      </div>
+      <div class="profile-info-row">
+        <span class="profile-label"><i class="fas fa-id-card"></i> Nombre completo:</span>
+        <span id="profileFullname" class="profile-value"></span>
+      </div>
+      <div class="profile-info-row">
+        <span class="profile-label"><i class="fas fa-envelope"></i> Email:</span>
+        <span id="profileEmail" class="profile-value"></span>
+      </div>
+    </div>
+  </div>
+  <hr class="modern-separator">
+  <div class="profile-section-block">
+    <h3><i class="fas fa-key"></i> Cambiar Contraseña</h3>
+    <div class="form-row">
+      <input type="password" id="oldPass" class="styled-input" placeholder="Contraseña anterior">
+      <input type="password" id="newPass" class="styled-input" placeholder="Nueva contraseña">
+      <button id="savePassBtn" class="primary-button"><i class="fas fa-save"></i> Guardar</button>
+    </div>
+    <p id="passMsg"></p>
+  </div>
+</section>

@@ -1,17 +1,22 @@
-<section id="supportSection" class="card">
-    <h2 id="supportTitle">Soporte Técnico</h2>
-    <div id="supportFormContainer">
-      <h3>Reporta una incidencia</h3>
-      <form id="supportForm">
-        <input type="text" id="ticketSubject" placeholder="Asunto" required>
-        <textarea id="ticketDescription" placeholder="Describe tu problema" required></textarea>
-        <button type="submit">Enviar Ticket</button>
-      </form>
-      <p id="supportMsg"></p>
-    </div>
-    <div id="supportTicketsContainer" style="display:none;">
-      <h3>Tickets de Soporte</h3>
-      <div id="ticketsList"></div>
-    </div>
-  </section>
-  
+<section id="supportSection" class="card modern-support glass-effect elevated">
+  <div class="support-header">
+    <h2 id="supportTitle"><i class="fas fa-headset"></i> Soporte Técnico</h2>
+  </div>
+  <div id="supportFormContainer" class="glass-effect support-form-block">
+    <h3><i class="fas fa-exclamation-circle"></i> Reporta una incidencia</h3>
+    <form id="supportForm">
+      <div class="form-row">
+        <input type="text" id="ticketSubject" class="styled-input" placeholder="Asunto" required>
+      </div>
+      <div class="form-row">
+        <textarea id="ticketDescription" class="styled-input" placeholder="Describe tu problema" required></textarea>
+      </div>
+      <button type="submit" class="primary-button"><i class="fas fa-paper-plane"></i> Enviar Ticket</button>
+    </form>
+    <p id="supportMsg"></p>
+  </div>
+  <div id="supportTicketsContainer" class="support-tickets-block" style="display:none;">
+    <h3><i class="fas fa-ticket-alt"></i> Tickets de Soporte</h3>
+    <div id="ticketsList"></div>
+  </div>
+</section>

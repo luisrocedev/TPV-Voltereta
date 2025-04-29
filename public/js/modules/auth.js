@@ -23,6 +23,14 @@ export function initAuth(token, user) {
     topBarUserPic.src = `${API_BASE_URL}${currentUser.photo}`;
   }
 
+  // Actualizar datos de usuario en el perfil si existen
+  const profileUsername = document.getElementById('profileUsername');
+  if (profileUsername) profileUsername.textContent = currentUser.username || '';
+  const profileFullname = document.getElementById('profileFullname');
+  if (profileFullname) profileFullname.textContent = currentUser.fullname || '';
+  const profileEmail = document.getElementById('profileEmail');
+  if (profileEmail) profileEmail.textContent = currentUser.email || '';
+
   // Botón de logout
   const logoutBtn = document.getElementById('logoutBtn');
   if (logoutBtn) {
