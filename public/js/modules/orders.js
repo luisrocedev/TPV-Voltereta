@@ -19,6 +19,7 @@ function init() {
     setupRealTimeUpdates();
     loadOrders();
     initializeSearchAndFilters();
+    setupColumnToggles();
 }
 
 function initializeSearchAndFilters() {
@@ -74,14 +75,18 @@ function setupViewToggle() {
 
 function setupRealTimeUpdates() {
     socket.on('orderUpdate', (order) => {
-        updateOrderInUI(order);
-        updateStatistics();
+        if (order && order.id) {
+            updateOrderInUI(order);
+            updateStatistics();
+        }
     });
 
     socket.on('newOrder', (order) => {
-        addOrderToUI(order);
-        updateStatistics();
-        showNotification('Nuevo pedido recibido', `Mesa ${order.table_number}`);
+        if (order && order.id) {
+            addOrderToUI(order);
+            updateStatistics();
+            showNotification('Nuevo pedido recibido', `Mesa ${order.table_number}`);
+        }
     });
 }
 
@@ -218,11 +223,18 @@ async function createNewOrder() {
     const customerName = document.getElementById('customerName').value;
     const comments = document.getElementById('orderComments').value;
     
-    // Recolectar items
-    const items = Array.from(document.querySelectorAll('.order-item-row')).map(row => ({
-        menuItemId: parseInt(row.querySelector('.menu-item-select').value),
-        quantity: parseInt(row.querySelector('.quantity-input').value)
-    }));
+    // Recolectar items y validar
+    const items = Array.from(document.querySelectorAll('.order-item-row')).map(row => {
+        const menuItemId = parseInt(row.querySelector('.menu-item-select').value);
+        const quantity = parseInt(row.querySelector('.quantity-input').value);
+        return { menuItemId, quantity };
+    }).filter(item => !isNaN(item.menuItemId) && item.menuItemId > 0 && !isNaN(item.quantity) && item.quantity > 0);
+
+    // Validación de campos obligatorios
+    if (!tableNumber || isNaN(parseInt(tableNumber)) || !customerName.trim() || items.length === 0) {
+        showErrorMessage(form, 'Por favor, completa todos los campos y agrega al menos un plato válido.');
+        return;
+    }
 
     try {
         showSpinner();
@@ -234,7 +246,7 @@ async function createNewOrder() {
             },
             body: JSON.stringify({
                 tableNumber: parseInt(tableNumber),
-                customer: customerName,
+                customer: customerName.trim(),
                 comments,
                 items
             })
@@ -397,33 +409,59 @@ function addActionButtons(container, order) {
 }
 
 function getActionButtonsConfig(status) {
-    // Si no hay rol definido o el pedido está en estado final, no mostrar botones
-    if (!currentUser?.role || status === 'entregado' || status === 'cancelado') return [];
+    // Si no hay rol definido o el pedido está cancelado o finalizado, no mostrar botones de acción
+    if (!currentUser?.role || status === 'cancelado' || status === 'finalizado') return [];
 
-    const configs = {
-        'pedido_realizado': [
-            ...(currentUser.role === 'chef' || currentUser.role === 'admin' || currentUser.role === 'gerente' 
-                ? [{ text: 'Procesar', class: 'process-btn', icon: 'fas fa-fire', nextStatus: 'en_proceso' }] 
-                : []),
-            ...(currentUser.role === 'mesero' || currentUser.role === 'admin' || currentUser.role === 'gerente'
-                ? [{ text: 'Cancelar', class: 'cancel-btn', icon: 'fas fa-times', nextStatus: 'cancelado' }]
-                : [])
-        ],
-        'en_proceso': [
-            ...(currentUser.role === 'chef'
-                ? [{ text: 'Finalizar', class: 'complete-btn', icon: 'fas fa-check', nextStatus: 'finalizado' }]
-                : []),
-            ...(currentUser.role === 'admin' || currentUser.role === 'gerente'
-                ? [{ text: 'Entregar', class: 'deliver-btn', icon: 'fas fa-hand-holding', nextStatus: 'entregado' }]
-                : [])
-        ],
-        'finalizado': [
-            ...(currentUser.role === 'admin' || currentUser.role === 'gerente'
-                ? [{ text: 'Entregar', class: 'deliver-btn', icon: 'fas fa-hand-holding', nextStatus: 'entregado' }]
-                : [])
-        ]
-    };
-    return configs[status] || [];
+    // Admin y gerente: control total, pero no cancelar si ya está finalizado/cancelado
+    if (currentUser.role === 'admin' || currentUser.role === 'gerente') {
+        switch (status) {
+            case 'pedido_realizado':
+                return [
+                    { text: 'Procesar', class: 'process-btn', icon: 'fas fa-fire', nextStatus: 'en_proceso' },
+                    { text: 'Cancelar', class: 'cancel-btn', icon: 'fas fa-times', nextStatus: 'cancelado' }
+                ];
+            case 'en_proceso':
+                return [
+                    { text: 'Finalizar', class: 'complete-btn', icon: 'fas fa-check', nextStatus: 'finalizado' },
+                    { text: 'Entregar', class: 'deliver-btn', icon: 'fas fa-hand-holding', nextStatus: 'entregado' },
+                    { text: 'Cancelar', class: 'cancel-btn', icon: 'fas fa-times', nextStatus: 'cancelado' }
+                ];
+            case 'entregado':
+                return [
+                    { text: 'Finalizar', class: 'complete-btn', icon: 'fas fa-check-circle', nextStatus: 'finalizado' }
+                ];
+            default:
+                return [];
+        }
+    }
+
+    // Chef: solo puede procesar y finalizar
+    if (currentUser.role === 'chef') {
+        switch (status) {
+            case 'pedido_realizado':
+                return [
+                    { text: 'Procesar', class: 'process-btn', icon: 'fas fa-fire', nextStatus: 'en_proceso' }
+                ];
+            case 'en_proceso':
+                return [
+                    { text: 'Finalizar', class: 'complete-btn', icon: 'fas fa-check', nextStatus: 'finalizado' }
+                ];
+            default:
+                return [];
+        }
+    }
+
+    // Mesero: solo puede cancelar si está pendiente
+    if (currentUser.role === 'mesero') {
+        if (status === 'pedido_realizado') {
+            return [
+                { text: 'Cancelar', class: 'cancel-btn', icon: 'fas fa-times', nextStatus: 'cancelado' }
+            ];
+        }
+        return [];
+    }
+
+    return [];
 }
 
 async function updateOrderStatus(orderId, newStatus) {
@@ -553,4 +591,23 @@ function debounce(func, wait) {
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
     };
+}
+
+function setupColumnToggles() {
+    document.querySelectorAll('.toggle-orders').forEach(header => {
+        header.onclick = function() {
+            const targetId = this.getAttribute('data-target');
+            const list = document.getElementById(targetId);
+            const icon = this.querySelector('.toggle-icon');
+            if (list) {
+                if (list.style.display === 'none') {
+                    list.style.display = '';
+                    if (icon) icon.textContent = '▼';
+                } else {
+                    list.style.display = 'none';
+                    if (icon) icon.textContent = '▲';
+                }
+            }
+        };
+    });
 }

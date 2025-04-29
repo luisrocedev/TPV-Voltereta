@@ -105,13 +105,21 @@ router.delete(
   validateFields,
   (req, res) => {
     const { id } = req.params;
-    const sql = 'DELETE FROM menu WHERE id = ?';
-    db.query(sql, [id], (err, result) => {
-      if (err) return res.status(500).json({ success: false, message: 'Error al eliminar plato' });
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ success: false, message: 'Plato no encontrado' });
+    // Comprobar si el plato está en algún pedido
+    db.query('SELECT COUNT(*) AS count FROM order_items WHERE menuItemId = ?', [id], (err, result) => {
+      if (err) return res.status(500).json({ success: false, message: 'Error al comprobar pedidos asociados' });
+      if (result[0].count > 0) {
+        return res.status(400).json({ success: false, message: 'No se puede eliminar el plato porque está asociado a pedidos existentes.' });
       }
-      res.json({ success: true, message: 'Plato eliminado' });
+      // Si no está en ningún pedido, eliminar
+      const sql = 'DELETE FROM menu WHERE id = ?';
+      db.query(sql, [id], (err, result) => {
+        if (err) return res.status(500).json({ success: false, message: 'Error al eliminar plato' });
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ success: false, message: 'Plato no encontrado' });
+        }
+        res.json({ success: true, message: 'Plato eliminado' });
+      });
     });
   }
 );

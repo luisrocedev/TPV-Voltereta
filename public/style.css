@@ -705,7 +705,7 @@ li,
 .menu-edit-btn:hover,
 .menu-del-btn:hover,
 .cat-edit-btn:hover,
-.cat-del-btn:hover {
+.cat-edit-btn:hover {
     background-color: var(--color-primario);
     color: var(--color-fondo);
 }
@@ -769,6 +769,127 @@ li,
     padding-top: 0.5rem;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     margin-top: 0.5rem;
+}
+
+/* =====================
+   MEJORA VISUAL PEDIDOS
+   ===================== */
+.orders-container.modern-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 2rem;
+  padding: 1.5rem 0.5rem;
+  background: none;
+  min-height: 60vh;
+}
+
+.orders-column.modern-column {
+  background: rgba(255,255,255,0.07);
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+  padding: 1.2rem 1rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  min-width: 320px;
+  max-width: 100%;
+  height: 100%;
+  transition: box-shadow 0.2s;
+}
+
+.orders-column.modern-column:hover {
+  box-shadow: 0 8px 32px rgba(0,194,184,0.10);
+}
+
+.column-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: rgba(28,31,36,0.92);
+  border-radius: 12px 12px 0 0;
+  padding: 0.7rem 1rem 0.7rem 0.7rem;
+  margin-bottom: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.orders-list.modern-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem 0.2rem 0.2rem 0.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.order-card.modern-card {
+  background: rgba(44, 48, 56, 0.98);
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(0,194,184,0.07);
+  padding: 1.1rem 1rem 0.7rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  border-left: 6px solid var(--color-primario);
+  transition: box-shadow 0.2s, border-color 0.2s;
+  position: relative;
+}
+.order-card.modern-card:hover {
+  box-shadow: 0 6px 24px rgba(0,194,184,0.13);
+  border-left: 6px solid #04e0d3;
+}
+
+.order-header.modern-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.order-status.modern-status {
+  font-weight: 600;
+  font-size: 1.05em;
+  padding: 0.2em 0.9em;
+  border-radius: 20px;
+  background: rgba(0,194,184,0.09);
+  color: var(--color-primario);
+  letter-spacing: 0.5px;
+}
+.order-status.pedido_realizado { background: rgba(255,182,41,0.13); color: #ffb629; }
+.order-status.en_proceso { background: rgba(255,214,41,0.13); color: #ffd629; }
+.order-status.finalizado { background: rgba(0,194,184,0.13); color: #00c2b8; }
+.order-status.entregado { background: rgba(85,211,78,0.13); color: #55d34e; }
+.order-status.cancelado { background: rgba(255,79,79,0.13); color: #ff4f4f; }
+
+.order-actions.modern-actions {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  padding-top: 0.5rem;
+  justify-content: flex-end;
+}
+
+@media (max-width: 900px) {
+  .orders-container.modern-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .orders-column.modern-column {
+    min-width: 0;
+    padding: 0.7rem 0.3rem 0.7rem 0.3rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .order-card.modern-card {
+    padding: 0.7rem 0.5rem 0.5rem 0.5rem;
+  }
+  .column-header {
+    padding: 0.5rem 0.5rem 0.5rem 0.3rem;
+  }
 }
 
 /* ==========================================================================

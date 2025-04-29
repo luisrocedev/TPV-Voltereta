@@ -41,7 +41,10 @@
   <div class="orders-container modern-grid">
     <div class="orders-column modern-column" id="pendingColumn" data-status="pedido_realizado">
       <div class="column-header glass-effect">
-        <h3><i class="fas fa-hourglass-start glow-warning"></i> Pendientes</h3>
+        <h3 style="cursor:pointer;display:flex;align-items:center;gap:0.5em;" class="toggle-orders" data-target="pendingOrders">
+          <i class="fas fa-hourglass-start glow-warning"></i> Pendientes
+          <span class="toggle-icon" style="font-size:1.1em;">▼</span>
+        </h3>
         <span class="column-count modern-badge pulse" id="pendingCount">0</span>
       </div>
       <div class="orders-list modern-list custom-scrollbar" id="pendingOrders"></div>
@@ -49,7 +52,10 @@
     
     <div class="orders-column modern-column" id="processingColumn" data-status="en_proceso">
       <div class="column-header glass-effect">
-        <h3><i class="fas fa-fire-alt glow-process"></i> En Proceso</h3>
+        <h3 style="cursor:pointer;display:flex;align-items:center;gap:0.5em;" class="toggle-orders" data-target="processingOrders">
+          <i class="fas fa-fire-alt glow-process"></i> En Proceso
+          <span class="toggle-icon" style="font-size:1.1em;">▼</span>
+        </h3>
         <span class="column-count modern-badge" id="processingCount">0</span>
       </div>
       <div class="orders-list modern-list custom-scrollbar" id="processingOrders"></div>
@@ -57,7 +63,10 @@
 
     <div class="orders-column modern-column" id="completedColumn" data-status="finalizado">
       <div class="column-header glass-effect">
-        <h3><i class="fas fa-check-circle glow-success"></i> Finalizados</h3>
+        <h3 style="cursor:pointer;display:flex;align-items:center;gap:0.5em;" class="toggle-orders" data-target="completedOrders">
+          <i class="fas fa-check-circle glow-success"></i> Finalizados
+          <span class="toggle-icon" style="font-size:1.1em;">▼</span>
+        </h3>
         <span class="column-count modern-badge" id="completedCount">0</span>
       </div>
       <div class="orders-list modern-list custom-scrollbar" id="completedOrders"></div>
@@ -65,7 +74,10 @@
 
     <div class="orders-column modern-column" id="deliveredColumn" data-status="entregado">
       <div class="column-header glass-effect">
-        <h3><i class="fas fa-hand-holding glow-delivered"></i> Entregados</h3>
+        <h3 style="cursor:pointer;display:flex;align-items:center;gap:0.5em;" class="toggle-orders" data-target="deliveredOrders">
+          <i class="fas fa-hand-holding glow-delivered"></i> Entregados
+          <span class="toggle-icon" style="font-size:1.1em;">▼</span>
+        </h3>
         <span class="column-count modern-badge" id="deliveredCount">0</span>
       </div>
       <div class="orders-list modern-list custom-scrollbar" id="deliveredOrders"></div>

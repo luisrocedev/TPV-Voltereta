@@ -36,108 +36,118 @@ router.post(
       .trim()
       .escape(),
     body('items')
-      .isArray().withMessage('Los items deben ser un arreglo'),
+      .isArray({ min: 1 }).withMessage('Debes agregar al menos un plato'),
     body('items.*.menuItemId')
       .isNumeric().withMessage('El ID del plato debe ser numérico'),
     body('items.*.quantity')
       .isNumeric().withMessage('La cantidad debe ser numérica')
   ],
   validateFields,
-  (req, res) => {
+  async (req, res) => {
     const { tableNumber, customer, comments, items } = req.body;
-    const sqlOrder = `
-      INSERT INTO orders (tableNumber, customer, comments, status)
-      VALUES (?, ?, ?, ?)
-    `;
-    db.query(sqlOrder, [tableNumber, customer, comments, 'pedido_realizado'], async (err, orderResult) => {
-      if (err) {
-        return res.status(500).json({ success: false, message: 'Error al crear pedido', error: err });
-      }
-      const newOrderId = orderResult.insertId;
-      const itemsData = (items || []).map(it => [newOrderId, it.menuItemId, it.quantity]);
-      
-      if (!itemsData.length) {
-        return res.json({ success: true, orderId: newOrderId });
+    // Validar que todos los menuItemId existen en la tabla menu
+    const menuIds = items.map(it => it.menuItemId);
+    const placeholders = menuIds.map(() => '?').join(',');
+    db.query(`SELECT id FROM menu WHERE id IN (${placeholders})`, menuIds, (err, result) => {
+      if (err) return res.status(500).json({ success: false, message: 'Error al validar platos' });
+      if (result.length !== menuIds.length) {
+        return res.status(400).json({ success: false, message: 'Uno o más platos seleccionados no existen en el menú actual.' });
       }
 
-      const sqlItems = `
-        INSERT INTO order_items (orderId, menuItemId, quantity)
-        VALUES ?
+      const sqlOrder = `
+        INSERT INTO orders (tableNumber, customer, comments, status)
+        VALUES (?, ?, ?, ?)
       `;
+      db.query(sqlOrder, [tableNumber, customer, comments, 'pedido_realizado'], async (err, orderResult) => {
+        if (err) {
+          return res.status(500).json({ success: false, message: 'Error al crear pedido', error: err });
+        }
+        const newOrderId = orderResult.insertId;
+        const itemsData = (items || []).map(it => [newOrderId, it.menuItemId, it.quantity]);
+        
+        if (!itemsData.length) {
+          return res.json({ success: true, orderId: newOrderId });
+        }
 
-      try {
-        await new Promise((resolve, reject) => {
-          db.query(sqlItems, [itemsData], (err) => {
-            if (err) reject(err);
-            else resolve();
-          });
-        });
-
-        // Obtener el pedido completo con sus items
-        const sqlGet = `
-          SELECT 
-            o.*,
-            oi.id as item_id,
-            oi.menuItemId,
-            oi.quantity,
-            m.name as menu_name,
-            m.price,
-            (SELECT SUM(oi2.quantity * m2.price)
-             FROM order_items oi2
-             JOIN menu m2 ON oi2.menuItemId = m2.id
-             WHERE oi2.orderId = o.id) as total
-          FROM orders o
-          LEFT JOIN order_items oi ON o.id = oi.orderId
-          LEFT JOIN menu m ON oi.menuItemId = m.id
-          WHERE o.id = ?
+        const sqlItems = `
+          INSERT INTO order_items (orderId, menuItemId, quantity)
+          VALUES ?
         `;
 
-        db.query(sqlGet, [newOrderId], (err, results) => {
-          if (err) {
-            return res.status(500).json({ success: false, message: 'Error al obtener el pedido creado' });
-          }
-
-          if (!results || !results.length) {
-            return res.status(404).json({ success: false, message: 'No se pudo obtener el pedido creado' });
-          }
-
-          // Agrupar los items del pedido
-          const items = results
-            .filter(row => row.item_id) // Filtrar filas sin items
-            .map(row => ({
-              id: row.item_id,
-              menuItemId: row.menuItemId,
-              quantity: row.quantity,
-              name: row.menu_name,
-              price: row.price
-            }));
-
-          // Formatear la respuesta
-          const orderResponse = {
-            id: results[0].id,
-            table_number: results[0].tableNumber,
-            customer_name: results[0].customer,
-            status: results[0].status,
-            comments: results[0].comments,
-            created_at: results[0].createdAt,
-            items: items,
-            total: results[0].total || 0
-          };
-
-          res.json({ 
-            success: true, 
-            message: 'Pedido creado exitosamente',
-            data: orderResponse 
+        try {
+          await new Promise((resolve, reject) => {
+            db.query(sqlItems, [itemsData], (err) => {
+              if (err) reject(err);
+              else resolve();
+            });
           });
-        });
-      } catch (error) {
-        console.error('Error:', error);
-        return res.status(500).json({ 
-          success: false, 
-          message: 'Error al crear el pedido',
-          error: error.message 
-        });
-      }
+
+          // Obtener el pedido completo con sus items
+          const sqlGet = `
+            SELECT 
+              o.*,
+              oi.id as item_id,
+              oi.menuItemId,
+              oi.quantity,
+              m.name as menu_name,
+              m.price,
+              (SELECT SUM(oi2.quantity * m2.price)
+               FROM order_items oi2
+               JOIN menu m2 ON oi2.menuItemId = m2.id
+               WHERE oi2.orderId = o.id) as total
+            FROM orders o
+            LEFT JOIN order_items oi ON o.id = oi.orderId
+            LEFT JOIN menu m ON oi.menuItemId = m.id
+            WHERE o.id = ?
+          `;
+
+          db.query(sqlGet, [newOrderId], (err, results) => {
+            if (err) {
+              return res.status(500).json({ success: false, message: 'Error al obtener el pedido creado' });
+            }
+
+            if (!results || !results.length) {
+              return res.status(404).json({ success: false, message: 'No se pudo obtener el pedido creado' });
+            }
+
+            // Agrupar los items del pedido
+            const items = results
+              .filter(row => row.item_id) // Filtrar filas sin items
+              .map(row => ({
+                id: row.item_id,
+                menuItemId: row.menuItemId,
+                quantity: row.quantity,
+                name: row.menu_name || '',
+                price: parseFloat(row.price) || 0
+              }));
+
+            // Formatear la respuesta
+            const orderResponse = {
+              id: results[0].id,
+              table_number: results[0].tableNumber,
+              customer_name: results[0].customer,
+              status: results[0].status,
+              comments: results[0].comments,
+              created_at: results[0].createdAt,
+              items: items,
+              total: results[0].total || 0
+            };
+
+            res.json({ 
+              success: true, 
+              message: 'Pedido creado exitosamente',
+              data: orderResponse 
+            });
+          });
+        } catch (error) {
+          console.error('Error:', error);
+          return res.status(500).json({ 
+            success: false, 
+            message: 'Error al crear el pedido',
+            error: error.message 
+          });
+        }
+      });
     });
   }
 );
@@ -167,18 +177,26 @@ router.get('/', verifyToken, (req, res) => {
       if (itemsErr) {
         return res.status(500).json({ success: false, message: 'Error al obtener items de pedidos' });
       }
-      // Combinar pedidos con sus items
+      // Combinar pedidos con sus items y normalizar nombres de campos
       const result = orders.map(order => {
         const orderItems = items
           .filter(i => i.orderId === order.id)
           .map(i => ({
             id: i.id,
             menuItemId: i.menuItemId,
-            menuName: i.menuName,
-            price: i.price,
+            name: i.menuName || '',
+            price: parseFloat(i.price) || 0,
             quantity: i.quantity
           }));
-        return { ...order, items: orderItems };
+        return {
+          id: order.id,
+          table_number: order.tableNumber,
+          customer_name: order.customer,
+          status: order.status,
+          comments: order.comments,
+          created_at: order.createdAt,
+          items: orderItems
+        };
       });
       res.json({ success: true, data: result });
     });
@@ -261,11 +279,18 @@ router.put(
         }
       } else if (role === 'admin' || role === 'gerente') {
         // Admin/gerente pueden realizar cualquier cambio excepto a estados inválidos
-        const validAdm = ['en_proceso', 'cancelado', 'entregado'];
+        const validAdm = ['en_proceso', 'cancelado', 'entregado', 'finalizado'];
         if (!validAdm.includes(status)) {
           return res.status(400).json({
             success: false,
             message: 'Estado inválido para admin/gerente'
+          });
+        }
+        // No permitir cancelar o finalizar si ya está en cancelado o finalizado
+        if ((currentStatus === 'cancelado' || currentStatus === 'finalizado') && (status === 'cancelado' || status === 'finalizado')) {
+          return res.status(400).json({
+            success: false,
+            message: 'No se puede modificar un pedido ya cancelado o finalizado'
           });
         }
       }
