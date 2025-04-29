@@ -1,0 +1,106 @@
+/* NAVEGACIÓN LATERAL */
+.hamburger {
+    display: none;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    font-size: 1.3rem;
+    background: none;
+    border: none;
+    color: var(--color-primario);
+    z-index: 999;
+}
+
+nav.side-nav {
+    grid-area: sidebar;
+    background: linear-gradient(to bottom, #202429, #272b31);
+    color: var(--color-secundario);
+    width: 250px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 100;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.nav-header {
+    padding: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nav-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+}
+
+.nav-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-secundario);
+}
+
+nav.side-nav ul {
+    list-style: none;
+    padding: 1rem 0.5rem;
+    flex: 1;
+}
+
+nav.side-nav ul li {
+    margin-bottom: 0.3rem;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+nav.side-nav ul li a,
+nav.side-nav ul li button {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.8rem 1rem;
+    color: var(--color-secundario);
+    font-size: 0.95rem;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    transition: all 0.2s ease;
+    border-radius: var(--border-radius);
+}
+
+nav.side-nav ul li a i,
+nav.side-nav ul li button i {
+    width: 20px;
+    text-align: center;
+    font-size: 1rem;
+    color: #b0b0b0;
+}
+
+nav.side-nav ul li a:hover,
+nav.side-nav ul li button:hover {
+    background-color: #2e3238;
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+nav.side-nav ul li a.active {
+    background-color: rgba(0, 194, 184, 0.15);
+    color: var(--color-primario);
+    box-shadow: none;
+}
+
+nav.side-nav ul li a.active i {
+    color: var(--color-primario);
+}
+
+.nav-footer {
+    padding: 1rem;
+    font-size: 0.8rem;
+    color: #666;
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}

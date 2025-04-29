@@ -1,0 +1,109 @@
+/* VARIABLES Y RESET */
+:root {
+    --color-fondo: #1c1f24;
+    --color-primario: #00c2b8;
+    --color-secundario: #ffffff;
+    --color-gris: #4b4f53;
+    --color-error: #ff4f4f;
+    --color-success: #55d34e;
+    --color-warning: #ffb629;
+    --color-info: #5cc8ff;
+    --color-input-bg: #2a2d33;
+    --color-card-bg: #2b2e34;
+    --color-modal-bg: #2b3036;
+    --border-radius: 8px;
+    --font-base: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --transition-general: 0.2s ease-in-out;
+    --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --box-shadow-hover: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    font-family: var(--font-base);
+    color: var(--color-secundario);
+    background-color: var(--color-fondo);
+}
+
+a {
+    text-decoration: none;
+    color: var(--color-primario);
+    transition: color var(--transition-general);
+}
+
+a:hover {
+    color: #04e0d3;
+}
+
+button {
+    cursor: pointer;
+    padding: 0.6em 1.2em;
+    border: none;
+    border-radius: var(--border-radius);
+    background-color: var(--color-primario);
+    color: var(--color-secundario);
+    font-weight: bold;
+    transition: all var(--transition-general);
+}
+
+button:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: var(--box-shadow);
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: 0.8em 1em;
+    margin-bottom: 1em;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--color-gris);
+    background-color: var(--color-input-bg);
+    color: var(--color-secundario);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color var(--transition-general), box-shadow var(--transition-general);
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: var(--color-primario);
+    box-shadow: 0 0 0 2px rgba(0, 194, 184, 0.2);
+}
+
+label {
+    margin-bottom: 0.5em;
+    display: inline-block;
+    font-weight: 500;
+    color: #e0e0e0;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    clip: rect(0,0,0,0);
+    border: 0;
+    overflow: hidden;
+}
+
+[role="alert"] {
+    color: var(--color-error);
+    margin-top: 0.8em;
+}

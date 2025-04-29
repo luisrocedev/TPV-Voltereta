@@ -1,0 +1,96 @@
+/* DASHBOARD LAYOUT GENERAL */
+.dashboard-layout {
+    display: grid;
+    grid-template-areas:
+      "sidebar topbar"
+      "sidebar main";
+    grid-template-rows: auto 1fr;
+    grid-template-columns: 250px 1fr;
+    height: 100vh;
+    width: 100%;
+}
+
+.top-bar {
+    grid-area: topbar;
+    background: linear-gradient(to right, #23272f, #343a46);
+    color: #fff;
+    height: 79px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+}
+
+.left-info, .right-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.separator {
+    color: rgba(255, 255, 255, 0.3);
+    margin: 0 0.5rem;
+}
+
+.restaurant-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: 0.5px;
+}
+
+#currentDate, #currentTime {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.5rem;
+    border-radius: var(--border-radius);
+}
+
+.avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.user-name {
+    color: #fff;
+    font-weight: 500;
+}
+
+.user-role {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+    background-color: rgba(0, 194, 184, 0.2);
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+}
+
+.icon-button {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+}
+
+.icon-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(0);
+    box-shadow: none;
+}
