@@ -30,24 +30,18 @@ router.post(
   '/',
   verifyToken,
   [
-    body('customerName')
-      .notEmpty().withMessage('El nombre del cliente es obligatorio')
-      .trim()
-      .escape(),
-    body('date')
-      .isISO8601().withMessage('La fecha debe ser válida'),
-    body('time')
-      .notEmpty().withMessage('La hora es obligatoria')
-      .trim()
-      .escape(),
-    body('guests')
-      .isNumeric().withMessage('El número de comensales debe ser numérico')
+    body('customerName').notEmpty().withMessage('El nombre del cliente es obligatorio').trim().escape(),
+    body('date').isISO8601().withMessage('La fecha debe ser válida'),
+    body('time').notEmpty().withMessage('La hora es obligatoria').trim().escape(),
+    body('guests').isNumeric().withMessage('El número de comensales debe ser numérico'),
+    body('phone').optional({ checkFalsy: true }).trim().escape(),
+    body('notes').optional({ checkFalsy: true }).trim().escape()
   ],
   validateFields,
   (req, res) => {
-    const { customerName, date, time, guests } = req.body;
-    const sql = 'INSERT INTO reservations (customerName, date, time, guests) VALUES (?, ?, ?, ?)';
-    db.query(sql, [customerName, date, time, guests], (err, result) => {
+    const { customerName, date, time, guests, phone, notes } = req.body;
+    const sql = 'INSERT INTO reservations (customerName, date, time, guests, phone, notes) VALUES (?, ?, ?, ?, ?, ?)';
+    db.query(sql, [customerName, date, time, guests, phone || null, notes || null], (err, result) => {
       if (err) return res.status(500).json({ success: false, message: 'Error al crear reserva' });
       res.json({ success: true, newId: result.insertId });
     });
@@ -59,27 +53,20 @@ router.put(
   '/:id',
   verifyToken,
   [
-    param('id')
-      .isNumeric().withMessage('El ID debe ser numérico'),
-    body('customerName')
-      .notEmpty().withMessage('El nombre del cliente es obligatorio')
-      .trim()
-      .escape(),
-    body('date')
-      .isISO8601().withMessage('La fecha debe ser válida'),
-    body('time')
-      .notEmpty().withMessage('La hora es obligatoria')
-      .trim()
-      .escape(),
-    body('guests')
-      .isNumeric().withMessage('El número de comensales debe ser numérico')
+    param('id').isNumeric().withMessage('El ID debe ser numérico'),
+    body('customerName').notEmpty().withMessage('El nombre del cliente es obligatorio').trim().escape(),
+    body('date').isISO8601().withMessage('La fecha debe ser válida'),
+    body('time').notEmpty().withMessage('La hora es obligatoria').trim().escape(),
+    body('guests').isNumeric().withMessage('El número de comensales debe ser numérico'),
+    body('phone').optional({ checkFalsy: true }).trim().escape(),
+    body('notes').optional({ checkFalsy: true }).trim().escape()
   ],
   validateFields,
   (req, res) => {
     const { id } = req.params;
-    const { customerName, date, time, guests } = req.body;
-    const sql = 'UPDATE reservations SET customerName = ?, date = ?, time = ?, guests = ? WHERE id = ?';
-    db.query(sql, [customerName, date, time, guests, id], (err, result) => {
+    const { customerName, date, time, guests, phone, notes } = req.body;
+    const sql = 'UPDATE reservations SET customerName = ?, date = ?, time = ?, guests = ?, phone = ?, notes = ? WHERE id = ?';
+    db.query(sql, [customerName, date, time, guests, phone || null, notes || null, id], (err, result) => {
       if (err) return res.status(500).json({ success: false, message: 'Error al actualizar reserva' });
       if (result.affectedRows === 0) return res.status(404).json({ success: false, message: 'Reserva no encontrada' });
       res.json({ success: true, message: 'Reserva actualizada' });

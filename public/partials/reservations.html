@@ -1,12 +1,54 @@
-<section id="reservationsSection" class="card">
-    <h2 id="reservationsTitle">Reservas</h2>
-    <ul id="reservationList"></ul>
-    <div>
-      <input type="text" id="resCustomer" placeholder="Nombre Cliente">
-      <input type="date" id="resDate">
-      <input type="time" id="resTime">
-      <input type="number" id="resGuests" placeholder="Nº comensales">
-      <button id="resAddBtn">Crear Reserva</button>
-    </div>
-  </section>
-  
+<section id="reservationsSection" class="card modern-reservations">
+  <h2 id="reservationsTitle"><i class="fa fa-calendar-check-o"></i> Gestión de Reservas</h2>
+  <div class="reservation-actions">
+    <form class="reservation-form" autocomplete="off" onsubmit="return false;">
+      <h3>Agregar Nueva Reserva</h3>
+      <div class="form-row">
+        <input type="text" id="resCustomer" placeholder="Nombre Cliente" required>
+        <input type="date" id="resDate" required>
+        <input type="time" id="resTime" required>
+        <input type="number" id="resGuests" placeholder="Nº comensales" min="1" required>
+      </div>
+      <div class="form-row">
+        <input type="text" id="resPhone" placeholder="Teléfono (opcional)">
+        <input type="text" id="resNotes" placeholder="Notas (opcional)">
+      </div>
+      <button id="resAddBtn" class="btn btn-primary"><i class="fa fa-plus"></i> Crear Reserva</button>
+    </form>
+  </div>
+  <div class="reservation-list-container">
+    <h3>Lista de Reservas</h3>
+    <table class="reservation-table">
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Fecha</th>
+          <th>Hora</th>
+          <th>Comensales</th>
+          <th>Teléfono</th>
+          <th>Notas</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="reservationList"></tbody>
+    </table>
+  </div>
+  <dialog class="modal" id="editReservationModal">
+    <form class="modal-content" id="editReservationForm" autocomplete="off">
+      <button id="closeEditResModal" class="close" aria-label="Cerrar" type="button">&times;</button>
+      <h3>Editar Reserva</h3>
+      <input type="hidden" id="editResId">
+      <div class="form-row">
+        <input type="text" id="editResCustomer" placeholder="Nombre Cliente" required>
+        <input type="date" id="editResDate" required>
+        <input type="time" id="editResTime" required>
+        <input type="number" id="editResGuests" placeholder="Nº comensales" min="1" required>
+      </div>
+      <div class="form-row">
+        <input type="text" id="editResPhone" placeholder="Teléfono (opcional)">
+        <input type="text" id="editResNotes" placeholder="Notas (opcional)">
+      </div>
+      <button id="saveResChanges" class="btn btn-success" type="submit"><i class="fa fa-save"></i> Guardar Cambios</button>
+    </form>
+  </dialog>
+</section>
