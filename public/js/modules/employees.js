@@ -71,6 +71,11 @@ async function loadEmployees() {
 }
 
 async function createEmployee() {
+  if (!internalToken) {
+    alert('Error: sesión expirada o token no disponible. Por favor, vuelve a iniciar sesión.');
+    window.location.href = 'login.html';
+    return;
+  }
   const usernameElem = document.getElementById('employeeUsername');
   const passwordElem = document.getElementById('employeePassword');
   const roleElem = document.getElementById('employeeRole');
@@ -96,13 +101,21 @@ async function createEmployee() {
   }
 
   try {
+    const body = {
+      username,
+      password,
+      role,
+      fullname,
+      email,
+      profile_pic: profilePic ? profilePic : null
+    };
     const resp = await fetch(`${API_BASE}/api/employees`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + internalToken
       },
-      body: JSON.stringify({ username, password, role, fullname, email, profile_pic: profilePic })
+      body: JSON.stringify(body)
     });
     const data = await resp.json();
     if (data.success) {
@@ -127,14 +140,12 @@ function openEditEmployeeModal(employee) {
   const editEmpRole = document.getElementById('editEmpRole');
   const editEmpFullname = document.getElementById('editEmpFullname');
   const editEmpEmail = document.getElementById('editEmpEmail');
-  const editEmpProfilePic = document.getElementById('editEmpProfilePic');
   if (editEmpId && editEmpUsername && editEmpRole) {
     editEmpId.value = employee.id;
     editEmpUsername.value = employee.username;
     editEmpRole.value = employee.role;
     if (editEmpFullname) editEmpFullname.value = employee.fullname || '';
     if (editEmpEmail) editEmpEmail.value = employee.email || '';
-    if (editEmpProfilePic) editEmpProfilePic.value = employee.profile_pic || '';
     const modal = document.getElementById('editEmployeeModal');
     if (modal) modal.showModal();
   }
@@ -146,7 +157,6 @@ async function updateEmployee() {
   const role = document.getElementById('editEmpRole').value;
   const fullname = document.getElementById('editEmpFullname').value.trim();
   const email = document.getElementById('editEmpEmail').value.trim();
-  const profilePic = document.getElementById('editEmpProfilePic').value.trim();
 
   if (!username || !role) {
     alert("Faltan datos obligatorios en el formulario de edición.");
@@ -160,7 +170,7 @@ async function updateEmployee() {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + internalToken
       },
-      body: JSON.stringify({ username, role, fullname, email, profile_pic: profilePic })
+      body: JSON.stringify({ username, role, fullname, email })
     });
     const data = await resp.json();
     if (data.success) {

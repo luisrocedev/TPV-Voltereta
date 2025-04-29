@@ -257,8 +257,7 @@ function openEditMenuModal(id) {
         document.getElementById('editMenuName').value = item.name;
         document.getElementById('editMenuPrice').value = item.price;
         loadMenuCategoriesForEdit(item.category_id);
-        const modal = document.getElementById('editMenuModal');
-        if (modal) modal.style.display = 'block';
+        document.getElementById('editMenuModal').showModal();
       }
     });
 }
@@ -298,8 +297,7 @@ async function saveMenuChanges() {
     });
     const data = await resp.json();
     if (data.success) {
-      const modal = document.getElementById('editMenuModal');
-      if (modal) modal.style.display = 'none';
+      document.getElementById('editMenuModal').close();
       await loadMenu();
     } else {
       alert('Error editando plato: ' + data.message);
@@ -365,8 +363,7 @@ function openEditCategoryModal(id) {
       document.getElementById('editCatId').value = cat.id;
       document.getElementById('editCatName').value = cat.name;
       document.getElementById('editCatDesc').value = cat.description || '';
-      const modal = document.getElementById('editCategoryModal');
-      if (modal) modal.style.display = 'block';
+      document.getElementById('editCategoryModal').showModal();
     });
 }
 
@@ -387,9 +384,9 @@ async function saveCatChanges() {
     });
     const data = await resp.json();
     if (data.success) {
-      const modal = document.getElementById('editCategoryModal');
-      if (modal) modal.style.display = 'none';
+      document.getElementById('editCategoryModal').close();
       await loadMenuCategories();
+      await loadMenu(); // Recargar el menú para actualizar nombres de categorías
     } else {
       alert('Error al editar categoría: ' + data.message);
     }
@@ -408,6 +405,7 @@ async function deleteCategory(id) {
     const data = await resp.json();
     if (data.success) {
       await loadMenuCategories();
+      await loadMenu(); // Recargar el menú para actualizar los items que tenían esta categoría
     } else {
       alert('Error al eliminar categoría: ' + data.message);
     }

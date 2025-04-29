@@ -1,197 +1,164 @@
 <!-- public/partials/orders.html -->
-<section id="ordersSection" class="pos-section">
-  <div class="pos-header">
+<section id="ordersSection" class="pos-section modern-pos">
+  <div class="pos-header glass-effect elevated">
     <div class="pos-title">
-      <h2 id="ordersTitle">Panel de Pedidos (POS/KDS)</h2>
-      <span class="order-count" id="orderCount">0 pedidos activos</span>
-    </div>
-    <div class="pos-actions">
-      <button id="openOrderModalBtn" class="primary-button">
-        <i class="fas fa-plus"></i> Nuevo Pedido
-      </button>
-      <div class="view-toggle">
-        <button id="cardViewBtn" class="view-button active" title="Vista de tarjetas">
-          <i class="fas fa-th-large"></i>
-        </button>
-        <button id="listViewBtn" class="view-button" title="Vista de lista">
-          <i class="fas fa-list"></i>
-        </button>
+      <h2 id="ordersTitle" class="fade-in"><i class="fas fa-clipboard-list pulse-icon"></i> Panel de Pedidos</h2>
+      <div class="order-stats modern-stats">
+        <span class="order-count glow-effect" id="orderCount">0 pedidos activos</span>
+        <span class="order-time modern-badge" id="averageTime"><i class="fas fa-clock"></i> Tiempo promedio: --:--</span>
       </div>
-      <div class="filter-container">
-        <select id="statusFilter" class="filter-select">
-          <option value="all">Todos los estados</option>
-          <option value="pedido_realizado">Pendientes</option>
-          <option value="en_proceso">En proceso</option>
-          <option value="finalizado">Finalizados</option>
-          <option value="entregado">Entregados</option>
-        </select>
-        <input type="text" id="searchOrder" class="search-input" placeholder="Buscar pedido...">
+    </div>
+    <div class="pos-actions modern-actions">
+      <button id="openOrderModalBtn" class="primary-button modern-button">
+        <i class="fas fa-plus-circle bounce-effect"></i> Nuevo Pedido
+      </button>
+      <div class="controls-group modern-controls">
+        <div class="view-toggle glass-effect">
+          <button id="cardViewBtn" class="view-button active" title="Vista de tarjetas">
+            <i class="fas fa-th-large"></i>
+          </button>
+          <button id="listViewBtn" class="view-button" title="Vista de lista">
+            <i class="fas fa-list"></i>
+          </button>
+        </div>
+        <div class="filter-container modern-filters elevated">
+          <div class="search-wrapper glass-effect">
+            <i class="fas fa-search search-icon pulse-subtle"></i>
+            <input type="text" id="searchOrder" class="search-input modern-input" placeholder="Buscar pedido...">
+          </div>
+          <select id="statusFilter" class="filter-select modern-select">
+            <option value="all">Todos los estados</option>
+            <option value="pedido_realizado">Pendientes</option>
+            <option value="en_proceso">En proceso</option>
+            <option value="finalizado">Finalizados</option>
+            <option value="entregado">Entregados</option>
+          </select>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="orders-container">
-    <div class="orders-column" id="pendingColumn" data-status="pedido_realizado">
-      <div class="column-header">
-        <h3><i class="fas fa-clock"></i> Pendientes</h3>
-        <span class="column-count" id="pendingCount">0</span>
+  <div class="orders-container modern-grid">
+    <div class="orders-column modern-column" id="pendingColumn" data-status="pedido_realizado">
+      <div class="column-header glass-effect">
+        <h3><i class="fas fa-hourglass-start glow-warning"></i> Pendientes</h3>
+        <span class="column-count modern-badge pulse" id="pendingCount">0</span>
       </div>
-      <div class="orders-list" id="pendingOrders"></div>
+      <div class="orders-list modern-list custom-scrollbar" id="pendingOrders"></div>
     </div>
     
-    <div class="orders-column" id="processingColumn" data-status="en_proceso">
-      <div class="column-header">
-        <h3><i class="fas fa-fire"></i> En Proceso</h3>
-        <span class="column-count" id="processingCount">0</span>
+    <div class="orders-column modern-column" id="processingColumn" data-status="en_proceso">
+      <div class="column-header glass-effect">
+        <h3><i class="fas fa-fire-alt glow-process"></i> En Proceso</h3>
+        <span class="column-count modern-badge" id="processingCount">0</span>
       </div>
-      <div class="orders-list" id="processingOrders"></div>
+      <div class="orders-list modern-list custom-scrollbar" id="processingOrders"></div>
     </div>
 
-    <div class="orders-column" id="completedColumn" data-status="finalizado">
-      <div class="column-header">
-        <h3><i class="fas fa-check-circle"></i> Finalizados</h3>
-        <span class="column-count" id="completedCount">0</span>
+    <div class="orders-column modern-column" id="completedColumn" data-status="finalizado">
+      <div class="column-header glass-effect">
+        <h3><i class="fas fa-check-circle glow-success"></i> Finalizados</h3>
+        <span class="column-count modern-badge" id="completedCount">0</span>
       </div>
-      <div class="orders-list" id="completedOrders"></div>
+      <div class="orders-list modern-list custom-scrollbar" id="completedOrders"></div>
     </div>
 
-    <div class="orders-column" id="deliveredColumn" data-status="entregado">
-      <div class="column-header">
-        <h3><i class="fas fa-concierge-bell"></i> Entregados</h3>
-        <span class="column-count" id="deliveredCount">0</span>
+    <div class="orders-column modern-column" id="deliveredColumn" data-status="entregado">
+      <div class="column-header glass-effect">
+        <h3><i class="fas fa-hand-holding glow-delivered"></i> Entregados</h3>
+        <span class="column-count modern-badge" id="deliveredCount">0</span>
       </div>
-      <div class="orders-list" id="deliveredOrders"></div>
+      <div class="orders-list modern-list custom-scrollbar" id="deliveredOrders"></div>
     </div>
   </div>
 
-  <!-- Vista alternativa: tabla -->
-  <div class="orders-table-view" id="ordersTableView" style="display: none;">
+  <!-- Vista de tabla modernizada -->
+  <div class="orders-table-view modern-table-container glass-effect" id="ordersTableView" style="display: none;">
     <table class="orders-table">
-      <thead>
+      <thead class="modern-thead">
         <tr>
-          <th>ID</th>
-          <th>Mesa</th>
-          <th>Cliente</th>
-          <th>Estado</th>
-          <th>Total</th>
-          <th>Tiempo</th>
-          <th>Acciones</th>
+          <th><i class="fas fa-hashtag glow-icon"></i> ID</th>
+          <th><i class="fas fa-chair glow-icon"></i> Mesa</th>
+          <th><i class="fas fa-user glow-icon"></i> Cliente</th>
+          <th><i class="fas fa-info-circle glow-icon"></i> Estado</th>
+          <th><i class="fas fa-euro-sign glow-icon"></i> Total</th>
+          <th><i class="fas fa-clock glow-icon"></i> Tiempo</th>
+          <th><i class="fas fa-cogs glow-icon"></i> Acciones</th>
         </tr>
       </thead>
-      <tbody id="ordersTableBody"></tbody>
+      <tbody id="ordersTableBody" class="modern-tbody custom-scrollbar"></tbody>
     </table>
   </div>
 
-  <!-- Modal para crear un nuevo pedido -->
-  <dialog class="modal" id="newOrderModal" aria-modal="true">
-    <article class="modal-content">
-      <button id="closeNewOrderModal" class="close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
-      <h3><i class="fas fa-utensils"></i> Nuevo Pedido</h3>
-      
-      <div class="modal-grid">
-        <div class="modal-left">
-          <div class="form-group">
-            <label for="modalTable"><i class="fas fa-chair"></i> Mesa:</label>
-            <input type="number" id="modalTable" min="1" class="large-input">
-          </div>
-          
-          <div class="form-group">
-            <label for="modalCustomer"><i class="fas fa-user"></i> Cliente:</label>
-            <input type="text" id="modalCustomer" class="large-input">
-          </div>
-          
-          <div class="form-group">
-            <label for="modalComments"><i class="fas fa-comment"></i> Comentarios:</label>
-            <textarea id="modalComments" rows="2" class="large-input"></textarea>
-          </div>
-
-          <div class="menu-categories" id="menuCategoriesTab">
-            <!-- Las categorías se cargarán dinámicamente -->
-            <button class="category-tab active" data-category="all">Todos</button>
-          </div>
-          
-          <div class="menu-items-grid" id="menuItemsGrid">
-            <!-- Los platos del menú se cargarán aquí -->
-          </div>
-        </div>
-
-        <div class="modal-right">
-          <h4><i class="fas fa-shopping-cart"></i> Pedido actual</h4>
-          <div id="orderItemsContainer" class="order-items-container"></div>
-          
-          <div class="order-summary">
-            <div class="order-total">
-              <span>Total:</span>
-              <span id="orderTotal">€0.00</span>
-            </div>
-            <button id="createOrderConfirmBtn" class="primary-button full-width">
-              <i class="fas fa-check"></i> Crear Pedido
-            </button>
-          </div>
-        </div>
+  <!-- Template modernizado para tarjeta de pedido -->
+  <template id="orderCardTemplate">
+    <div class="order-card modern-card glass-effect" data-id="">
+      <div class="order-header modern-card-header">
+        <div class="order-id glow-text"></div>
+        <div class="order-status modern-status"></div>
       </div>
-    </article>
-  </dialog>
-
-  <!-- Modal para detalles del pedido -->
-  <dialog class="modal" id="orderDetailsModal" aria-modal="true">
-    <article class="modal-content">
-      <button id="closeOrderDetailsModal" class="close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
-      <h3><i class="fas fa-receipt"></i> Detalles del Pedido #<span id="detailOrderId"></span></h3>
-      <div class="order-details-content">
-        <div class="order-meta">
-          <p><strong>Mesa:</strong> <span id="detailTable"></span></p>
-          <p><strong>Cliente:</strong> <span id="detailCustomer"></span></p>
-          <p><strong>Estado:</strong> <span id="detailStatus"></span></p>
-          <p><strong>Creado:</strong> <span id="detailCreated"></span></p>
-          <p><strong>Comentarios:</strong> <span id="detailComments"></span></p>
-        </div>
-        
-        <div class="order-items-list" id="detailItemsList">
-          <!-- Items del pedido -->
-        </div>
-        
-        <div class="order-actions" id="detailActions">
-          <!-- Botones de acciones según estado/rol -->
-        </div>
-        
-        <div class="order-totals">
-          <p class="order-total-line"><strong>Total:</strong> <span id="detailTotal"></span></p>
-        </div>
+      <div class="order-info modern-info">
+        <div class="order-table"><i class="fas fa-chair glow-icon"></i> <span></span></div>
+        <div class="order-customer"><i class="fas fa-user glow-icon"></i> <span></span></div>
       </div>
-    </article>
-  </dialog>
-
-  <!-- Plantilla para cada ítem de un pedido -->
-  <template id="orderItemTemplate">
-    <div class="order-item-row">
-      <select class="orderItemSelect"></select>
-      <div class="quantity-control">
-        <button class="qty-btn minus-btn"><i class="fas fa-minus"></i></button>
-        <input type="number" class="orderItemQty" min="1" value="1">
-        <button class="qty-btn plus-btn"><i class="fas fa-plus"></i></button>
+      <div class="order-items modern-items">
+        <div class="order-items-count modern-badge"></div>
+        <div class="order-items-preview modern-preview custom-scrollbar"></div>
       </div>
-      <button class="removeItemBtn" aria-label="Eliminar ítem"><i class="fas fa-trash"></i></button>
+      <div class="order-footer modern-footer">
+        <div class="order-time"><i class="fas fa-clock glow-icon"></i> <span></span></div>
+        <div class="order-total"><i class="fas fa-euro-sign glow-icon"></i> <span></span></div>
+      </div>
+      <div class="order-actions modern-actions"></div>
     </div>
   </template>
 
-  <!-- Plantilla para tarjeta de pedido -->
-  <template id="orderCardTemplate">
-    <div class="order-card" data-id="">
-      <div class="order-header">
-        <div class="order-id"></div>
-        <div class="order-status"></div>
-      </div>
-      <div class="order-info">
-        <div class="order-table"></div>
-        <div class="order-customer"></div>
-      </div>
-      <div class="order-items-count"></div>
-      <div class="order-footer">
-        <div class="order-time"></div>
-        <div class="order-total"></div>
-      </div>
-      <div class="order-actions"></div>
+  <!-- Modal de nuevo pedido -->
+  <dialog id="newOrderModal" class="modal modern-modal glass-effect">
+    <div class="modal-content">
+      <h2><i class="fas fa-plus-circle"></i> Nuevo Pedido</h2>
+      <form id="newOrderForm">
+        <div class="form-group">
+          <label for="tableNumber">Número de Mesa</label>
+          <input type="number" id="tableNumber" required min="1" class="modern-input">
+        </div>
+        
+        <div class="form-group">
+          <label for="customerName">Cliente</label>
+          <input type="text" id="customerName" required class="modern-input">
+        </div>
+
+        <div class="form-group">
+          <label>Items del Pedido</label>
+          <div id="orderItemsContainer" class="order-items-container">
+            <!-- Los items se agregarán dinámicamente aquí -->
+          </div>
+          <button type="button" id="addItemBtn" class="secondary-button">
+            <i class="fas fa-plus"></i> Agregar Item
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label for="orderComments">Comentarios</label>
+          <textarea id="orderComments" class="modern-input" rows="2"></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" id="cancelOrderBtn" class="cancel-button">Cancelar</button>
+          <button type="submit" class="confirm-button">Crear Pedido</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- Template para item de pedido -->
+  <template id="orderItemTemplate">
+    <div class="order-item-row">
+      <select class="menu-item-select modern-select" required>
+        <option value="">Seleccionar plato</option>
+      </select>
+      <input type="number" class="quantity-input modern-input" required min="1" value="1">
+      <button type="button" class="remove-item-btn"><i class="fas fa-times"></i></button>
     </div>
   </template>
 </section>

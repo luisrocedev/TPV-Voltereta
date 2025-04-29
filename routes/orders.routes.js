@@ -49,25 +49,95 @@ router.post(
       INSERT INTO orders (tableNumber, customer, comments, status)
       VALUES (?, ?, ?, ?)
     `;
-    db.query(sqlOrder, [tableNumber, customer, comments, 'pedido_realizado'], (err, orderResult) => {
+    db.query(sqlOrder, [tableNumber, customer, comments, 'pedido_realizado'], async (err, orderResult) => {
       if (err) {
         return res.status(500).json({ success: false, message: 'Error al crear pedido', error: err });
       }
       const newOrderId = orderResult.insertId;
       const itemsData = (items || []).map(it => [newOrderId, it.menuItemId, it.quantity]);
+      
       if (!itemsData.length) {
         return res.json({ success: true, orderId: newOrderId });
       }
+
       const sqlItems = `
         INSERT INTO order_items (orderId, menuItemId, quantity)
         VALUES ?
       `;
-      db.query(sqlItems, [itemsData], (itemsErr) => {
-        if (itemsErr) {
-          return res.status(500).json({ success: false, message: 'Error al crear items del pedido', error: itemsErr });
-        }
-        res.json({ success: true, orderId: newOrderId });
-      });
+
+      try {
+        await new Promise((resolve, reject) => {
+          db.query(sqlItems, [itemsData], (err) => {
+            if (err) reject(err);
+            else resolve();
+          });
+        });
+
+        // Obtener el pedido completo con sus items
+        const sqlGet = `
+          SELECT 
+            o.*,
+            oi.id as item_id,
+            oi.menuItemId,
+            oi.quantity,
+            m.name as menu_name,
+            m.price,
+            (SELECT SUM(oi2.quantity * m2.price)
+             FROM order_items oi2
+             JOIN menu m2 ON oi2.menuItemId = m2.id
+             WHERE oi2.orderId = o.id) as total
+          FROM orders o
+          LEFT JOIN order_items oi ON o.id = oi.orderId
+          LEFT JOIN menu m ON oi.menuItemId = m.id
+          WHERE o.id = ?
+        `;
+
+        db.query(sqlGet, [newOrderId], (err, results) => {
+          if (err) {
+            return res.status(500).json({ success: false, message: 'Error al obtener el pedido creado' });
+          }
+
+          if (!results || !results.length) {
+            return res.status(404).json({ success: false, message: 'No se pudo obtener el pedido creado' });
+          }
+
+          // Agrupar los items del pedido
+          const items = results
+            .filter(row => row.item_id) // Filtrar filas sin items
+            .map(row => ({
+              id: row.item_id,
+              menuItemId: row.menuItemId,
+              quantity: row.quantity,
+              name: row.menu_name,
+              price: row.price
+            }));
+
+          // Formatear la respuesta
+          const orderResponse = {
+            id: results[0].id,
+            table_number: results[0].tableNumber,
+            customer_name: results[0].customer,
+            status: results[0].status,
+            comments: results[0].comments,
+            created_at: results[0].createdAt,
+            items: items,
+            total: results[0].total || 0
+          };
+
+          res.json({ 
+            success: true, 
+            message: 'Pedido creado exitosamente',
+            data: orderResponse 
+          });
+        });
+      } catch (error) {
+        console.error('Error:', error);
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Error al crear el pedido',
+          error: error.message 
+        });
+      }
     });
   }
 );
@@ -142,55 +212,119 @@ router.put(
     const { status } = req.body;
     const role = req.user.role;
 
-    if (role === 'mesero') {
-      // Mesero solo -> cancelado
-      if (status !== 'cancelado') {
-        return res.status(403).json({
-          success: false,
-          message: 'El mesero solo puede poner el pedido en estado "cancelado"'
-        });
-      }
-    } else if (role === 'chef') {
-      // Chef puede "pedido_realizado" -> "en_proceso", o "en_proceso" -> "finalizado"
-      const validChef = ['en_proceso', 'finalizado'];
-      if (!validChef.includes(status)) {
-        return res.status(403).json({
-          success: false,
-          message: 'El chef solo puede poner el pedido en "en_proceso" o "finalizado"'
-        });
-      }
-    } else if (role === 'admin' || role === 'gerente') {
-      // Admin y gerente -> "en_proceso", "cancelado", "entregado"
-      const validAdm = ['en_proceso', 'cancelado', 'entregado'];
-      if (!validAdm.includes(status)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Estado inválido para admin/gerente. Debe ser "en_proceso", "cancelado" o "entregado"'
-        });
-      }
-    }
-
-    const sql = 'UPDATE orders SET status = ? WHERE id = ?';
-    db.query(sql, [status, id], (err, result) => {
+    // Primero obtener el estado actual del pedido
+    db.query('SELECT status FROM orders WHERE id = ?', [id], (err, results) => {
       if (err) {
-        return res.status(500).json({ success: false, message: 'Error al actualizar pedido', error: err });
+        return res.status(500).json({ success: false, message: 'Error al verificar estado del pedido' });
       }
-      if (result.affectedRows === 0) {
+      if (!results.length) {
         return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
       }
-      // Emitir evento a mesero/chef
-      const io = req.app.get('io');
-      io.to('chefRoom').emit('orderStatusChanged', {
-        orderId: parseInt(id),
-        newStatus: status,
-        changedBy: role
+
+      const currentStatus = results[0].status;
+
+      // Validar transiciones permitidas según el rol
+      if (role === 'mesero') {
+        // Mesero solo puede cancelar pedidos en estado 'pedido_realizado'
+        if (status !== 'cancelado') {
+          return res.status(403).json({
+            success: false,
+            message: 'El mesero solo puede cancelar pedidos'
+          });
+        }
+        if (currentStatus !== 'pedido_realizado') {
+          return res.status(403).json({
+            success: false,
+            message: 'Solo se pueden cancelar pedidos en estado pendiente'
+          });
+        }
+      } else if (role === 'chef') {
+        // Chef: pedido_realizado -> en_proceso -> finalizado
+        const validChef = ['en_proceso', 'finalizado'];
+        if (!validChef.includes(status)) {
+          return res.status(403).json({
+            success: false,
+            message: 'El chef solo puede cambiar a "en_proceso" o "finalizado"'
+          });
+        }
+        if (status === 'en_proceso' && currentStatus !== 'pedido_realizado') {
+          return res.status(403).json({
+            success: false,
+            message: 'Solo se pueden procesar pedidos pendientes'
+          });
+        }
+        if (status === 'finalizado' && currentStatus !== 'en_proceso') {
+          return res.status(403).json({
+            success: false,
+            message: 'Solo se pueden finalizar pedidos en proceso'
+          });
+        }
+      } else if (role === 'admin' || role === 'gerente') {
+        // Admin/gerente pueden realizar cualquier cambio excepto a estados inválidos
+        const validAdm = ['en_proceso', 'cancelado', 'entregado'];
+        if (!validAdm.includes(status)) {
+          return res.status(400).json({
+            success: false,
+            message: 'Estado inválido para admin/gerente'
+          });
+        }
+      }
+
+      const sql = 'UPDATE orders SET status = ? WHERE id = ?';
+      db.query(sql, [status, id], (err, result) => {
+        if (err) {
+          return res.status(500).json({ success: false, message: 'Error al actualizar pedido', error: err });
+        }
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
+        }
+
+        // Obtener el pedido actualizado con sus items
+        const sqlGet = `
+          SELECT o.*, GROUP_CONCAT(oi.id, ':', oi.menuItemId, ':', oi.quantity, ':', m.name, ':', m.price) as items_data
+          FROM orders o
+          LEFT JOIN order_items oi ON o.id = oi.orderId
+          LEFT JOIN menu m ON oi.menuItemId = m.id
+          WHERE o.id = ?
+          GROUP BY o.id
+        `;
+        
+        db.query(sqlGet, [id], (getErr, orders) => {
+          if (getErr) {
+            return res.status(500).json({ success: false, message: 'Error al obtener pedido actualizado' });
+          }
+
+          const order = orders[0];
+          let items = [];
+          if (order.items_data) {
+            items = order.items_data.split(',').map(item => {
+              const [id, menuItemId, quantity, name, price] = item.split(':');
+              return { id, menuItemId, quantity, name, price: parseFloat(price) };
+            });
+          }
+          delete order.items_data;
+          order.items = items;
+
+          // Emitir evento a mesero/chef
+          const io = req.app.get('io');
+          io.to('chefRoom').emit('orderStatusChanged', {
+            orderId: parseInt(id),
+            newStatus: status,
+            changedBy: role
+          });
+          io.to('meseroRoom').emit('orderStatusChanged', {
+            orderId: parseInt(id),
+            newStatus: status,
+            changedBy: role
+          });
+
+          res.json({ 
+            success: true, 
+            message: 'Pedido actualizado a ' + status,
+            data: order
+          });
+        });
       });
-      io.to('meseroRoom').emit('orderStatusChanged', {
-        orderId: parseInt(id),
-        newStatus: status,
-        changedBy: role
-      });
-      res.json({ success: true, message: 'Pedido actualizado a ' + status });
     });
   }
 );
