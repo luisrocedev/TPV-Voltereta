@@ -1,37 +1,61 @@
-<section id="employeesSection" class="card">
-    <h2 id="employeesTitle">Gestión de Empleados</h2>
-    <ul id="employeeList"></ul>
-    <div>
+<section id="employeesSection" class="card modern-employees">
+  <h2 id="employeesTitle"><i class="fa fa-users"></i> Gestión de Empleados</h2>
+  <div class="employee-actions">
+    <form class="employee-form" autocomplete="off" onsubmit="return false;">
       <h3>Agregar Nuevo Empleado</h3>
-      <input type="text" id="employeeUsername" placeholder="Usuario">
-      <input type="password" id="employeePassword" placeholder="Contraseña">
-      <select id="employeeRole">
-        <option value="">Selecciona rol</option>
-        <option value="admin">Admin</option>
-        <option value="gerente">Gerente</option>
-        <option value="chef">Chef</option>
-        <option value="mesero">Mesero</option>
-      </select>
-      <input type="text" id="employeeFullname" placeholder="Nombre Completo">
-      <input type="email" id="employeeEmail" placeholder="Correo Electrónico">
-      <button id="employeeAddBtn">Registrar Empleado</button>
-    </div>
-    <dialog class="modal" id="editEmployeeModal">
-      <article class="modal-content">
-        <button id="closeEditEmpModal" class="close" aria-label="Cerrar">&times;</button>
-        <h3>Editar Empleado</h3>
-        <input type="hidden" id="editEmpId">
-        <input type="text" id="editEmpUsername" placeholder="Usuario">
-        <select id="editEmpRole">
-          <option value="">Selecciona rol</option>
+      <div class="form-row">
+        <input type="text" id="employeeUsername" placeholder="Usuario" required>
+        <input type="password" id="employeePassword" placeholder="Contraseña" required>
+        <select id="employeeRole" required>
+          <option value="">Rol</option>
           <option value="admin">Admin</option>
           <option value="gerente">Gerente</option>
           <option value="chef">Chef</option>
           <option value="mesero">Mesero</option>
         </select>
+      </div>
+      <div class="form-row">
+        <input type="text" id="employeeFullname" placeholder="Nombre Completo">
+        <input type="email" id="employeeEmail" placeholder="Correo Electrónico">
+      </div>
+      <button id="employeeAddBtn" class="btn btn-primary"><i class="fa fa-plus"></i> Registrar Empleado</button>
+    </form>
+  </div>
+  <div class="employee-list-container">
+    <h3>Lista de Empleados</h3>
+    <table class="employee-table">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Rol</th>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="employeeList"></tbody>
+    </table>
+  </div>
+  <dialog class="modal" id="editEmployeeModal">
+    <article class="modal-content">
+      <button id="closeEditEmpModal" class="close" aria-label="Cerrar">&times;</button>
+      <h3>Editar Empleado</h3>
+      <input type="hidden" id="editEmpId">
+      <div class="form-row">
+        <input type="text" id="editEmpUsername" placeholder="Usuario" required>
+        <select id="editEmpRole" required>
+          <option value="">Rol</option>
+          <option value="admin">Admin</option>
+          <option value="gerente">Gerente</option>
+          <option value="chef">Chef</option>
+          <option value="mesero">Mesero</option>
+        </select>
+      </div>
+      <div class="form-row">
         <input type="text" id="editEmpFullname" placeholder="Nombre Completo">
         <input type="email" id="editEmpEmail" placeholder="Correo Electrónico">
-        <button id="saveEmpChanges">Guardar Cambios</button>
-      </article>
-    </dialog>
-  </section>
+      </div>
+      <button id="saveEmpChanges" class="btn btn-success"><i class="fa fa-save"></i> Guardar Cambios</button>
+    </article>
+  </dialog>
+</section>

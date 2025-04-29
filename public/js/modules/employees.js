@@ -36,13 +36,18 @@ async function loadEmployees() {
       if (employeeList) {
         employeeList.innerHTML = '';
         data.data.forEach(emp => {
-          const li = document.createElement('li');
-          li.innerHTML = `
-            ${emp.username} - ${emp.role} - ${emp.fullname || ''} (${emp.email || ''})
-            <button class="edit-emp-btn" data-id="${emp.id}">Editar</button>
-            <button class="delete-emp-btn" data-id="${emp.id}">Eliminar</button>
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${emp.username}</td>
+            <td>${emp.role}</td>
+            <td>${emp.fullname || ''}</td>
+            <td>${emp.email || ''}</td>
+            <td>
+              <button class="edit-emp-btn" data-id="${emp.id}"><i class="fa fa-edit"></i> Editar</button>
+              <button class="delete-emp-btn" data-id="${emp.id}"><i class="fa fa-trash"></i> Eliminar</button>
+            </td>
           `;
-          employeeList.appendChild(li);
+          employeeList.appendChild(tr);
         });
 
         document.querySelectorAll('.edit-emp-btn').forEach(btn => {
