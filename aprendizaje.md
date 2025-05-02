@@ -1,10 +1,22 @@
-# Aprendizaje sobre el Proyecto
+---
+marp: true
+theme: gaia
+paginate: true
+---
+
+# 🍽️ Aprendizaje sobre el Proyecto Voltereta
+
+---
+
+# Programación
 
 ## 1. Elementos fundamentales del código
 
-En nuestro proyecto usamos variables (para guardar datos que cambian), constantes (para valores fijos), operadores (como +, -, \*, / para cálculos), y tipos de datos como números, cadenas de texto (strings), booleanos (true/false) y objetos. Ejemplo:
+- Variables (`let nombre`), constantes (`const PI`)
+- Operadores: `+`, `-`, `*`, `/`
+- Tipos: number, string, boolean, objeto
 
-```js
+```small-code
 const PI = 3.14;
 let nombre = "Juan";
 let edad = 20;
@@ -12,17 +24,15 @@ let activo = true;
 let usuario = { id: 1, nombre: "Ana" };
 ```
 
+---
+
 ## 2. Estructuras de control
 
-Utilizamos:
+- Selección: `if`, `else if`, `else`
+- Repetición: `for`, `while`
+- Saltos: `break`, `continue`
 
-- **Selección**: if, else if, else para tomar decisiones.
-- **Repetición**: for, while para repetir acciones.
-- **Saltos**: break, continue para controlar bucles.
-
-Ejemplo:
-
-```js
+```small-code
 if (edad > 18) {
   console.log("Mayor de edad");
 } else {
@@ -30,11 +40,14 @@ if (edad > 18) {
 }
 ```
 
+---
+
 ## 3. Control de excepciones y gestión de errores
 
-Sí, usamos try-catch para capturar errores y middlewares para gestionarlos en el servidor:
+- Uso de `try-catch` para capturar errores
+- Middleware `errorHandler.js` en Express para gestión centralizada
 
-```js
+```small-code
 try {
   // Código que puede fallar
 } catch (error) {
@@ -42,42 +55,61 @@ try {
 }
 ```
 
-En Express, usamos un middleware `errorHandler.js` para centralizar la gestión de errores.
+---
 
 ## 4. Documentación del código
 
-Comentamos el código con // y usamos docstrings en funciones importantes. Además, tenemos archivos markdown como este para documentar.
+- Comentarios `//` y docstrings en funciones
+- Archivos markdown para documentación
+
+---
 
 ## 5. Paradigma aplicado
 
-Principalmente usamos **programación estructurada** y **orientada a objetos** (OOP) en el backend, porque facilita la organización y reutilización del código.
+- Programación estructurada y orientada a objetos (OOP) en backend
+- Facilita organización y reutilización
+
+---
 
 ## 6. Clases y objetos principales
 
-Aunque JavaScript no obliga a usar clases, tenemos objetos como `usuario`, `empleado`, `pedido`, etc. En el backend, podríamos tener clases como `Empleado` o `Pedido` para representar entidades.
+- Objetos: `usuario`, `empleado`, `pedido`, etc.
+- Clases posibles en backend: `Empleado`, `Pedido`
 
-## 7. Conceptos avanzados (herencia, polimorfismo, interfaces)
+---
 
-No usamos herencia ni polimorfismo de forma explícita, pero sí interfaces implícitas (objetos con la misma estructura) y reutilización de funciones.
+## 7. Conceptos avanzados
+
+- No herencia/polimorfismo explícito
+- Interfaces implícitas y funciones reutilizables
+
+---
 
 ## 8. Gestión de información y archivos
 
-Guardamos información en una base de datos MySQL y también en archivos (logs, imágenes de perfil). La interacción con el usuario es mediante una interfaz web (HTML, CSS, JS).
+- Base de datos MySQL
+- Archivos: logs, imágenes de perfil
+- Interfaz web (HTML, CSS, JS)
+
+---
 
 ## 9. Estructuras de datos utilizadas
 
-Usamos arrays (listas) y objetos. Ejemplo:
+- Arrays y objetos
 
-```js
+```small-code
 let empleados = [
   { id: 1, nombre: "Ana" },
   { id: 2, nombre: "Luis" },
 ];
 ```
 
+---
+
 ## 10. Técnicas avanzadas
 
-Utilizamos expresiones regulares para validar datos (como emails) y flujos de entrada/salida para leer y escribir archivos (por ejemplo, logs).
+- Expresiones regulares para validación
+- Flujos de E/S para logs y archivos
 
 ---
 
@@ -85,31 +117,50 @@ Utilizamos expresiones regulares para validar datos (como emails) y flujos de en
 
 ## 1. Características del hardware
 
-Desarrollamos en ordenadores personales (PC o Mac) con procesadores Intel/AMD, 8GB+ RAM. En producción, el servidor puede ser un VPS o máquina dedicada.
+- Desarrollo: PC/Mac, Intel/AMD, 8GB+ RAM
+- Producción: VPS o máquina dedicada
+
+---
 
 ## 2. Sistema operativo
 
-Usamos macOS y Windows para desarrollo, y Linux (Ubuntu) para producción, por su estabilidad y soporte en servidores.
+- macOS y Windows en desarrollo
+- Linux (Ubuntu) en producción
+
+---
 
 ## 3. Configuración de redes
 
-El servidor usa red local en desarrollo y red pública en producción. Usamos HTTP/HTTPS y configuramos firewalls y autenticación para seguridad.
+- Red local en desarrollo, pública en producción
+- HTTP/HTTPS, firewall y autenticación
+
+---
 
 ## 4. Copias de seguridad
 
-Realizamos copias de la base de datos y archivos importantes periódicamente, usando scripts automáticos o herramientas del hosting.
+- Backups periódicos de BD y archivos
+- Scripts automáticos o herramientas del hosting
+
+---
 
 ## 5. Integridad y seguridad de datos
 
-Usamos contraseñas cifradas, validación de entradas y backups. Limitamos accesos según roles de usuario.
+- Contraseñas cifradas, validación de entradas, backups
+- Accesos limitados por roles
+
+---
 
 ## 6. Usuarios, permisos y accesos
 
-En el sistema operativo, configuramos usuarios y permisos para que solo el administrador pueda modificar archivos críticos.
+- Usuarios y permisos en SO
+- Solo admin modifica archivos críticos
+
+---
 
 ## 7. Documentación técnica
 
-Documentamos la configuración en archivos markdown y README, explicando pasos de instalación y despliegue.
+- Archivos markdown y README
+- Pasos de instalación y despliegue
 
 ---
 
@@ -117,27 +168,39 @@ Documentamos la configuración en archivos markdown y README, explicando pasos d
 
 ## 1. Entorno de desarrollo (IDE)
 
-Usamos Visual Studio Code, configurado con extensiones para JavaScript, Node.js y MySQL.
+- Visual Studio Code
+- Extensiones: JavaScript, Node.js, MySQL
+
+---
 
 ## 2. Automatización de tareas
 
-Utilizamos scripts en `package.json` para iniciar el servidor, ejecutar tests y otras tareas.
+- Scripts en `package.json` para servidor, tests, etc.
+
+---
 
 ## 3. Control de versiones
 
-Usamos Git y GitHub para gestionar versiones y ramas. Creamos ramas para nuevas funcionalidades y las fusionamos tras revisión.
+- Git y GitHub
+- Ramas para features y revisiones
+
+---
 
 ## 4. Refactorización
 
-Revisamos y mejoramos el código periódicamente, eliminando duplicidades y mejorando nombres de variables y funciones.
+- Mejoras periódicas, nombres claros, sin duplicidades
+
+---
 
 ## 5. Documentación técnica
 
-Usamos archivos markdown (`README.md`, `aprendizaje.md`) y comentarios en el código.
+- Markdown (`README.md`, `aprendizaje.md`), comentarios
+
+---
 
 ## 6. Diagramas
 
-Podemos crear diagramas de clases o de flujo usando herramientas como draw.io o plantUML.
+- Diagramas de clases/flujo (draw.io, plantUML)
 
 ---
 
@@ -145,19 +208,26 @@ Podemos crear diagramas de clases o de flujo usando herramientas como draw.io o 
 
 ## 1. Sistema gestor
 
-Usamos MySQL por su robustez y facilidad de integración con Node.js.
+- MySQL (robusto, fácil integración Node.js)
+
+---
 
 ## 2. Modelo entidad-relación
 
-Diseñamos tablas para usuarios, empleados, pedidos, etc., y sus relaciones (por ejemplo, un pedido pertenece a un usuario).
+- Tablas: usuarios, empleados, pedidos, etc.
+- Relaciones: un pedido pertenece a un usuario
+
+---
 
 ## 3. Vistas, procedimientos, disparadores
 
-Podemos usar vistas para consultas complejas y procedimientos para automatizar tareas, aunque en este proyecto su uso es limitado.
+- Vistas y procedimientos para automatizar tareas (uso limitado)
+
+---
 
 ## 4. Protección y recuperación de datos
 
-Implementamos backups y validaciones para evitar pérdidas o corrupciones.
+- Backups y validaciones
 
 ---
 
@@ -165,27 +235,39 @@ Implementamos backups y validaciones para evitar pérdidas o corrupciones.
 
 ## 1. Estructura de HTML
 
-Usamos etiquetas semánticas (`<header>`, `<main>`, `<footer>`) y seguimos buenas prácticas para accesibilidad y SEO.
+- Etiquetas semánticas (`<header>`, `<main>`, `<footer>`)
+- Buenas prácticas para accesibilidad y SEO
+
+---
 
 ## 2. Tecnologías frontend
 
-Utilizamos HTML, CSS y JavaScript porque son estándar para aplicaciones web.
+- HTML, CSS, JavaScript (estándar web)
+
+---
 
 ## 3. Interacción con el DOM
 
-Sí, usamos JavaScript para modificar el DOM dinámicamente (por ejemplo, mostrar/ocultar menús o actualizar datos en tiempo real).
+- JavaScript para modificar el DOM dinámicamente
+
+---
 
 ## 4. Validación de HTML y CSS
 
-Validamos los archivos usando validadores online y extensiones del IDE.
+- Validadores online y extensiones del IDE
+
+---
 
 ## 5. Conversión de datos (XML, JSON)
 
-Usamos JSON para intercambiar datos entre frontend y backend, por su facilidad de uso en JavaScript.
+- JSON para intercambio frontend-backend
+
+---
 
 ## 6. Integración con sistemas de gestión
 
-Nuestra aplicación es una aplicación de gestión empresarial (restaurante), gestionando empleados, pedidos, reservas, etc.
+- Aplicación de gestión empresarial (restaurante)
+- Gestión de empleados, pedidos, reservas, etc.
 
 ---
 
@@ -193,11 +275,15 @@ Nuestra aplicación es una aplicación de gestión empresarial (restaurante), ge
 
 ## 1. Objetivo del software
 
-Facilitar la gestión de un restaurante: empleados, pedidos, reservas, menús, etc.
+- Gestionar restaurante: empleados, pedidos, reservas, menús
+
+---
 
 ## 2. Necesidad o problema que soluciona
 
-Evita la gestión manual, reduce errores y mejora la eficiencia del restaurante.
+- Evita gestión manual, reduce errores, mejora eficiencia
+
+---
 
 ## 3. Stack de tecnologías
 
@@ -206,10 +292,21 @@ Evita la gestión manual, reduce errores y mejora la eficiencia del restaurante.
 - **Base de datos:** MySQL
 - **Control de versiones:** Git, GitHub
 
-Elegimos este stack por su popularidad, soporte y facilidad de aprendizaje.
+---
 
 ## 4. Desarrollo por versiones
 
-- **Versión 1:** Login y gestión básica de empleados.
-- **Versión 2:** Gestión de pedidos y reservas.
-- **Versión 3:** Reportes y estadísticas.
+- v1: Login y gestión básica de empleados
+- v2: Gestión de pedidos y reservas
+- v3: Reportes y estadísticas
+
+---
+
+<style>
+section code, section pre {
+  font-size: 0.8em;
+}
+.small-code code, .small-code pre {
+  font-size: 0.7em;
+}
+</style>
