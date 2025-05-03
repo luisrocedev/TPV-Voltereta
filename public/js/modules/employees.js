@@ -132,7 +132,12 @@ async function createEmployee() {
       if (profilePicElem) profilePicElem.value = '';
       await loadEmployees();
     } else {
-      alert(data.message);
+      if (data.errors) {
+        const msgs = data.errors.map(err => err.msg).join("\n");
+        alert(msgs);
+      } else {
+        alert(data.message || 'Error desconocido al crear empleado');
+      }
     }
   } catch (err) {
     console.error(err);
@@ -183,7 +188,12 @@ async function updateEmployee() {
       if (modal) modal.close();
       await loadEmployees();
     } else {
-      alert(data.message);
+      if (data.errors) {
+        const msgs = data.errors.map(err => err.msg).join("\n");
+        alert(msgs);
+      } else {
+        alert(data.message || 'Error desconocido al actualizar empleado');
+      }
     }
   } catch (err) {
     console.error(err);

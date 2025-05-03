@@ -49,10 +49,7 @@ router.post(
       .optional()
       .isEmail().withMessage('El email debe ser válido')
       .normalizeEmail(),
-    body('profile_pic')
-      .optional()
-      .isURL().withMessage('La URL debe ser válida')
-      .trim()
+    // La foto de perfil no es obligatoria para crear empleado y no se valida URL
   ],
   validateFields,
   async (req, res) => {
