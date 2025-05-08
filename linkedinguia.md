@@ -1,125 +1,144 @@
-# Guía para Publicaciones de LinkedIn – Proyecto "TPV-Voltereta"
-
-Esta guía te ayudará a preparar y realizar publicaciones de LinkedIn sobre el proyecto TPV-Voltereta, adaptadas a cada asignatura. Puedes copiar y completar los ejemplos durante el examen.
+# Guía de publicaciones LinkedIn para Voltereta (con ejemplos y marketing)
 
 ---
 
-## Lenguajes de Marcas
+## Lenguajes de Marcas y Sistemas de Gestión de Información
 
-🧾 **Presentando “TPV-Voltereta” – Lenguajes de Marcas**
+**Publicación:**
 
-La interfaz de TPV-Voltereta está desarrollada con HTML5 y CSS3, permitiendo una experiencia de usuario intuitiva y profesional.
+🌐 Voltereta cuenta con una interfaz web moderna desarrollada en HTML5, CSS3 y JavaScript. La experiencia de usuario es clave: menús intuitivos, formularios validados y una navegación ágil para la gestión de empleados y caja.
 
-Ejemplo de código:
+**Ejemplo de código (HTML de login):**
 
-**<**form\*\* **id**=**"login-form"**>\*\*
+```html
+<form id="loginForm">
+  <input
+    type="text"
+    id="usuario"
+    name="usuario"
+    placeholder="Usuario"
+    required
+  />
+  <input
+    type="password"
+    id="password"
+    name="password"
+    placeholder="Contraseña"
+    required
+  />
+  <button type="submit">Entrar</button>
+</form>
+```
 
-** <**input\*\* **type**=**"text"** **id**=**"usuario"** **placeholder**=**"Usuario"** />\*\*
+#HTML #CSS #JavaScript #UX
 
-** <**input\*\* **type**=**"password"** **id**=**"password"** **placeholder**=**"Contraseña"** />\*\*
-
-** <**button\*\* **type**=**"submit"**>Entrar</**button**>\*\*
-
-**</**form**>**
-
-[Sube aquí una captura de la pantalla de login o dashboard]
-
----
-
-## Sistemas Informáticos
-
-🔒 **Seguridad y rendimiento en “TPV-Voltereta” – Sistemas Informáticos**
-
-El backend utiliza Node.js y Express, implementando middlewares para la gestión de sesiones, autenticación y control de errores.
-
-Ejemplo de código:
-
-**const** **express** **=** **require**(**'express'**)**;**
-
-**const** **app** **=** **express**(**)**;
-
-**app**.**use**(**require**(**'./middlewares/auth'**)**)**;
-
-**app**.**use**(**require**(**'./middlewares/errorHandler'**)**)**;
-
-[Incluye aquí un diagrama de arquitectura o consola mostrando logs]
-
----
-
-## Base de Datos
-
-📊 **Gestión de datos en “TPV-Voltereta” – Base de Datos**
-
-TPV-Voltereta gestiona productos, ventas y empleados usando una base de datos SQL, permitiendo consultas y operaciones eficientes.
-
-Ejemplo de código:
-
-**// db.js**
-
-**const** **mysql** **=** **require**(**'mysql2'**)**;**
-
-**const** **connection** **=** **mysql**.**createConnection**(**{** **/_ ...config... _/** **}**)**;**
-
-**connection**.**query**(**'SELECT \* FROM productos'**, **(**err**, **results**)** **=>** **{**
-
-\*\* \*\*// ...gestión de resultados...
-
-**}**)**;**
-
-[Adjunta aquí un fragmento de la base de datos o una consulta ejemplo]
-
----
-
-## Entornos de Desarrollo
-
-⚙️ **Desarrollo ágil con npm – Entornos de Desarrollo**
-
-El proyecto utiliza npm para gestionar dependencias y scripts, facilitando la instalación y despliegue.
-
-Ejemplo de script en package.json:
-
-**"scripts"**: **{**
-
-\*\* **"start"**: \*\*"node server.js"
-
-**}**
-
-[Incluye una captura de la terminal ejecutando npm start]
+**Imagen/vídeo sugerido:**  
+Captura de la pantalla de login o dashboard.
 
 ---
 
 ## Programación
 
-💻 **Lógica y algoritmia en “TPV-Voltereta” – Programación**
+**Publicación:**
 
-La lógica de negocio se desarrolla en JavaScript, gestionando operaciones de venta, control de stock y generación de informes.
+🧑‍💻 Voltereta está desarrollado en Node.js, aplicando el paradigma de programación modular y asincrónica. Los controladores y middlewares gestionan la lógica de negocio y la seguridad, facilitando la escalabilidad y el mantenimiento.
 
-Ejemplo de código:
+**Ejemplo de código (middleware de autenticación):**
 
-**// server.js**
+```js
+// middlewares/auth.js
+module.exports = function (req, res, next) {
+  if (req.isAuthenticated()) return next();
+  res.redirect("/login");
+};
+```
 
-**app**.**post**(**'/venta'**, **(**req**, **res**)** **=>** **{**
+#NodeJS #JavaScript #Backend
 
-\*\* **// Lógica para registrar una venta y actualizar **stock\*\*
+**Imagen/vídeo sugerido:**  
+Fragmento de código de un middleware o controlador.
 
-**}**)**;**
+---
 
-[Incluye aquí un diagrama de flujo o fragmento de la lógica de ventas]
+## Base de Datos
+
+**Publicación:**
+
+🗄️ Voltereta utiliza una base de datos relacional para almacenar información de empleados, caja y operaciones. El diseño asegura integridad y rapidez en las consultas.
+
+**Ejemplo de código (consulta SQL):**
+
+```sql
+SELECT nombre, turno FROM empleados WHERE activo = 1;
+```
+
+#SQL #Database
+
+**Imagen/vídeo sugerido:**  
+Diagrama de tablas o consulta en ejecución en el panel de administración.
+
+---
+
+## Sistemas Informáticos
+
+**Publicación:**
+
+🖥️ Voltereta es multiplataforma y puede desplegarse en servidores Linux, Windows o macOS. Incluye logs de errores y scripts para copias de seguridad, asegurando la disponibilidad y trazabilidad de la información.
+
+**Ejemplo de código (script de log en Node.js):**
+
+```js
+const fs = require("fs");
+fs.appendFile("logs/error.log", "Error detectado", (err) => {});
+```
+
+#SysAdmin #Logs #Backup
+
+**Imagen/vídeo sugerido:**  
+Captura de logs o consola de administración.
+
+---
+
+## Entornos de Desarrollo
+
+**Publicación:**
+
+⚙️ El desarrollo de Voltereta se gestiona con VS Code y GitHub. El uso de ramas y pull requests facilita la colaboración y la integración continua.
+
+**Ejemplo de código (extracto de package.json):**
+
+```json
+{
+  "name": "voltereta",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  }
+}
+```
+
+#VSCode #GitHub #NodeJS
+
+**Imagen/vídeo sugerido:**  
+Captura de VS Code con el proyecto abierto y el panel de Git.
 
 ---
 
 ## Proyecto Intermodular
 
-🤝 **Integración total: “TPV-Voltereta” – Proyecto Intermodular**
+**Publicación:**
 
-TPV-Voltereta es el resultado de la integración de conocimientos de todas las asignaturas, desde la interfaz hasta la gestión de datos y lógica de negocio.
+🌟 Voltereta es un proyecto intermodular que integra gestión de empleados, caja y reportes en una sola plataforma web. El desarrollo ha sido incremental, añadiendo módulos y mejorando la experiencia de usuario en cada versión.
 
-Ejemplo de función:
+**Ejemplo de flujo de trabajo:**
 
-**function** **procesarVenta**(**productos**, **usuario**)\*\* \*\*{
+```plaintext
+Login → Gestión de empleados → Control de caja → Reportes → Logs y backup
+```
 
-\*\* **// Lógica para procesar la venta y registrar en la **base de datos\*\*
+#FullStack #GestiónEmpresarial
 
-**}**
+**Imagen/vídeo sugerido:**  
+Vídeo mostrando el flujo de trabajo o collage de pantallas principales.
 
-[Sube un gif o imagen del TPV funcionando en tiempo real]
+---
