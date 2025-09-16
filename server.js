@@ -35,9 +35,10 @@ app.set('io', io);
 
 // Configuración de CORS para permitir solicitudes cross-origin
 app.use(cors({
-  origin: '*',  // En producción, restringe esto a dominios específicos
+  origin: process.env.CORS_ORIGIN || '*',  // En producción, usar dominio específico
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 
 app.use(express.json());
